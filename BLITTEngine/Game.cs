@@ -78,14 +78,16 @@ namespace BLITTEngine
                 {
                     CurrentScene?.Update(GameClock.DeltaTime);
                     
-                    Platform.SetWindowTitle((1.0f/GameClock.DeltaTime).ToString());
-                    
                     Keyboard.PostUpdate();
                     
                     GameClock.TotalTime -= GameClock.FrameDuration;
                 }
                 
                 CurrentScene?.Draw();
+
+#if DEBUG
+                GraphicsDevice.DrawDebugInfo();
+#endif
                 GraphicsDevice.Flip();
                 
                 if (Screen.NeedsUpdate)

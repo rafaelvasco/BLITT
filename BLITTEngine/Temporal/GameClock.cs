@@ -10,6 +10,8 @@ namespace BLITTEngine.Temporal
             get => 1 / FrameDuration;
             set => FrameDuration = 1 / value;
         }
+
+        public static int FPS => fps;
         
         internal static double TotalTime;
 
@@ -24,6 +26,10 @@ namespace BLITTEngine.Temporal
         private static TimeSpan delta_timespan;
 
         private static TimeSpan total_timespan;
+
+        private static int fps;
+
+        private static float fps_timer;
 
 
         internal static void Start()
@@ -59,6 +65,14 @@ namespace BLITTEngine.Temporal
                 TotalTime += delta_timespan.TotalSeconds;
 
                 DeltaTime = (float) delta_timespan.TotalSeconds;
+
+                fps_timer += DeltaTime;
+
+                if (fps_timer > 0.5)
+                {
+                    fps = (int)(1 / DeltaTime);
+                    fps_timer = 0;
+                }
             }
             else
             {

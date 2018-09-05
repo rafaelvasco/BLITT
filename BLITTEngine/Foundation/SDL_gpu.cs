@@ -1,10 +1,45 @@
 using System;
 using System.Runtime.InteropServices;
+using NativeLibraryLoader;
 
 namespace BLITTEngine.Foundation
 {
     internal static unsafe class SDLGpu
     {
+        private static readonly NativeLibrary lib = LoadSDLGPU();
+
+        private static NativeLibrary LoadSDLGPU()
+        {
+            string[] names;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                names = new[] { "libSDL_gpu.dll" };
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                names = new[]
+                {
+                    "libSDL_gpu.so",
+                    "libSDL_gpu.so.0",
+                    "libSDL_gpu.so.1",
+                };
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                names = new[]
+                {
+                    "libSDL_gpu.dylib"
+                };
+            }
+            else
+            {
+                throw new Exception("Unknown SDL_gpu platform. ");
+            }
+
+            return new NativeLibrary(names);
+        }
+
+
         /* ENUMS _ CONSTANTS */
 
         public enum GPU_RendererBackEnd
@@ -273,7 +308,7 @@ namespace BLITTEngine.Foundation
         [StructLayout(LayoutKind.Sequential)]
         public struct GPU_RendererID
         {
-            public char* name;
+            public string name;
             public GPU_RendererBackEnd renderer;
             public int major_version;
             public int minor_version;
@@ -304,7 +339,44 @@ namespace BLITTEngine.Foundation
         [StructLayout(LayoutKind.Sequential)]
         public struct GPU_Image
         {
-            
+            public IntPtr renderer; // GPU_Renderer
+            public IntPtr context_target; // GPU_Target;
+            public IntPtr target; // GPU_Target;
+
+            public ushort w, h;
+
+            public bool using_virtual_resolution;
+
+            public GPU_Format format;
+
+            public int num_layers;
+            public int bytes_per_pixel;
+
+            public ushort base_w, base_h;
+
+            public ushort texture_w, texture_h;
+
+            public bool has_mipmaps;
+
+            public float anchor_x;
+            public float anchor_y;
+
+            public SDL.SDL_Color color;
+
+            public bool use_blending;
+            public GPU_BlendMode blend_mode;
+            public GPU_Filter filter_mode;
+            public GPU_Snap snap_mode;
+            public GPU_Wrap wrap_mode_x;
+            public GPU_Wrap wrap_mode_y;
+
+            public IntPtr data; // void*
+
+            public int refcount;
+
+            public bool is_alias;
+         
+
         }
         
         [StructLayout(LayoutKind.Sequential)]
@@ -337,7 +409,7 @@ namespace BLITTEngine.Foundation
         [StructLayout(LayoutKind.Sequential)]
         public struct GPU_Context
         {
-            public IntPtr context;
+            public IntPtr context; // void*
             public bool failed;
 
             public uint windowID;
@@ -370,20 +442,21 @@ namespace BLITTEngine.Foundation
 
             public int refcount;
 
-            public IntPtr data;
+            public IntPtr data; // void*
 
         }
         
         [StructLayout(LayoutKind.Sequential)]
         public struct GPU_Target
         {
-            //public GPU_Renderer renderer; // TODO
+            public IntPtr renderer; // GPU_Renderer
 
-            //public GPU_Target context_target;
 
-            public GPU_Image image;
+            public IntPtr context_target; // GPU_Target
 
-            public IntPtr data; // TODO
+            public IntPtr image; // GPU_Image
+
+            public IntPtr data; // void*
 
             public ushort w, h;
             public bool using_virtual_resolution;
@@ -404,7 +477,11 @@ namespace BLITTEngine.Foundation
 
             public GPU_Comparison depth_function;
 
-            public GPU_Context* context;
+            public IntPtr context; // GPU_Context
+
+            public int refcount;
+
+            public bool is_alias;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -422,7 +499,7 @@ namespace BLITTEngine.Foundation
         public struct GPU_Attribute
         {
             public int location;
-            public IntPtr values; /* TODO */
+            public IntPtr values; // void*
             public GPU_AttributeFormat format;
         }
         
@@ -431,13 +508,13 @@ namespace BLITTEngine.Foundation
         {
             public bool enabled;
             public int num_values;
-            public IntPtr next_value; /* TODO */
+            public IntPtr next_value; // void*
             
             public int per_vertex_storage_stride_bytes;
             public int per_vertex_storage_offset_bytes;
             public int per_vertex_storage_size;
 
-            public IntPtr per_vertex_storage; /* TODO */
+            public IntPtr per_vertex_storage; // void*
 
             public GPU_Attribute attribute;
         }
@@ -449,7 +526,11 @@ namespace BLITTEngine.Foundation
             public GPU_Error error;
             public string details;
         }
-        
+
+
+        /// <summary>
+        /// Renderer object which specializes the API to a particular backend.
+        /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct GPU_Renderer
         {
@@ -465,23 +546,534 @@ namespace BLITTEngine.Foundation
 
             public GPU_Feature enabled_features;
 
-            public GPU_Target current_context_target;
+            public IntPtr current_context_target; // GPU_Target
 
             public bool coordinate_mode;
 
             public float default_image_anchor_x;
             public float default_image_anchor_y;
 
-            public GPU_RendererImpl impl;
+            public IntPtr impl; // GPU_RendererImpl
         }
-        
-        public struct GPU_RendererImpl
-        {
-            
-        }
-        
+
+
         /* METHODS */
-        
-        
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetInitWindow_d(uint windowID);
+        private static GPU_SetInitWindow_d GPU_SetInitWindow_f;
+        public static void GPU_SetInitWindow(uint windowID) => GPU_SetInitWindow_f(windowID);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate uint GPU_GetInitWindow_d();
+        private static GPU_GetInitWindow_d GPU_GetInitWindow_f;
+        public static uint GPU_GetInitWindow() => GPU_GetInitWindow_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetPreInitFlags_d(GPU_InitFlag GPU_Flags);
+        private static GPU_SetPreInitFlags_d GPU_SetPreInitFlags_f;
+        public static void GPU_SetPreInitFlags(GPU_InitFlag GPU_Flags) => GPU_SetPreInitFlags_f(GPU_Flags);
+
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetRequiredFeatures_d();
+        private static GPU_SetRequiredFeatures_d GPU_SetRequiredFeatures_f;
+        public static void GPU_SetRequiredFeatures() => GPU_SetRequiredFeatures_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Feature GPU_GetRequiredFeatures_d();
+        private static GetRequiredFeatures_d GPU_GetRequiredFeatures_f;
+        public static GPU_Feature GPU_GetRequiredFeatures() => GPU_GetRequiredFeatures_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GetDefaultRendererOrder_d(out int order_size, GPU_RendererID[] order);
+        private static GPU_GetDefaultRendererOrder_d GPU_GetDefaultRendererOrder_f;
+        public static void GPU_GetDefaultRendererOrder(out int order_size, GPU_RendererID[] order) => GPU_GetDefaultRendererOrder_f(out order_size, order);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_GetRendererOrder_d(out int order_size, GPU_RendererID[] order);
+        private static GPU_GetRendererOrder_d GPU_GetRendererOrder_f;
+        public static void GPU_GetRendererOrder(out int order_size, GPU_RendererID[] order) => GPU_GetRendererOrder_f(out order_size, order);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetRendererOrder_d(GPU_RendererID* order);
+        private static GPU_SetRendererOrder_d GPU_SetRendererOrder_f;
+        public static void GPU_SetRendererOrder(GPU_RendererID* order) => GPU_SetRendererOrder_f(order);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Target* GPU_Init_d(ushort w, ushort h, GPU_WindowFlag SDL_flags);
+        private static GPU_Init_d GPU_Init_f;
+        public static GPU_Target* GPU_Init(ushort w, ushort h, GPU_WindowFlag SDL_flags) => GPU_Init_f(w, h, SDL_flags);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Target* GPU_InitRenderer_d(GPU_RendererBackend renderer_backend, ushort w, ushort h, GPU_WindowFlag SDL_flags);
+        private static GPU_InitRenderer_d GPU_InitRenderer_f;
+        public static GPU_Target* GPU_InitRenderer(GPU_RendererBackend renderer_backend, ushort w, ushort h, GPU_WindowFlag SDL_flags) => GPU_InitRenderer_f(renderer_backend, w, h, SDL_flags);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Target* GPU_InitRendererByID_d(GPU_RendererID renderer_request, ushort w, ushort h, GPU_WindowFlag SDL_flags);
+        private static GPU_InitRendererByID_d GPU_InitRendererByID_f;
+        public static GPU_Target* GPU_InitRendererByID(GPU_RendererID renderer_request, ushort w, ushort h, GPU_WindowFlag SDL_flags) => GPU_InitRendererByID_f(renderer_request, w, h, SDL_flags);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool GPU_IsFeatureEnabled_d(GPU_Feature feature);
+        private static GPU_IsFeatureEnabled_d GPU_IsFeatureEnabled_f;
+        public static bool GPU_IsFeatureEnabled(GPU_Feature feature) => GPU_IsFeatureEnabled_f(feature);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_CloseCurrentRenderer_d();
+        private static GPU_CloseCurrentRenderer_d GPU_CloseCurrentRenderer_f;
+        public static void GPU_CloseCurrentRenderer() => GPU_CloseCurrentRenderer_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate return GPU_Quit_d();
+        private static GPU_Quit_d GPU_Quit_f;
+        public static return GPU_Quit() => GPU_Quit_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetDebugLevel_d(GPU_DebugLevel level);
+        private static GPU_SetDebugLevel_d GPU_SetDebugLevel_f;
+        public static void GPU_SetDebugLevel(GPU_DebugLevel level) => GPU_SetDebugLevel_f(level);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_DebugLevel GPU_GetDebugLevel_d();
+        private static GPU_GetDebugLevel_d GPU_GetDebugLevel_f;
+        public static GPU_DebugLevel GPU_GetDebugLevel() => GPU_GetDebugLevel_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_LogInfo_d();
+        private static GPU_LogInfo_d GPU_LogInfo_f;
+        public static void GPU_LogInfo() => GPU_LogInfo_f(); // TODO
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_LogWarning_d();
+        private static GPU_LogWarning_d GPU_LogWarning_f;
+        public static void GPU_LogWarning() => GPU_LogWarning_f(); // TODO
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_LogError_d();
+        private static GPU_LogError_d GPU_LogError_f;
+        public static void GPU_LogError() => GPU_LogError_f(); // TODO
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetLogCallback_d();
+        private static GPU_SetLogCallback_d GPU_SetLogCallback_f;
+        public static void GPU_SetLogCallback() => GPU_SetLogCallback_f(); // TODO
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_PushErrorCode_d();
+        private static GPU_PushErrorCode_d GPU_PushErrorCode_f;
+        public static void GPU_PushErrorCode() => GPU_PushErrorCode_f(); // TODO
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_ErrorObject GPU_PopErrorCode_d();
+        private static GPU_PopErrorCode_d GPU_PopErrorCode_f;
+        public static GPU_ErrorObject GPU_PopErrorCode() => GPU_PopErrorCode_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate string GPU_GetErrorString_d(GPU_Error error);
+        private static GPU_GetErrorString_d GPU_GetErrorString_f;
+        public static string GPU_GetErrorString(GPU_Error error) => GPU_GetErrorString_f(error);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetErrorQueueMax_d(uint max);
+        private static GPU_SetErrorQueueMax_d GPU_SetErrorQueueMax_f;
+        public static void GPU_SetErrorQueueMax(uint max) => GPU_SetErrorQueueMax_f(max);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_RendererID GPU_MakeRendererID_d(string name, GPU_RendererBackend renderer_backend, int major_version, int minor_version);
+        private static GPU_MakeRendererID_d GPU_MakeRendererID_f;
+        public static GPU_RendererID GPU_MakeRendererID(string name, GPU_RendererBackend renderer_backend, int major_version, int minor_version)
+            => GPU_MakeRendererID_f(name, renderer_backend, major_version, minor_version);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_RendererID GPU_GetRendererID_d(GPU_RendererBackend renderer_backend);
+        private static GPU_GetRendererID_d GPU_GetRendererID_f;
+        public static GPU_RendererID GPU_GetRendererID(GPU_RendererBackend renderer_backend) => GPU_GetRendererID_f(renderer_backend);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int GPU_GetNumRegisteredRenderers_d();
+        private static GPU_GetNumRegisteredRenderers_d GPU_GetNumRegisteredRenderers_f;
+        public static int GPU_GetNumRegisteredRenderers() => GPU_GetNumRegisteredRenderers_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_GetRegisteredRendererList_d();
+        private static GPU_GetRegisteredRendererList_d GPU_GetRegisteredRendererList_f;
+        public static void GPU_GetRegisteredRendererList() => GPU_GetRegisteredRendererList_f(); // TODO
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_RegisterRenderer_d();
+        private static GPU_RegisterRenderer_d GPU_RegisterRenderer_f;
+        public static void GPU_RegisterRenderer() => GPU_RegisterRenderer_f(); // TODO
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_RendererBackend GPU_ReserveNextRendererEnum_d();
+        private static GPU_ReserveNextRendererEnum_d GPU_ReserveNextRendererEnum_f;
+        public static GPU_RendererBackend GPU_ReserveNextRendererEnum() => GPU_ReserveNextRendererEnum_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int GPU_GetNumActiveRenderers_d();
+        private static GPU_GetNumActiveRenderers_d GPU_GetNumActiveRenderers_f;
+        public static int GPU_GetNumActiveRenderers() => GPU_GetNumActiveRenderers_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_GetActiveRendererList_d();
+        private static GPU_GetActiveRendererList_d GPU_GetActiveRendererList_f;
+        public static void GPU_GetActiveRendererList() => GPU_GetActiveRendererList_f(); // TODO
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Renderer* GPU_GetCurrentRenderer_d();
+        private static GPU_GetCurrentRenderer_d GPU_GetCurrentRenderer_f;
+        public static GPU_Renderer* GPU_GetCurrentRenderer() => GPU_GetCurrentRenderer_f(); // TODO
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetCurrentRenderer_d(GPU_RendererID id);
+        private static GPU_SetCurrentRenderer_d GPU_SetCurrentRenderer_f;
+        public static void GPU_SetCurrentRenderer(GPU_RendererID id) => GPU_SetCurrentRenderer_f(id);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Renderer* GPU_GetRenderer_d(GPU_RendererID id);
+        private static GPU_GetRenderer_d GPU_GetRenderer_f;
+        public static GPU_Renderer* GPU_GetRenderer(GPU_RendererID id) => GPU_GetRenderer_f(id);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_FreeRenderer_d(GPU_Renderer* renderer);
+        private static GPU_FreeRenderer_d GPU_FreeRenderer_f;
+        public static void GPU_FreeRenderer(GPU_Renderer* renderer) => GPU_FreeRenderer_f(renderer);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_ResetRendererState_d();
+        private static GPU_ResetRendererState_d GPU_ResetRendererState_f;
+        public static void GPU_ResetRendererState() => GPU_ResetRendererState_f();
+
+
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetCoordinateMode_d(bool use_math_coords);
+        private static GPU_SetCoordinateMode_d GPU_SetCoordinateMode_f;
+        public static void GPU_SetCoordinateMode(bool use_math_coords) => GPU_SetCoordinateMode_f(use_math_coords);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool GPU_GetCoordinateMode_d();
+        private static GPU_GetCoordinateMode_d GPU_GetCoordinateMode_f;
+        public static bool GPU_GetCoordinateMode() => GPU_GetCoordinateMode_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetDefaultAnchor_d(float anchor_x, float anchor_y);
+        private static GPU_SetDefaultAnchor_d GPU_SetDefaultAnchor_f;
+        public static void GPU_SetDefaultAnchor(float anchor_x, float anchor_y) => GPU_SetDefaultAnchor_f(anchor_x, anchor_y);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_GetDefaultAnchor_d(out int anchor_x, out int anchor_y);
+        private static GPU_GetDefaultAnchor_d GPU_GetDefaultAnchor_f;
+        public static void GPU_GetDefaultAnchor(out int anchor_x, out int anchor_y) => GPU_GetDefaultAnchor_f(out anchor_x, out anchor_y);
+
+
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Target* GPU_GetContextTarget_d();
+        private static GPU_GetContextTarget_d GPU_GetContextTarget_f;
+        public static GPU_Target* GPU_GetContextTarget() => GPU_GetContextTarget_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Target* GPU_GetWindowTarget_d(uint windowID);
+        private static GPU_GetWindowTarget_d GPU_GetWindowTarget_f;
+        public static GPU_Target* GPU_GetWindowTarget(uint windowID) => GPU_GetWindowTarget_f(windowID);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_MakeCurrent_d(GPU_Target* target, uint windowID);
+        private static GPU_MakeCurrent_d GPU_MakeCurrent_f;
+        public static void GPU_MakeCurrent(GPU_Target* target, uint windowID) => GPU_MakeCurrent_f(target, windowID);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool GPU_SetWindowResolution_d(ushort w, ushort h);
+        private static GPU_SetWindowResolution_d GPU_SetWindowResolution_f;
+        public static bool GPU_SetWindowResolution(ushort w, ushort h) => GPU_SetWindowResolution_f(w, h);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool GPU_SetFullscreen_d(bool enable_fullscreen, bool use_desktop_resolution);
+        private static GPU_SetFullscreen_d GPU_SetFullscreen_f;
+        public static bool GPU_SetFullscreen(bool enable_fullscreen, bool use_desktop_resolution) => GPU_SetFullscreen_f(enable_fullscreen, use_desktop_resolution);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetShapeBlending_d(bool enable);
+        private static GPU_SetShapeBlending_d GPU_SetShapeBlending_f;
+        public static void GPU_SetShapeBlending(bool enable) => GPU_SetShapeBlending_f(enable);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_BlendMode GPU_GetBlendModeFromPreset_d(GPU_BlendPreset preset);
+        private static GPU_GetBlendModeFromPreset_d GPU_GetBlendModeFromPreset_f;
+        public static GPU_BlendMode GPU_GetBlendModeFromPreset(GPU_BlendPreset preset) => GPU_GetBlendModeFromPreset_f(preset);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetShapeBlendFunction_d(GPU_BlendFunc source_color, GPU_BlendFunc dest_color, GPU_BlendFunc source_alpha, GPU_BlendFunc dest_alpha);
+        private static GPU_SetShapeBlendFunction_d GPU_SetShapeBlendFunction_f;
+        public static void GPU_SetShapeBlendFunction(GPU_BlendFunc source_color, GPU_BlendFunc dest_color, GPU_BlendFunc source_alpha, GPU_BlendFunc dest_alpha)
+            => GPU_SetShapeBlendFunction_f(source_color, dest_color, source_alpha, dest_alpha);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetShapeBlendEquation_d(GPU_BlendEq color_equation, GPU_BlendEq alpha_equation);
+        private static GPU_SetShapeBlendEquation_d GPU_SetShapeBlendEquation_f;
+        public static void GPU_SetShapeBlendEquation(GPU_BlendEq color_equation, GPU_BlendEq alpha_equation) => GPU_SetShapeBlendEquation_f(color_equation, alpha_equation);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetShapeBlendMode_d(GPU_BlendPreset mode);
+        private static GPU_SetShapeBlendMode_d GPU_SetShapeBlendMode_f;
+        public static void GPU_SetShapeBlendMode(GPU_BlendPreset mode) => GPU_SetShapeBlendMode_f(mode);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate float GPU_SetLineThickness_d(float thickness);
+        private static GPU_SetLineThickness_d GPU_SetLineThickness_f;
+        public static float GPU_SetLineThickness(float thickness) => GPU_SetLineThickness_f(thickness);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate float GPU_GetLineThickness_d();
+        private static GPU_GetLineThickness_d GPU_GetLineThickness_f;
+        public static float GPU_GetLineThickness() => GPU_GetLineThickness_f();
+
+
+
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Target* GPU_CreateAliasTarget_d(GPU_Target* target);
+        private static GPU_CreateAliasTarget_d GPU_CreateAliasTarget_f;
+        public static GPU_Target* GPU_CreateAliasTarget(GPU_Target* target) => GPU_CreateAliasTarget_f(target);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Target* GPU_LoadTarget_d(GPU_Image* image);
+        private static GPU_LoadTarget_d GPU_LoadTarget_f;
+        public static GPU_Target* GPU_LoadTarget(GPU_Image* image) => GPU_LoadTarget_f(image);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Target* GPU_GetTarget_d(GPU_Image* image);
+        private static GPU_GetTarget_d GPU_GetTarget_f;
+        public static GPU_Target* GPU_GetTarget(GPU_Image* image) => GPU_GetTarget_f(image);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_FreeTarget_d(GPU_Target* target);
+        private static GPU_FreeTarget_d GPU_FreeTarget_f;
+        public static void GPU_FreeTarget(GPU_Target* target) => GPU_FreeTarget_f(target);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetVirtualResolution_d(GPU_Target* target, ushort w, ushort h);
+        private static GPU_SetVirtualResolution_d GPU_SetVirtualResolution_f;
+        public static void GPU_SetVirtualResolution(GPU_Target* target, ushort w, ushort h) => GPU_SetVirtualResolution_f(target, w, h);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_GetVirtualResolution_d(GPU_Target* target, out ushort w, out ushort h);
+        private static GPU_GetVirtualResolution_d GPU_GetVirtualResolution_f;
+        public static void GPU_GetVirtualResolution(GPU_Target* target, out ushort w, out ushort h) => GPU_GetVirtualResolution_f(target, out w, out h);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_GetVirtualCoords_d(GPU_Target* target, out float x, out float y, out float displayX, out float displayY);
+        private static GPU_GetVirtualCoords_d GPU_GetVirtualCoords_f;
+        public static void GPU_GetVirtualCoords(GPU_Target* target, out float x, out float y, out float displayX, out float displayY)
+            => GPU_GetVirtualCoords_f(target, out x, out y, out displayX, out displayY);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_UnsetVirtualResolution_d(GPU_Target* target);
+        private static GPU_UnsetVirtualResolution_d GPU_UnsetVirtualResolution_f;
+        public static void GPU_UnsetVirtualResolution(GPU_Target* target) => GPU_UnsetVirtualResolution_f(target);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Rect GPU_MakeRect_d(float x, float y, float w, float h);
+        private static GPU_MakeRect_d GPU_MakeRect_f;
+        public static GPU_Rect GPU_MakeRect(float x, float y, float w, float h) => GPU_MakeRect_f(x, y, w, h);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate SDL.SDL_Color GPU_MakeColor_d(byte r, byte g, byte b, byte a);
+        private static GPU_MakeColor_d GPU_MakeColor_f;
+        public static SDL.SDL_Color GPU_MakeColor(byte r, byte g, byte b, byte a) => GPU_MakeColor_f(r, g, b, a);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetViewport_d(GPU_Target* target, GPU_Rect viewport);
+        private static GPU_SetViewport_d GPU_SetViewport_f;
+        public static void GPU_SetViewport(GPU_Target* target, GPU_Rect viewport) => GPU_SetViewport_f(target, viewport);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_UnsetViewport_d(GPU_Target* target);
+        private static GPU_UnsetViewport_d GPU_UnsetViewport_f;
+        public static void GPU_UnsetViewport(GPU_Target* target) => GPU_UnsetViewport_f(target);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Camera GPU_GetDefaultCamera_d();
+        private static GPU_GetDefaultCamera_d GPU_GetDefaultCamera_f;
+        public static GPU_Camera GPU_GetDefaultCamera() => GPU_GetDefaultCamera_f();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Camera GPU_GetCamera_d(GPU_Target* target);
+        private static GPU_GetCamera_d GPU_GetCamera_f;
+        public static GPU_Camera GPU_GetCamera(GPU_Target* target) => GPU_GetCamera_f(target);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Camera GPU_SetCamera_d(GPU_Target* target, GPU_Camera* cam);
+        private static GPU_SetCamera_d GPU_SetCamera_f;
+        public static GPU_Camera GPU_SetCamera(GPU_Target* target, GPU_Camera* cam) => GPU_SetCamera_f(target, cam);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_EnableCamera_d(GPU_Target* target, bool use_camera);
+        private static GPU_EnableCamera_d GPU_EnableCamera_f;
+        public static void GPU_EnableCamera(GPU_Target* target, bool use_camera) => GPU_EnableCamera_f(target, use_camera);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool GPU_IsCameraEnabled_d(GPU_Target* target);
+        private static GPU_IsCameraEnabled_d GPU_IsCameraEnabled_f;
+        public static bool GPU_IsCameraEnabled(GPU_Target* target) => GPU_IsCameraEnabled_f(target);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool GPU_AddDepthBuffer_d(GPU_Target* target);
+        private static GPU_AddDepthBuffer_d GPU_AddDepthBuffer_f;
+        public static bool GPU_AddDepthBuffer(GPU_Target* target) => GPU_AddDepthBuffer_f(target);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetDepthTest_d(GPU_Target* target, bool enable);
+        private static GPU_SetDepthTest_d GPU_SetDepthTest_f;
+        public static void GPU_SetDepthTest(GPU_Target* target, bool enable) => GPU_SetDepthTest_f(target, enable);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetDepthWrite_d(GPU_Target* target, bool enable);
+        private static GPU_SetDepthWrite_d GPU_SetDepthWrite_f;
+        public static void GPU_SetDepthWrite(GPU_Target* target, bool enable) => GPU_SetDepthWrite_f(target, enable);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetDepthFunction_d(GPU_Target* target, GPU_Comparison compare_operation);
+        private static GPU_SetDepthFunction_d GPU_SetDepthFunction_f;
+        public static void GPU_SetDepthFunction(GPU_Target* target, GPU_Comparison compare_operation) => GPU_SetDepthFunction_f(target, compare_operation);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate SDL.SDL_Color GPU_GetPixel_d(GPU_Target* target, short x, short y);
+        private static GPU_GetPixel_d GPU_GetPixel_f;
+        public static SDL.SDL_Color GPU_GetPixel(GPU_Target* target, short x, short y) => GPU_GetPixel_f(target, x, y);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Rect GPU_SetClipRect_d(GPU_Target* target, GPU_Rect rect);
+        private static GPU_SetClipRect_d GPU_SetClipRect_f;
+        public static GPU_Rect GPU_SetClipRect(GPU_Target* target, GPU_Rect rect) => GPU_SetClipRect_f(target, rect);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Rect GPU_SetClip_d(GPU_Target* target, short x, short y, short w, short h);
+        private static GPU_SetClip_d GPU_SetClip_f;
+        public static GPU_Rect GPU_SetClip(GPU_Target* target, short x, short y, short w, short h) => GPU_SetClip_f(target, x, y, w, h);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_UnsetClip_d(GPU_Target* target);
+        private static GPU_UnsetClip_d GPU_UnsetClip_f;
+        public static void GPU_UnsetClip(GPU_Target* target) => GPU_UnsetClip_f(target);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool GPU_IntersectRect_d(GPU_Rect a, GPU_Rect b, out GPU_Rect result);
+        private static GPU_IntersectRect_d GPU_IntersectRect_f;
+        public static bool GPU_IntersectRect(GPU_Rect a, GPU_Rect b, out GPU_Rect result) => GPU_IntersectRect_f(a, b, out result);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool GPU_IntersectClipRect_d(GPU_Target* target, GPU_Rect b, out GPU_Rect result);
+        private static GPU_IntersectClipRect_d GPU_IntersectClipRect_f;
+        public static bool GPU_IntersectClipRect(GPU_Target* target, GPU_Rect b, out GPU_Rect result) => GPU_IntersectClipRect_f(target, b, out result);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetTargetColor_d(GPU_Target* target, SDL.SDL_Color color);
+        private static GPU_SetTargetColor_d GPU_SetTargetColor_f;
+        public static void GPU_SetTargetColor(GPU_Target* target, SDL.SDL_Color color) => GPU_SetTargetColor_f(target, color);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetTargetRGB_d(GPU_Target* target, byte r, byte g, byte b);
+        private static GPU_SetTargetRGB_d GPU_SetTargetRGB_f;
+        public static void GPU_SetTargetRGB(GPU_Target* target, byte r, byte g, byte b) => GPU_SetTargetRGB_f(target, r, g, b);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetTargetRGBA_d(GPU_Target* target, byte r, byte g, byte b, byte a);
+        private static GPU_SetTargetRGBA_d GPU_SetTargetRGBA_f;
+        public static void GPU_SetTargetRGBA(GPU_Target* target, byte r, byte g, byte b, byte a) => GPU_SetTargetRGBA_f(target, r, g, b, a);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_UnsetTargetColor_d(GPU_Target* target);
+        private static GPU_UnsetTargetColor_d GPU_UnsetTargetColor_f;
+        public static void GPU_UnsetTargetColor(GPU_Target* target) => GPU_UnsetTargetColor_f(target);
+
+
+
+
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate SDL.SDL_Surface* GPU_LoadSurface_d(string filename);
+        private static GPU_LoadSurface_d GPU_LoadSurface_f;
+        public static SDL.SDL_Surface* GPU_LoadSurface(string filename) => GPU_LoadSurface_f(filename);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate SDL.SDL_Surface* GPU_LoadSurface_RW_d(SDL.SDL_RWops* rwops, bool free_rwops);
+        private static GPU_LoadSurface_RW_d GPU_LoadSurface_RW_f;
+        public static SDL.SDL_Surface* GPU_LoadSurface_RW(SDL.SDL_RWops* rwops, bool free_rwops) => GPU_LoadSurface_RW_f(rwops, free_rwops);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool GPU_SaveSurface_d(SDL.SDL_Surface* surface, string filename, GPU_FileFormat format);
+        private static GPU_SaveSurface_d GPU_SaveSurface_f;
+        public static bool GPU_SaveSurface(SDL.SDL_Surface* surface, string filename, GPU_FileFormat format) => GPU_SaveSurface_f(surface, filename, format);
+
+
+
+
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Image* GPU_CreateImage_d(ushort w, ushort h, GPU_Format format);
+        private static GPU_CreateImage_d GPU_CreateImage_f;
+        public static GPU_Image* GPU_CreateImage(ushort w, ushort h, GPU_Format format) => GPU_CreateImage_f(w, h, format);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Image* GPU_CreateImageUsingTexture_d(GPU_TextureHandle handle, bool take_ownership);
+        private static GPU_CreateImageUsingTexture_d GPU_CreateImageUsingTexture_f;
+        public static GPU_Image* GPU_CreateImageUsingTexture(GPU_TextureHandle handle, bool take_ownership) => GPU_CreateImageUsingTexture_f(handle, take_ownership);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Image* GPU_LoadImage_d(string filename);
+        private static GPU_LoadImage_d GPU_LoadImage_f;
+        public static GPU_Image* GPU_LoadImage(string filename) => GPU_LoadImage_f(filename);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Image* GPU_LoadImage_RW_d(SDl.SDL_RWops* rwops, bool free_rwops);
+        private static GPU_LoadImage_RW_d GPU_LoadImage_RW_f;
+        public static GPU_Image* GPU_LoadImage_RW(SDL.SDL_RWops* rwops, bool free_rwops) => GPU_LoadImage_RW_f(rwops, free_rwops);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Image* GPU_CreateAliasImage_d(GPU_Image* image);
+        private static GPU_CreateAliasImage_d GPU_CreateAliasImage_f;
+        public static GPU_Image* GPU_CreateAliasImage(GPU_Image* image) => GPU_CreateAliasImage_f(image);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate GPU_Image* GPU_CopyImage_d(GPU_Image* image);
+        private static GPU_CopyImage_d GPU_CopyImage_f;
+        public static GPU_Image* GPU_CopyImage(GPU_Image* image) => GPU_CopyImage_f(image);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_FreeImage_d(GPU_Image* image);
+        private static GPU_FreeImage_d GPU_FreeImage_f;
+        public static void GPU_FreeImage(GPU_Image* image) => GPU_FreeImage_f(image);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetImageVirtualResolution_d(GPU_Image* image, ushort w, ushort h);
+        private static GPU_SetImageVirtualResolution_d GPU_SetImageVirtualResolution_f;
+        public static void GPU_SetImageVirtualResolution(GPU_Image* image, ushort w, ushort h) => GPU_SetImageVirtualResolution_f(image, w, h);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_UnsetImageVirtualResolution_d(GPU_Image* image);
+        private static GPU_UnsetImageVirtualResolution_d GPU_UnsetImageVirtualResolution_f;
+        public static void GPU_UnsetImageVirtualResolution(GPU_Image* image) => GPU_UnsetImageVirtualResolution_f(image);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_UpdateImage_d(GPU_Image* image, GPU_Rect* image_rect, SDL.SDL_Surface* surface, GPU_Rect* surface_rect);
+        private static GPU_UpdateImage_d GPU_UpdateImage_f;
+        public static void GPU_UpdateImage(GPU_Image* image, GPU_Rect* image_rect, SDL.SDL_Surface* surface, GPU_Rect* surface_rect)
+            => GPU_UpdateImage_f(image, image_rect, surface, surface_rect);
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }

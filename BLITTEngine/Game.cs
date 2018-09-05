@@ -36,8 +36,6 @@ namespace BLITTEngine
             
             Platform.GetWindowSize(out int windowW, out int windowH);
             
-            GraphicsDevice.Init(windowW, windowH, Platform.NativeDisplayHandle);
-            
             Keyboard.Init();
             
             Platform.ShowWindow(true);
@@ -85,11 +83,6 @@ namespace BLITTEngine
                 
                 CurrentScene?.Draw();
 
-#if DEBUG
-                GraphicsDevice.DrawDebugInfo();
-#endif
-                GraphicsDevice.Flip();
-                
                 if (Screen.NeedsUpdate)
                 {
                     Console.WriteLine("UPDATE SCREEN");
@@ -109,7 +102,6 @@ namespace BLITTEngine
                 
             }
             
-            GraphicsDevice.Shutdown();
             Platform.Quit();
             
 #if DEBUG

@@ -1,5 +1,6 @@
 using System;
 using BLITTEngine;
+using BLITTEngine.Graphics;
 using BLITTEngine.Input;
 
 namespace BLITTDemo
@@ -19,7 +20,7 @@ namespace BLITTDemo
             }
         }
 
-        public override void Draw()
+        public override void Draw(Canvas canvas)
         {
         }
     }

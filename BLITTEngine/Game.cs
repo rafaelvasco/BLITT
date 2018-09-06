@@ -15,6 +15,8 @@ namespace BLITTEngine
         public static bool ExitOnCloseWindow { get; set; } = true;
         public static Scene CurrentScene { get; private set; }
 
+        private static Canvas canvas;
+
         public static void Run(Scene scene = null)
         {
             if (Running)
@@ -28,13 +30,15 @@ namespace BLITTEngine
             
             Platform = new SDLGamePlatform();
             
-            Platform.Init("BLITT", 800, 600);
+            Platform.Init("BLITT", 800, 600, GraphicsBackend.OpenGL);
             
             Platform.OnQuit += OnPlatformQuit;
             
             Platform.PollEvents();
             
             Platform.GetWindowSize(out int windowW, out int windowH);
+            
+            canvas = new Canvas(Platform.WindowID, windowW, windowH);
             
             Keyboard.Init();
             
@@ -81,7 +85,11 @@ namespace BLITTEngine
                     GameClock.TotalTime -= GameClock.FrameDuration;
                 }
                 
-                CurrentScene?.Draw();
+                canvas.Begin();
+                
+                CurrentScene?.Draw(canvas);
+                
+                canvas.End();
 
                 if (Screen.NeedsUpdate)
                 {
@@ -102,7 +110,9 @@ namespace BLITTEngine
                 
             }
             
+            canvas.Dispose();
             Platform.Quit();
+            
             
 #if DEBUG
             

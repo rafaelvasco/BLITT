@@ -18,15 +18,10 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <TargetPath>SDL2.dll</TargetPath>
         </ContentWithTargetPath>
-        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\bgfx.dll">
+        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\libSDL2_gpu.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <TargetPath>bgfx.dll</TargetPath>
+            <TargetPath>libSDL2_gpu.dll</TargetPath>
         </ContentWithTargetPath>
-        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\bgfx_debug.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <TargetPath>bgfx_debug.dll</TargetPath>
-        </ContentWithTargetPath>
-        
     </ItemGroup>
     <ItemGroup Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">
         <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\osx-x64\libsdl2.dylib">

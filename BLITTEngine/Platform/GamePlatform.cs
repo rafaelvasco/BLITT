@@ -1,4 +1,5 @@
 using System;
+using BLITTEngine.Graphics;
 
 namespace BLITTEngine.Platform
 {
@@ -32,8 +33,9 @@ namespace BLITTEngine.Platform
 
         public abstract bool IsFullscreen { get; }
         public abstract IntPtr NativeDisplayHandle { get; }
+        public abstract uint WindowID { get; }
 
-        public abstract void Init(string title, int width, int height);
+        public abstract void Init(string title, int width, int height, GraphicsBackend graphics_backend);
         public abstract void Quit();
         public abstract void PollEvents();
         public abstract void GetWindowSize(out int w, out int h);

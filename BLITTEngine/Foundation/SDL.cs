@@ -189,6 +189,7 @@ namespace BLITTEngine.Foundation
             SDL_GetVersion_f = lib.LoadFunction<SDL_GetVersion_d>(nameof(SDL_GetVersion));
             SDL_GetVideoDriver_f = lib.LoadFunction<SDL_GetVideoDriver_d>(nameof(SDL_GetVideoDriver));
             SDL_GetWindowBordersSize_f = lib.LoadFunction<SDL_GetWindowBordersSize_d>(nameof(SDL_GetWindowBordersSize));
+            SDL_GetWindowID_f = lib.LoadFunction<SDL_GetWindowID_d>(nameof(SDL_GetWindowID));
             SDL_GetWindowBrightness_f = lib.LoadFunction<SDL_GetWindowBrightness_d>(nameof(SDL_GetWindowBrightness));
             SDL_GetWindowData_f = lib.LoadFunction<SDL_GetWindowData_d>(nameof(SDL_GetWindowData));
             SDL_GetWindowDisplayIndex_f =
@@ -2295,6 +2296,14 @@ namespace BLITTEngine.Foundation
         public static int SDL_GetWindowBordersSize(SDL_Window window, int* top, int* left, int* bottom, int* right) =>
             SDL_GetWindowBordersSize_f(window, top, left, bottom, right);
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate uint SDL_GetWindowID_d(SDL_Window window);
+
+        private static SDL_GetWindowID_d SDL_GetWindowID_f;
+
+        public static uint SDL_GetWindowID(SDL_Window window) =>
+            SDL_GetWindowID_f(window);
+        
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate float SDL_GetWindowBrightness_d(SDL_Window window);
 

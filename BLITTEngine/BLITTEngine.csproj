@@ -31,8 +31,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="NativeLibraryLoader" Version="1.0.10" />
       <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <HintPath>C:\Users\rafae\.nuget\packages\system.runtime.compilerservices.unsafe\4.5.1\ref\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

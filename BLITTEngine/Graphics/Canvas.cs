@@ -1,40 +1,80 @@
-using System;
-using static BLITTEngine.Foundation.SDLGpu;
+using BLITTEngine.Numerics;
+using BLITTEngine.Platform;
+using BLITTEngine.Resources;
 
 namespace BLITTEngine.Graphics
 {
-    public class Canvas : IDisposable
+    public static class Canvas
     {
-        private readonly IntPtr gfx_ctx;
-        
-        internal Canvas(uint windowId, int viewport_width, int viewport_height)
+        public static Color BackgroundColor
         {
-            GPU_SetDebugLevel(GPU_DebugLevel.LEVEL_MAX);
-            
-            GPU_SetInitWindow(windowId);
-
-            gfx_ctx = GPU_Init((ushort) viewport_width, (ushort) viewport_height, GPU_DEFAULT_INIT_FLAGS);
-
-            if (gfx_ctx == IntPtr.Zero)
+            get => background_color;
+            set
             {
-                throw new Exception("Failed to Initialize SDL_Gpu");
+                background_color = value;
+                
+                gfx.SetClearColor(ref background_color);
             }
+        }
+        
+        private static GraphicsModule gfx;
+        private static Color background_color;
+        private static BlitSource blit_source;
+        
+        internal static void Init(GraphicsModule graphicsModule)
+        {
+            gfx = graphicsModule;
+            
+            BackgroundColor = Color.Black;
+        }
+
+        
+
+        public static void SetSurface(Image image)
+        {
             
         }
 
-        internal void Begin()
+        public static void SetBlitSource(BlitSource source)
         {
-            GPU_Clear(gfx_ctx);
+            blit_source = source;
         }
 
-        internal void End()
+        public static void SetTint(Color color)
         {
-            GPU_Flip(gfx_ctx);
+            gfx.SetColor(ref color);
         }
 
-        public void Dispose()
+        public static void DrawRect(float x, float y, float w, float h)
         {
-            GPU_Quit();
+            gfx.DrawRect(x, y, w, h);
+        }
+
+        public static void FillRect(float x, float y, float w, float h)
+        {
+            gfx.FillRect(x, y, w, h);
+        }
+
+        public static void DrawCircle(float x, float y, float radius)
+        {
+            gfx.DrawCircle(x, y, radius);
+        }
+
+        public static void FillCircle(float x, float y, float radius)
+        {
+            gfx.FillCircle(x, y, radius);
+        }
+
+        public static void Blit(float x, float y)
+        {
+            gfx.DrawTexture(blit_source.SourceImage.Texture, x, y);
+        }
+
+        public static void Blit(float x, float y, int tile)
+        {
+            ref RectangleI src_rect = ref blit_source[tile];
+            
+            gfx.DrawTexture(blit_source.SourceImage.Texture, x, y, ref src_rect);
         }
     }
 }

@@ -1,6 +1,6 @@
 using System;
+using System.Diagnostics;
 using BLITTEngine.Foundation;
-using BLITTEngine.Graphics;
 using static BLITTEngine.Foundation.SDL;
 
 namespace BLITTEngine.Platform
@@ -11,27 +11,29 @@ namespace BLITTEngine.Platform
         private uint window_id;
         private IntPtr native_handle;
         private bool is_fullscreen;
+        private SDLGpuGraphicsModule sdl_gpu_graphics;
 
         public override bool IsFullscreen => is_fullscreen;
         public override IntPtr NativeDisplayHandle => native_handle;
-        public override uint WindowID => window_id;
-
+        public override GraphicsModule Graphics => sdl_gpu_graphics;
 
         public override void Init(string title, int width, int height, GraphicsBackend graphics_backend)
         {
             var initFlags = SDL_InitFlags.SDL_INIT_VIDEO
-                            | SDL_InitFlags.SDL_INIT_EVENTS
                             | SDL_InitFlags.SDL_INIT_JOYSTICK;
-
-            if (SDL.SDL_Init(initFlags) != 0)
+            
+            var sw = Stopwatch.StartNew();
+            
+            if (SDL_Init(initFlags) != 0)
             {
-                SDL.SDL_Quit();
-                throw new Exception(SDL.SDL_GetError());
+                SDL_Quit();
+                throw new Exception(SDL_GetError());
             }
             
-            var windowFlags = 
-                SDL_WindowFlags.SDL_WINDOW_HIDDEN
-                | SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI;
+            Console.WriteLine($"Init sdl took: {sw.Elapsed.TotalSeconds}");
+
+            var windowFlags =
+                SDL_WindowFlags.SDL_WINDOW_HIDDEN;
 
 
             switch (graphics_backend)
@@ -54,30 +56,40 @@ namespace BLITTEngine.Platform
                     throw new Exception("Direct3D12 Graphics Backend is not implemented yet.");
                     break;
             }
+
             
-            window = SDL.SDL_CreateWindow(
+            
+            window = SDL_CreateWindow(
                 title, 
-                SDL.SDL_WINDOWPOS_CENTERED,
-                SDL.SDL_WINDOWPOS_CENTERED,
+                SDL_WINDOWPOS_CENTERED,
+                SDL_WINDOWPOS_CENTERED,
                 width, height, windowFlags);
             
             if (window == IntPtr.Zero)
             {
-                SDL.SDL_Quit();
-                throw new Exception(SDL.SDL_GetError());
+                SDL_Quit();
+                throw new Exception(SDL_GetError());
             }
+            
+            Console.WriteLine($"Create window took: {sw.Elapsed.TotalSeconds}");
 
-            window_id = SDL.SDL_GetWindowID(window);
+            window_id = SDL_GetWindowID(window);
             native_handle = GetWindowNativeHandle();
+            
+            sdl_gpu_graphics = new SDLGpuGraphicsModule(window_id, width, height);
+            
+            Console.WriteLine($"Graphics took: {sw.Elapsed.TotalSeconds}");
+            
+            sw.Stop();
         }
         
         private unsafe IntPtr GetWindowNativeHandle()
         {
             SDL_SysWMinfo wmInfo;
 
-            SDL.SDL_GetVersion(&wmInfo.version);
+            SDL_GetVersion(&wmInfo.version);
 
-            SDL.SDL_GetWindowWMInfo(window, &wmInfo);
+            SDL_GetWindowWMInfo(window, &wmInfo);
 
             if(wmInfo.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS)
             {
@@ -98,14 +110,15 @@ namespace BLITTEngine.Platform
 
         public override void Quit()
         {
-            SDL.SDL_Quit();
+            sdl_gpu_graphics.Terminate();
+            SDL_Quit();
         }
 
         public override unsafe void PollEvents()
         {
             SDL_Event ev;
 
-            while(SDL.SDL_PollEvent(&ev) == 1)
+            while(SDL_PollEvent(&ev) == 1)
             {
                 switch (ev.type)
                 {
@@ -186,30 +199,30 @@ namespace BLITTEngine.Platform
                 SetFullscreen(false);
             }
 
-            SDL.SDL_SetWindowPosition(window, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED);
-            SDL.SDL_SetWindowSize(window, w, h);
+            SDL_SetWindowPosition(window, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED);
+            SDL_SetWindowSize(window, w, h);
         }
 
         public override void SetWindowTitle(string title)
         {
-            SDL.SDL_SetWindowTitle(window, title);
+            SDL_SetWindowTitle(window, title);
         }
 
         public override void ShowWindowCursor(bool show)
         {
-            SDL.SDL_ShowCursor(show ? 1 : 0);
+            SDL_ShowCursor(show ? 1 : 0);
         }
 
         public override void ShowWindow(bool show)
         {
-            SDL.SDL_ShowWindow(window);
+            SDL_ShowWindow(window);
         }
 
         public override void SetFullscreen(bool enabled)
         {
             if (is_fullscreen != enabled)
             {
-                if (SDL.SDL_SetWindowFullscreen(window, enabled ? SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP: 0) == 0)
+                if (SDL_SetWindowFullscreen(window, enabled ? SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP: 0) == 0)
                 {
                     is_fullscreen = enabled;
                 }

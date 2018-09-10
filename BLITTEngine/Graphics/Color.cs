@@ -176,9 +176,9 @@ namespace BLITTEngine.Graphics
 
             if (((r | g | b) & 0xFFFFFF00) != 0)
             {
-                var clampedR = (uint) r.Clamp(0, 255);
-                var clampedG = (uint) g.Clamp(0, 255);
-                var clampedB = (uint) b.Clamp(0, 255);
+                var clampedR = (uint) Calc.Clamp(r, 0, 255);
+                var clampedG = (uint) Calc.Clamp(g, 0, 255);
+                var clampedB = (uint) Calc.Clamp(b, 0, 255);
 
                 packed_value |= (clampedB << 16) | (clampedG << 8) | (clampedR);
             }
@@ -192,10 +192,10 @@ namespace BLITTEngine.Graphics
         {
             if (((r | g | b | alpha) & 0xFFFFFF00) != 0)
             {
-                var clampedR = (uint) r.Clamp(0, 255);
-                var clampedG = (uint) g.Clamp(0, 255);
-                var clampedB = (uint) b.Clamp(0, 255);
-                var clampedA = (uint) alpha.Clamp(0, 255);
+                var clampedR = (uint) Calc.Clamp(r, 0, 255);
+                var clampedG = (uint) Calc.Clamp(g, 0, 255);
+                var clampedB = (uint) Calc.Clamp(b, 0, 255);
+                var clampedA = (uint) Calc.Clamp(alpha, 0, 255);
 
                 packed_value = (clampedA << 24) | (clampedB << 16) | (clampedG << 8) | (clampedR);
             }
@@ -306,9 +306,9 @@ namespace BLITTEngine.Graphics
             return this.packed_value.GetHashCode();
         }
 
-        public static Color Lerp(Color value1, Color value2, Single amount)
+        public static Color Lerp(Color value1, Color value2, float amount)
         {
-            amount = amount.Clamp(0, 1);
+            amount = Calc.Normalize(amount);
             return new Color(
                 (int) Calc.Lerp(value1.R, value2.R, amount),
                 (int) Calc.Lerp(value1.G, value2.G, amount),

@@ -1,367 +1,614 @@
 using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace BLITTEngine.Numerics
 {
-   public static class Calc
+    public static class Calc
     {
-        public const float ZeroTolerance = 1e-6f;
-        public const float HalfPI = (float)(Math.PI * 0.5);
-        public const float PI = (float)Math.PI;
-        public const float Tau = (float)(Math.PI * 2.0);
-        public const float Deg = (float)(180.0 / Math.PI);
-        public const float Rad = (float)(Math.PI / 180.0);
+        public const float E = (float) Math.E;
+        public const float PI = (float) Math.PI;
+        public const float PI_OVER2 = (PI / 2.0f);
+        public const float PI_OVER3 = (PI / 3.0f);
+        public const float PI_OVER4 = (PI / 4.0f);
+        public const float PI_OVER6 = (PI / 6.0f);
+        public const float TWO_PI = (PI * 2.0f);
 
-        public static float Abs(this float x)
-        {
-            return x >= 0f ? x : -x;
-        }
-        public static int Abs(this int x)
-        {
-            return x >= 0 ? x : -x;
-        }
+        public const float RAD_ANGLE30 = PI_OVER6;
+        public const float RAD_ANGLE45 = PI_OVER4;
+        public const float RAD_ANGLE90 = PI_OVER2;
+        public const float RAD_ANGLE180 = PI;
+        public const float RAD_ANGLE360 = TWO_PI;
 
-        public static float Acos(float x)
-        {
-            return (float)Math.Acos(x);
-        }
+        private const float RADIANS_TO_DEGREES_FACTOR = 180f / PI;
+        private const float DEGREES_TO_RADIANS_FACTOR = PI / 180f;
+        private const int SIN_BITS = 13;
+        private const int SIN_MASK = ~(-1 << SIN_BITS);
+        private const int SIN_COUNT = SIN_MASK + 1;
+        private const float RAD_FULL = PI * 2;
+        private const float DEG_FULL = 360;
+        private const float RAD_TO_INDEX = SIN_COUNT / RAD_FULL;
+        private const float DEG_TO_INDEX = SIN_COUNT / DEG_FULL;
 
-        public static float Approach(this float a, float b, float amount)
+        private static readonly float[] sinBuffer = new float[SIN_COUNT];
+        private static readonly float[] cosBuffer = new float[SIN_COUNT];
+
+        static Calc()
         {
-            if (a < b)
+            for (int i = 0; i < SIN_COUNT; i++)
             {
-                a += amount;
-                return a > b ? b : a;
+                float angle = (i + 0.5f) / SIN_COUNT * RAD_FULL;
+                sinBuffer[i] = (float) Math.Sin(angle);
+                cosBuffer[i] = (float) Math.Cos(angle);
             }
-            if (a > b)
+
+            for (int i = 0; i < 360; i += 90)
             {
-                a -= amount;
-                return a < b ? b : a;
+                sinBuffer[(int) (i * DEG_TO_INDEX) & SIN_MASK] = (float) Math.Sin(i * DEGREES_TO_RADIANS_FACTOR);
+                cosBuffer[(int) (i * DEG_TO_INDEX) & SIN_MASK] = (float) Math.Cos(i * DEGREES_TO_RADIANS_FACTOR);
             }
-            return b;
         }
 
-        public static bool Approx(this float x, float y)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Abs(int value)
         {
-            return x >= y - ZeroTolerance && x <= y + ZeroTolerance;
+            var mask = value >> 31;
+            return (value ^ mask) - mask;
         }
 
-        public static float Asin(this float x)
+        public static float Abs(float value)
         {
-            return (float)Math.Asin(x);
+            return Math.Abs(value);
         }
 
-        public static float Atan(this float x)
+        public static float Round(float value)
         {
-            return (float)Math.Atan(x);
+            return (float) Math.Round(value);
         }
 
-        public static float Atan2(float y, float x)
+        public static int RoundToInt(float f)
         {
-            return (float)Math.Atan2(y, x);
+            return (int) Math.Round(f);
         }
 
-        public static float Barycentric(float a, float b, float c, float n1, float n2)
+        public static float Ceil(float value)
         {
-            return a + (b - a) * n1 + (c - a) * n2;
+            return (float) Math.Ceiling(value);
         }
 
-        public static float Bezier(float a, float b, float c, float t)
+        public static int CeilToInt(float value)
         {
-            return a * (1f - t) * (1f - t) + b * 2f * (1f - t) * t + c * t * t;
+            return (int) Math.Ceiling(value);
         }
 
-        public static float Bezier(float a, float b, float c, float d, float t)
+        /// <summary>
+        /// Ceils the float to the nearest int value above y. note that this only works for values in the range of short
+        /// </summary>
+        /// <returns>The ceil to int.</returns>
+        /// <param name="value">F.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int FastCeilToInt(float value)
         {
-            return t * t * t * (d + 3f * (b - c) - a) + 3f * t * t * (a - 2f * b + c) + 3f * t * (b - a) + a;
+            return 32768 - (int) (32768f - value);
         }
 
-        public static float CatmullRom(float a, float b, float c, float d, float t)
+        public static float Floor(float value)
         {
-            return 0.5f * (2f * b + (c - a) * t + (2f * a - 5f * b + 4f * c - d) * t * t + (3f * b - a - 3f * c + d) * t * t * t);
+            return (float) Math.Floor(value);
         }
 
-        public static float Clamp(this float x, float min, float max)
+        public static int FloorToInt(float f)
         {
-            Order(ref min, ref max);
-            return x < min ? min : (x > max ? max : x);
+            return (int) Math.Floor(f);
         }
 
-        public static int Clamp(this int x, int min, int max)
+        /// <summary>
+        /// Floors the float to the nearest int value below x. note that this only works for values in the range of short
+        /// </summary>
+        /// <returns>The floor to int.</returns>
+        /// <param name="x">The x coordinate.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int FastFloorToInt(float x)
         {
-            Order(ref min, ref max);
-            return x < min ? min : (x > max ? max : x);
+            return (int) (x + 32768f) - 32768;
         }
 
-        public static float Cos(this float x)
+        /// <summary>
+        /// Clamps float between 0f and 1f
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Normalize(float value)
         {
-            return (float)Math.Cos(x);
-        }
+            if (value < 0f)
+                return 0f;
 
-        public static float Cosh(this float x)
-        {
-            return (float)Math.Cosh(x);
-        }
+            if (value > 1f)
+                return 1f;
 
-        public static float Distance(float x0, float y0, float x1, float y1)
-        {
-            return (float)Math.Sqrt(DistanceSquared(x0, y0, x1, y1));
-        }
-
-        public static float DistanceSquared(float x0, float y0, float x1, float y1)
-        {
-            return (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1);
-        }
-
-        public static bool InRange(this float x, float min, float max)
-        {
-            Order(ref min, ref max);
-            return x >= min && x <= max;
-        }
-
-        public static bool InRange(this int x, int min, int max)
-        {
-            Order(ref min, ref max);
-            return x >= min && x <= max;
-        }
-
-        public static bool IsMultipleOf(int largeNum, int smallNum)
-        {
-            return ((largeNum / smallNum) * smallNum) == largeNum;
-        }
-
-        public static float Sign(this float x)
-        {
-            return x > 0f ? 1f : (x < 0f ? -1f : 0f);
-        }
-
-        public static int Sign(this int x)
-        {
-            return x > 0 ? 1 : (x < 0 ? -1 : 0);
-        }
-
-        public static int SignInt(this float x)
-        {
-            return x > 0f ? 1 : (x < 0f ? -1 : 0);
-        }
-
-        public static bool SameSign(this float x, float y)
-        {
-            return x > 0f ? y > 0f : (x < 0f ? y < 0f : y == 0f);
-        }
-
-        public static bool SameSign(this int x, int y)
-        {
-            return x > 0 ? y > 0 : (x < 0 ? y < 0 : y == 0);
-        }
-            
-        public static float Round(this float x)
-        {
-            return (float)Math.Round(x);
-        }
-            
-        public static int RoundToInt(this float x)
-        {
-            return (int)Math.Round(x);
-        }
-            
-        public static float Ceil(this float x)
-        {
-            return (float)Math.Ceiling(x);
-        }
-            
-        public static int CeilToInt(this float x)
-        {
-            return (int)Math.Ceiling(x);
-        }
-            
-        public static float Floor(this float x)
-        {
-            return (float)Math.Floor(x);
-        }
-            
-        public static int FloorToInt(this float x)
-        {
-            return (int)Math.Floor(x);
-        }
-
-        public static float Hermite(float p0, float m0, float p1, float m1, float t)
-        {
-            return (2f * p0 - 2f * p1 + m1 + m0) * t * t * t + (3f * p1 - 3f * p0 - 2f * m0 - m1) * t * t + m0 * t + p0;
-        }
-
-        public static float SmoothStep(float t)
-        {
-            return t * t * (3f - 2f * t);
-        }
-
-        public static float InvLerp(this float a, float b, float t)
-        {
-            return (t - a) / (b - a);
-        }
-
-        public static float Lerp(this float a, float b, float t)
-        {
-            //return a + (b - a) * t;
-            return a * (1f - t) + b * t;
-        }
-
-        public static double Lerp(this double a, double b, double t)
-        {
-            //return a + (b - a) * t;
-            return a * (1.0 - t) + b * t;
-        }
-
-        public static float Log(this float x)
-        {
-            return (float)Math.Log(x);
-        }
-
-        public static float Log(this float x, float b)
-        {
-            return (float)Math.Log(x, b);
-        }
-
-        public static float Max(float a, float b)
-        {
-            return Math.Max(a, b);
-        }
-
-        public static float Max(float a, float b, float c)
-        {
-            return Math.Max(Math.Max(a, b), c);
-        }
-
-        public static float Max(float a, float b, float c, float d)
-        {
-            return Math.Max(Math.Max(Math.Max(a, b), c), d);
-        }
-
-        public static int Max(int a, int b)
-        {
-            return Math.Max(a, b);
-        }
-
-        public static int Max(int a, int b, int c)
-        {
-            return Math.Max(Math.Max(a, b), c);
-        }
-
-        public static int Max(int a, int b, int c, int d)
-        {
-            return Math.Max(Math.Max(Math.Max(a, b), c), d);
-        }
-
-        public static float Min(float a, float b)
-        {
-            return a <= b ? a : b;
-        }
-
-        public static float Min(float a, float b, float c)
-        {
-            return Math.Min(Math.Min(a, b), c);
-        }
-
-        public static float Min(float a, float b, float c, float d)
-        {
-            return Math.Min(Math.Min(Math.Min(a, b), c), d);
-        }
-
-        public static int Min(int a, int b)
-        {
-            return Math.Min(a, b);
-        }
-
-        public static int Min(int a, int b, int c)
-        {
-            return Math.Min(Math.Min(a, b), c);
-        }
-
-        public static int Min(int a, int b, int c, int d)
-        {
-            return Math.Min(Math.Min(Math.Min(a, b), c), d);
-        }
-
-        public static float Map(this float x, float inMin, float inMax, float outMin, float outMax)
-        {
-            return outMin + ((x - inMin) / (inMax - inMin)) * (outMax - outMin);
-        }
-
-        public static float MapClamp(this float x, float inMin, float inMax, float outMin, float outMax)
-        {
-            return Clamp(Map(x, inMin, inMax, outMin, outMax), outMin, outMax);
-        }
-
-        public static bool IsPowerOf2(this int x)
-        {
-            return x != 0 && (x & (x - 1)) == 0;
-        }
-
-        public static int ToPowerOf2(this int x)
-        {
-            x--;
-            x |= x >> 1;
-            x |= x >> 2;
-            x |= x >> 4;
-            x |= x >> 8;
-            x |= x >> 16;
-            return x + 1;
-        }
-
-        public static void Order<T>(ref T a, ref T b) where T : IComparable
-        {
-            if (a.CompareTo(b) > 0)
-            {
-                T c = a;
-                a = b;
-                b = c;
-            }
+            return value;
         }
 
         public static float Pow(float x, float y)
         {
-            return (float)Math.Pow(x, y);
+            return (float) Math.Pow(x, y);
         }
 
-        public static float Sin(this float x)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Clamp(float value, float min, float max)
         {
-            return (float)Math.Sin(x);
+            return (value > max) ? max : ((value < min) ? min : value);
         }
 
-        public static float Sinh(this float x)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Clamp(int value, int min, int max)
         {
-            return (float)Math.Sinh(x);
+            return (value > max) ? max : ((value < min) ? min : value);
         }
 
-        public static float Sqrt(this float x)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Clamp(Array array, ref int index)
         {
-            return (float)Math.Sqrt(x);
+            index = Clamp(index, 0, array.Length - 1);
         }
 
-        public static int Snap(this int x, int mult)
+        /// <summary>
+        /// Restricts a value to be multiple of increment.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="increment"></param>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Snap(float value, float increment)
         {
-            return (int)Math.Round((double)x / mult) * mult;
+            return Round(value / increment) * increment;
         }
 
-        public static float Snap(this float x, float mult)
+        public static float CeilSnap(float value, float increment)
         {
-            return (float)Math.Round(x / mult) * mult;
+            return (Ceil(value / increment) * increment);
         }
 
-        public static void Swap<T>(ref T a, ref T b)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Lerp(float a, float b, float x) => a + (b - a) * x;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float UnclampedLerp(float from, float to, float t)
         {
-            T c = a;
-            a = b;
-            b = c;
+            return from + (to - from) * t;
         }
 
-        public static float Tan(this float x)
+        /// <summary>
+        /// Lerps an angle in degrees between a and b. handles wrapping around 360
+        /// </summary>
+        /// <returns>The angle.</returns>
+        /// <param name="a">The alpha component.</param>
+        /// <param name="b">The blue component.</param>
+        /// <param name="t">T.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float LerpAngle(float a, float b, float t)
         {
-            return (float)Math.Tan(x);
+            float num = Repeat(b - a, 360f);
+            if (num > 180f)
+                num -= 360f;
+
+            return a + num * Normalize(t);
         }
 
-        public static float Tanh(this float x)
+        /// <summary>
+        /// Loops t so that it is never larger than length and never smaller than 0
+        /// </summary>
+        /// <param name="t">T.</param>
+        /// <param name="length">Length.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Repeat(float t, float length)
         {
-            return (float)Math.Tanh(x);
+            return t - Floor(t / length) * length;
+        }
+
+        /// <summary>
+        /// Increments t and ensures it is always greater than or equal to 0 and less than length
+        /// </summary>
+        /// <param name="t">T.</param>
+        /// <param name="length">Length.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int IncrementWithWrap(int t, int length)
+        {
+            t++;
+            if (t == length)
+                return 0;
+            return t;
+        }
+
+        /// <summary>
+        /// Decrements t and ensures it is always greater than or equal to 0 and less than length
+        /// </summary>
+        /// <returns>The with wrap.</returns>
+        /// <param name="t">T.</param>
+        /// <param name="length">Length.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int DecrementWithWrap(int t, int length)
+        {
+            t--;
+            if (t < 0)
+                return length - 1;
+            return t;
+        }
+
+
+        /// <summary>
+        /// ping-pongs t so that it is never larger than length and never smaller than 0
+        /// </summary>
+        /// <returns>The pong.</returns>
+        /// <param name="t">T.</param>
+        /// <param name="length">Length.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float PingPong(float t, float length)
+        {
+            t = Repeat(t, length * 2f);
+            return length - Abs(t - length);
+        }
+
+        /// <summary>
+        /// Calculates the shortest difference between two given angles in degrees
+        /// </summary>
+        /// <returns>The angle.</returns>
+        /// <param name="current">Current.</param>
+        /// <param name="target">Target.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float DeltaAngle(float current, float target)
+        {
+            var num = Repeat(target - current, 360f);
+            if (num > 180f)
+                num -= 360f;
+
+            return num;
+        }
+
+        /// <summary>
+        /// Calculates the shortest difference between two given angles given in radians
+        /// </summary>
+        /// <returns>The angle.</returns>
+        /// <param name="current">Current.</param>
+        /// <param name="target">Target.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float DeltaAngleRadians(float current, float target)
+        {
+            var num = Repeat(target - current, TWO_PI);
+            if (num > PI)
+                num -= TWO_PI;
+
+            return num;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Min(float a, float b)
+        {
+            return a < b ? a : b;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Max(float a, float b)
+        {
+            return a > b ? a : b;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Min(int a, int b)
+        {
+            return a < b ? a : b;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Max(int a, int b)
+        {
+            return a > b ? a : b;
+        }
+
+        /// <summary>
+        /// Moves start towards end by shift amount clamping the result. start can be less than or greater than end.
+        /// example: start is 2, end is 10, shift is 4 results in 6
+        /// </summary>
+        /// <param name="start">Start.</param>
+        /// <param name="end">End.</param>
+        /// <param name="shift">Shift.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Approach(float start, float end, float shift)
+        {
+            if (start < end)
+                return Math.Min(start + shift, end);
+            return Math.Max(start - shift, end);
+        }
+
+        public static float Accelerate(float velocity, float minSpeed, float maxSpeed, float acceleration, float dt)
+        {
+            float min = minSpeed * dt;
+            float max = maxSpeed * dt;
+
+            return Clamp(velocity * dt + 0.5f * acceleration * dt * dt, min, max);
+        }
+
+        /// <summary>
+        /// checks to see if two values are approximately the same using an acceptable tolerance for the check
+        /// </summary>
+        /// <param name="value1">Value1.</param>
+        /// <param name="value2">Value2.</param>
+        /// <param name="tolerance">Tolerance.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool ApproximatelyEqual(float value1, float value2, float tolerance = E)
+        {
+            return Math.Abs(value1 - value2) <= tolerance;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Sin(float rad)
+        {
+            return sinBuffer[(int) (rad * RAD_TO_INDEX) & SIN_MASK];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Cos(float rad)
+        {
+            return cosBuffer[(int) (rad * RAD_TO_INDEX) & SIN_MASK];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float SinDeg(float deg)
+        {
+            return sinBuffer[(int) (deg * DEG_TO_INDEX) & SIN_MASK];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float CosDeg(float deg)
+        {
+            return cosBuffer[(int) (deg * DEG_TO_INDEX) & SIN_MASK];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float ToRadians(float degree)
+        {
+            return degree * DEGREES_TO_RADIANS_FACTOR;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float ToDegrees(float radian)
+        {
+            return radian * RADIANS_TO_DEGREES_FACTOR;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float AngleBetweenVectors(Vector2 from, Vector2 to)
+        {
+            return (float) Math.Atan2(to.Y - from.Y, to.X - from.X);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Sqrt(float val)
+        {
+            return (float) Math.Sqrt(val);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int SqrtI(int val)
+        {
+            if (val == 0)
+            {
+                return 0;
+            }
+
+            int n = (val / 2) + 1;
+            int n1 = (n + (val / n)) / 2;
+
+            while (n1 < n)
+            {
+                n = n1;
+                n1 = (n + (val / n)) / 2;
+            }
+
+            return n;
+        }
+
+        /// <summary>
+        /// Gets a point on the circumference of the circle given its center, radius and angle. 0 degrees is 3 o'clock.
+        /// </summary>
+        /// <returns>The on circle.</returns>
+        /// <param name="circleCenter">Circle center.</param>
+        /// <param name="radius">Radius.</param>
+        /// <param name="angleInDegrees">Angle in degrees.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 PointOnCircle(Vector2 circleCenter, float radius, float angleInDegrees)
+        {
+            var radians = ToRadians(angleInDegrees);
+            return new Vector2
+            {
+                X = Cos(radians) * radius + circleCenter.X,
+                Y = Sin(radians) * radius + circleCenter.Y
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector2 RotateAround(Vector2 point, Vector2 center, float angleRadians)
+        {
+            var cos = Cos(angleRadians);
+            var sin = Sin(angleRadians);
+            var rotatedX = cos * (point.X - center.X) - sin * (point.Y - center.Y) + center.X;
+            var rotatedY = sin * (point.X - center.X) + cos * (point.Y - center.Y) + center.Y;
+
+            return new Vector2(rotatedX, rotatedY);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int NextPowerOfTwo(int value)
+        {
+            if (value == 0)
+            {
+                return 1;
+            }
+
+            value -= 1;
+            value |= value >> 1;
+            value |= value >> 2;
+            value |= value >> 4;
+            value |= value >> 8;
+            value |= value >> 16;
+            return value + 1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsPowerOfTwo(int value) => value != 0 && (value & value - 1) == 0;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float NormalizeVar(float var, float min, float max)
+        {
+            if (var >= min && var < max) return var;
+
+            if (var < min)
+                var = max + ((var - min) % max);
+            else
+                var = min + var % (max - min);
+
+            return var;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Distance(float x1, float y1, float x2, float y2)
+        {
+            return (float) Math.Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+        }
+
+        public static float IntBitsToFloat(int value)
+        {
+            var bytes = BitConverter.GetBytes(value & 0xFEFFFFFF);
+            return BitConverter.ToSingle(bytes, 0);
+        }
+
+        public static bool PointInRect(float x, float y, float rx, float ry, float rw, float rh)
+        {
+            if (x <= rx) return false;
+            if (x >= rx + rw) return false;
+            if (y <= ry) return false;
+            if (y >= ry + rh) return false;
+
+            return true;
+        }
+
+        public static float DistanceRectPoint(float px, float py, float rx, float ry, float rw, float rh)
+        {
+            if (px >= rx && px <= rx + rw)
+            {
+                if (py >= ry && py <= ry + rh) return 0;
+
+                if (py > ry) return py - (ry + rh);
+
+                return ry - py;
+            }
+
+            if (py >= ry && py <= ry + rh)
+            {
+                if (px > rx) return px - (rx + rw);
+
+                return rx - px;
+            }
+
+            if (px > rx)
+            {
+                if (py > ry) return Distance(px, py, rx + rw, ry + rh);
+
+                return Distance(px, py, rx + rw, ry);
+            }
+
+            if (py > ry) return Distance(px, py, rx, ry + rh);
+
+            return Distance(px, py, rx, ry);
+        }
+
+        public static void GenerateCircle(int cx, int cy, int r, ref List<Point> points)
+        {
+            int x = -r,
+                y = 0,
+                error = 2 - 2 * r;
+
+            do
+            {
+                points.Add(new Point(cx - x, cy + y));
+                points.Add(new Point(cx - y, cy - x));
+                points.Add(new Point(cx + x, cy - y));
+                points.Add(new Point(cx + y, cy + x));
+
+                r = error;
+
+                if (r <= y)
+                {
+                    error += ++y * 2 + 1;
+                }
+
+                if (r > x || error > y)
+                {
+                    error += ++x * 2 + 1;
+                }
+            } while (x < 0);
+        }
+
+        public static void GenerateEllipse(int x0, int y0, int x1, int y1, ref List<Point> points)
+        {
+            int a = Abs(x1 - x0),
+                b = Abs(y1 - y0),
+                b1 = b & 1;
+            long dx = 4 * (1 - a) * b * b,
+                dy = 4 * (b1 + 1) * a * a;
+            long error = dx + dy + b1 * a * a,
+                e2;
+
+            if (x0 > x1)
+            {
+                x0 = x1;
+                x1 += a;
+            }
+
+            if (y0 > y1)
+            {
+                y0 = y1;
+            }
+
+            y0 += (b + 1) / 2;
+            y1 = y0 - b1;
+
+            a *= 8 * a;
+            b1 = 8 * b * b;
+
+            do
+            {
+                points.Add(new Point(x1, y0));
+                points.Add(new Point(x0, y0));
+                points.Add(new Point(x0, y1));
+                points.Add(new Point(x1, y1));
+
+                e2 = 2 * error;
+                if (e2 <= dy)
+                {
+                    y0++;
+                    y1--;
+                    error += dy += a;
+                }
+
+                if (e2 >= dx || 2 * error > dy)
+                {
+                    x0++;
+                    x1--;
+                    error += dx += b1;
+                }
+            } while (x0 <= x1);
+
+            while (y0 - y1 < b)
+            {
+                points.Add(new Point(x0 - 1, y0));
+                points.Add(new Point(x1 + 1, y0++));
+                points.Add(new Point(x0 - 1, y1));
+                points.Add(new Point(x1 + 1, y1--));
+            }
         }
     }
 }

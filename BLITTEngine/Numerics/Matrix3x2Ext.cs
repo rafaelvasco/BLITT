@@ -69,8 +69,8 @@ namespace BLITTEngine.Numerics
             result.M12 = result.M21 = result.M22 = result.M32 = 0f;
             
             //Rotate
-            float c = rotation.Cos();
-            float s = rotation.Sin();
+            float c = Calc.Cos(rotation);
+            float s = Calc.Sin(rotation);
             
             result.MultiplyBy(c, -s, 0f, s, c, 0f);
             

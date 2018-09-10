@@ -1,376 +1,370 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
-using NativeLibraryLoader;
 
 namespace BLITTEngine.Foundation
 {
     internal static unsafe class SDL
     {
-        private static readonly NativeLibrary s_sdl2Lib = LoadSdl2();
+        private static readonly IntPtr s_sdl2Lib = LoadSdl2();
 
-        private static NativeLibrary LoadSdl2()
+        private static IntPtr LoadSdl2()
         {
-            string[] names;
+            string lib_name;
+            
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                names = new[] {"SDL2.dll"};
+                lib_name =  "SDL2.dll";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                names = new[]
-                {
-                    "libSDL2-2.0.so",
-                    "libSDL2-2.0.so.0",
-                    "libSDL2-2.0.so.1",
-                };
+                lib_name = "libSDL2-2.0.so.0";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                names = new[]
-                {
-                    "libsdl2.dylib"
-                };
+                lib_name = "libSDL2-2.0.dylib";
+                
             }
             else
             {
                 Debug.WriteLine("Unknown SDL platform. Attempting to load \"SDL2\"");
-                names = new[] {"SDL2.dll"};
+                lib_name = "SDL2.dll";
             }
 
-            NativeLibrary lib = new NativeLibrary(names);
+            //NativeLibrary lib = new NativeLibrary(names);
 
-            SDL_AddEventWatch_f = lib.LoadFunction<SDL_AddEventWatch_d>(nameof(SDL_AddEventWatch));
-            SDL_AllocFormat_f = lib.LoadFunction<SDL_AllocFormat_d>(nameof(SDL_AllocFormat));
-            SDL_AllocPalette_f = lib.LoadFunction<SDL_AllocPalette_d>(nameof(SDL_AllocPalette));
-            SDL_CalculateGammaRamp_f = lib.LoadFunction<SDL_CalculateGammaRamp_d>(nameof(SDL_CalculateGammaRamp));
-            SDL_CaptureMouse_f = lib.LoadFunction<SDL_CaptureMouse_d>(nameof(SDL_CaptureMouse));
-            SDL_ClearError_f = lib.LoadFunction<SDL_ClearError_d>(nameof(SDL_ClearError));
-            SDL_ComposeCustomBlendMode_f =
-                lib.LoadFunction<SDL_ComposeCustomBlendMode_d>(nameof(SDL_ComposeCustomBlendMode));
-            SDL_ConvertPixels_f = lib.LoadFunction<SDL_ConvertPixels_d>(nameof(SDL_ConvertPixels));
-            SDL_ConvertSurface_f = lib.LoadFunction<SDL_ConvertSurface_d>(nameof(SDL_ConvertSurface));
-            SDL_ConvertSurfaceFormat_f = lib.LoadFunction<SDL_ConvertSurfaceFormat_d>(nameof(SDL_ConvertSurfaceFormat));
-            SDL_CreateCursor_f = lib.LoadFunction<SDL_CreateCursor_d>(nameof(SDL_CreateCursor));
-            SDL_CreateRenderer_f = lib.LoadFunction<SDL_CreateRenderer_d>(nameof(SDL_CreateRenderer));
-            SDL_CreateRGBSurface_f = lib.LoadFunction<SDL_CreateRGBSurface_d>(nameof(SDL_CreateRGBSurface));
-            SDL_CreateRGBSurfaceFrom_f = lib.LoadFunction<SDL_CreateRGBSurfaceFrom_d>(nameof(SDL_CreateRGBSurfaceFrom));
-            SDL_CreateRGBSurfaceWithFormatFrom_f =
-                lib.LoadFunction<SDL_CreateRGBSurfaceWithFormatFrom_d>(nameof(SDL_CreateRGBSurfaceWithFormatFrom));
-            SDL_CreateRGBSurfaceWithFormat_f =
-                lib.LoadFunction<SDL_CreateRGBSurfaceWithFormat_d>(nameof(SDL_CreateRGBSurfaceWithFormat));
-            SDL_CreateSoftwareRenderer_f =
-                lib.LoadFunction<SDL_CreateSoftwareRenderer_d>(nameof(SDL_CreateSoftwareRenderer));
-            SDL_CreateSystemCursor_f = lib.LoadFunction<SDL_CreateSystemCursor_d>(nameof(SDL_CreateSystemCursor));
-            SDL_CreateTexture_f = lib.LoadFunction<SDL_CreateTexture_d>(nameof(SDL_CreateTexture));
-            SDL_CreateTextureFromSurface_f =
-                lib.LoadFunction<SDL_CreateTextureFromSurface_d>(nameof(SDL_CreateTextureFromSurface));
-            SDL_CreateWindow_f = lib.LoadFunction<SDL_CreateWindow_d>(nameof(SDL_CreateWindow));
-            SDL_CreateWindowAndRenderer_f =
-                lib.LoadFunction<SDL_CreateWindowAndRenderer_d>(nameof(SDL_CreateWindowAndRenderer));
-            SDL_CreateWindowFrom_f = lib.LoadFunction<SDL_CreateWindowFrom_d>(nameof(SDL_CreateWindowFrom));
-            SDL_DelEventWatch_f = lib.LoadFunction<SDL_DelEventWatch_d>(nameof(SDL_DelEventWatch));
-            SDL_DestroyRenderer_f = lib.LoadFunction<SDL_DestroyRenderer_d>(nameof(SDL_DestroyRenderer));
-            SDL_DestroyTexture_f = lib.LoadFunction<SDL_DestroyTexture_d>(nameof(SDL_DestroyTexture));
-            SDL_DestroyWindow_f = lib.LoadFunction<SDL_DestroyWindow_d>(nameof(SDL_DestroyWindow));
-            SDL_DisableScreenSaver_f = lib.LoadFunction<SDL_DisableScreenSaver_d>(nameof(SDL_DisableScreenSaver));
-            SDL_EnableScreenSaver_f = lib.LoadFunction<SDL_EnableScreenSaver_d>(nameof(SDL_EnableScreenSaver));
-            SDL_EventState_f = lib.LoadFunction<SDL_EventState_d>(nameof(SDL_EventState));
-            SDL_FillRect_f = lib.LoadFunction<SDL_FillRect_d>(nameof(SDL_FillRect));
-            SDL_FillRects_f = lib.LoadFunction<SDL_FillRects_d>(nameof(SDL_FillRects));
-            SDL_FilterEvents_f = lib.LoadFunction<SDL_FilterEvents_d>(nameof(SDL_FilterEvents));
-            SDL_FlushEvent_f = lib.LoadFunction<SDL_FlushEvent_d>(nameof(SDL_FlushEvent));
-            SDL_FlushEvents_f = lib.LoadFunction<SDL_FlushEvents_d>(nameof(SDL_FlushEvents));
-            SDL_FreeCursor_f = lib.LoadFunction<SDL_FreeCursor_d>(nameof(SDL_FreeCursor));
-            SDL_FreeFormat_f = lib.LoadFunction<SDL_FreeFormat_d>(nameof(SDL_FreeFormat));
-            SDL_FreePalette_f = lib.LoadFunction<SDL_FreePalette_d>(nameof(SDL_FreePalette));
-            SDL_FreeSurface_f = lib.LoadFunction<SDL_FreeSurface_d>(nameof(SDL_FreeSurface));
+            IntPtr lib = FuncLoader.LoadLibrary(lib_name);
+
+            //SDL_AddEventWatch_f = FuncLoader.LoadFunction<SDL_AddEventWatch_d>(lib, nameof(SDL_AddEventWatch));
+            //SDL_AllocFormat_f = FuncLoader.LoadFunction<SDL_AllocFormat_d>(lib, nameof(SDL_AllocFormat));
+            //SDL_AllocPalette_f = FuncLoader.LoadFunction<SDL_AllocPalette_d>(lib, nameof(SDL_AllocPalette));
+            //SDL_CalculateGammaRamp_f = FuncLoader.LoadFunction<SDL_CalculateGammaRamp_d>(lib, nameof(SDL_CalculateGammaRamp));
+            //SDL_CaptureMouse_f = FuncLoader.LoadFunction<SDL_CaptureMouse_d>(lib, nameof(SDL_CaptureMouse));
+            //SDL_ClearError_f = FuncLoader.LoadFunction<SDL_ClearError_d>(lib, nameof(SDL_ClearError));
+            //SDL_ComposeCustomBlendMode_f =
+            //    FuncLoader.LoadFunction<SDL_ComposeCustomBlendMode_d>(lib, nameof(SDL_ComposeCustomBlendMode));
+            //SDL_ConvertPixels_f = FuncLoader.LoadFunction<SDL_ConvertPixels_d>(lib, nameof(SDL_ConvertPixels));
+            //SDL_ConvertSurface_f = FuncLoader.LoadFunction<SDL_ConvertSurface_d>(lib, nameof(SDL_ConvertSurface));
+            //SDL_ConvertSurfaceFormat_f = FuncLoader.LoadFunction<SDL_ConvertSurfaceFormat_d>(lib, nameof(SDL_ConvertSurfaceFormat));
+            //SDL_CreateCursor_f = FuncLoader.LoadFunction<SDL_CreateCursor_d>(lib, nameof(SDL_CreateCursor));
+            //SDL_CreateRenderer_f = FuncLoader.LoadFunction<SDL_CreateRenderer_d>(lib, nameof(SDL_CreateRenderer));
+            //SDL_CreateRGBSurface_f = FuncLoader.LoadFunction<SDL_CreateRGBSurface_d>(lib, nameof(SDL_CreateRGBSurface));
+            //SDL_CreateRGBSurfaceFrom_f = FuncLoader.LoadFunction<SDL_CreateRGBSurfaceFrom_d>(lib, nameof(SDL_CreateRGBSurfaceFrom));
+            //SDL_CreateRGBSurfaceWithFormatFrom_f =
+            //   FuncLoader.LoadFunction<SDL_CreateRGBSurfaceWithFormatFrom_d>(lib, nameof(SDL_CreateRGBSurfaceWithFormatFrom));
+            //SDL_CreateRGBSurfaceWithFormat_f =
+            //    FuncLoader.LoadFunction<SDL_CreateRGBSurfaceWithFormat_d>(lib, nameof(SDL_CreateRGBSurfaceWithFormat));
+            //SDL_CreateSoftwareRenderer_f =
+            //    FuncLoader.LoadFunction<SDL_CreateSoftwareRenderer_d>(lib, nameof(SDL_CreateSoftwareRenderer));
+            //SDL_CreateSystemCursor_f = FuncLoader.LoadFunction<SDL_CreateSystemCursor_d>(lib, nameof(SDL_CreateSystemCursor));
+            //SDL_CreateTexture_f = FuncLoader.LoadFunction<SDL_CreateTexture_d>(lib, nameof(SDL_CreateTexture));
+            //SDL_CreateTextureFromSurface_f =
+            //    FuncLoader.LoadFunction<SDL_CreateTextureFromSurface_d>(lib, nameof(SDL_CreateTextureFromSurface));
+            SDL_CreateWindow_f = FuncLoader.LoadFunction<SDL_CreateWindow_d>(lib, nameof(SDL_CreateWindow));
+            //SDL_CreateWindowAndRenderer_f =
+            //    FuncLoader.LoadFunction<SDL_CreateWindowAndRenderer_d>(lib, nameof(SDL_CreateWindowAndRenderer));
+            //SDL_CreateWindowFrom_f = FuncLoader.LoadFunction<SDL_CreateWindowFrom_d>(lib, nameof(SDL_CreateWindowFrom));
+            //SDL_DelEventWatch_f = FuncLoader.LoadFunction<SDL_DelEventWatch_d>(lib, nameof(SDL_DelEventWatch));
+            //SDL_DestroyRenderer_f = FuncLoader.LoadFunction<SDL_DestroyRenderer_d>(lib, nameof(SDL_DestroyRenderer));
+            //SDL_DestroyTexture_f = FuncLoader.LoadFunction<SDL_DestroyTexture_d>(lib, nameof(SDL_DestroyTexture));
+            //SDL_DestroyWindow_f = FuncLoader.LoadFunction<SDL_DestroyWindow_d>(lib, nameof(SDL_DestroyWindow));
+            //SDL_DisableScreenSaver_f = FuncLoader.LoadFunction<SDL_DisableScreenSaver_d>(lib, nameof(SDL_DisableScreenSaver));
+            //SDL_EnableScreenSaver_f = FuncLoader.LoadFunction<SDL_EnableScreenSaver_d>(lib, nameof(SDL_EnableScreenSaver));
+            //SDL_EventState_f = FuncLoader.LoadFunction<SDL_EventState_d>(lib, nameof(SDL_EventState));
+            //SDL_FillRect_f = FuncLoader.LoadFunction<SDL_FillRect_d>(lib, nameof(SDL_FillRect));
+            //SDL_FillRects_f = FuncLoader.LoadFunction<SDL_FillRects_d>(lib, nameof(SDL_FillRects));
+            //SDL_FilterEvents_f = FuncLoader.LoadFunction<SDL_FilterEvents_d>(lib, nameof(SDL_FilterEvents));
+            //SDL_FlushEvent_f = FuncLoader.LoadFunction<SDL_FlushEvent_d>(lib, nameof(SDL_FlushEvent));
+            //SDL_FlushEvents_f = FuncLoader.LoadFunction<SDL_FlushEvents_d>(lib, nameof(SDL_FlushEvents));
+            //SDL_FreeCursor_f = FuncLoader.LoadFunction<SDL_FreeCursor_d>(lib, nameof(SDL_FreeCursor));
+            //SDL_FreeFormat_f = FuncLoader.LoadFunction<SDL_FreeFormat_d>(lib, nameof(SDL_FreeFormat));
+            //SDL_FreePalette_f = FuncLoader.LoadFunction<SDL_FreePalette_d>(lib, nameof(SDL_FreePalette));
+            //SDL_FreeSurface_f = FuncLoader.LoadFunction<SDL_FreeSurface_d>(lib, nameof(SDL_FreeSurface));
             SDL_GameControllerAddMapping_f =
-                lib.LoadFunction<SDL_GameControllerAddMapping_d>(nameof(SDL_GameControllerAddMapping));
-            SDL_GameControllerClose_f = lib.LoadFunction<SDL_GameControllerClose_d>(nameof(SDL_GameControllerClose));
+                FuncLoader.LoadFunction<SDL_GameControllerAddMapping_d>(lib, nameof(SDL_GameControllerAddMapping));
+            SDL_GameControllerClose_f = FuncLoader.LoadFunction<SDL_GameControllerClose_d>(lib, nameof(SDL_GameControllerClose));
             SDL_GameControllerFromInstanceID_f =
-                lib.LoadFunction<SDL_GameControllerFromInstanceID_d>(nameof(SDL_GameControllerFromInstanceID));
+                FuncLoader.LoadFunction<SDL_GameControllerFromInstanceID_d>(lib, nameof(SDL_GameControllerFromInstanceID));
             SDL_GameControllerGetAttached_f =
-                lib.LoadFunction<SDL_GameControllerGetAttached_d>(nameof(SDL_GameControllerGetAttached));
+                FuncLoader.LoadFunction<SDL_GameControllerGetAttached_d>(lib, nameof(SDL_GameControllerGetAttached));
             SDL_GameControllerGetAxis_f =
-                lib.LoadFunction<SDL_GameControllerGetAxis_d>(nameof(SDL_GameControllerGetAxis));
+                FuncLoader.LoadFunction<SDL_GameControllerGetAxis_d>(lib, nameof(SDL_GameControllerGetAxis));
             SDL_GameControllerGetAxisFromString_f =
-                lib.LoadFunction<SDL_GameControllerGetAxisFromString_d>(nameof(SDL_GameControllerGetAxisFromString));
+                FuncLoader.LoadFunction<SDL_GameControllerGetAxisFromString_d>(lib, nameof(SDL_GameControllerGetAxisFromString));
             SDL_GameControllerGetBindForAxis_f =
-                lib.LoadFunction<SDL_GameControllerGetBindForAxis_d>(nameof(SDL_GameControllerGetBindForAxis));
+                FuncLoader.LoadFunction<SDL_GameControllerGetBindForAxis_d>(lib, nameof(SDL_GameControllerGetBindForAxis));
             SDL_GameControllerGetBindForButton_f =
-                lib.LoadFunction<SDL_GameControllerGetBindForButton_d>(nameof(SDL_GameControllerGetBindForButton));
+                FuncLoader.LoadFunction<SDL_GameControllerGetBindForButton_d>(lib, nameof(SDL_GameControllerGetBindForButton));
             SDL_GameControllerGetButton_f =
-                lib.LoadFunction<SDL_GameControllerGetButton_d>(nameof(SDL_GameControllerGetButton));
-            SDL_GameControllerGetButtonFromString_f =
-                lib.LoadFunction<SDL_GameControllerGetButtonFromString_d>(
-                    nameof(SDL_GameControllerGetButtonFromString));
+                FuncLoader.LoadFunction<SDL_GameControllerGetButton_d>(lib, nameof(SDL_GameControllerGetButton));
+            SDL_GameControllerGetButtonFromString_f = FuncLoader.LoadFunction<SDL_GameControllerGetButtonFromString_d>(lib, nameof(SDL_GameControllerGetButtonFromString));
             SDL_GameControllerGetJoystick_f =
-                lib.LoadFunction<SDL_GameControllerGetJoystick_d>(nameof(SDL_GameControllerGetJoystick));
+                FuncLoader.LoadFunction<SDL_GameControllerGetJoystick_d>(lib, nameof(SDL_GameControllerGetJoystick));
             SDL_GameControllerGetStringForAxis_f =
-                lib.LoadFunction<SDL_GameControllerGetStringForAxis_d>(nameof(SDL_GameControllerGetStringForAxis));
+                FuncLoader.LoadFunction<SDL_GameControllerGetStringForAxis_d>(lib, nameof(SDL_GameControllerGetStringForAxis));
             SDL_GameControllerGetStringForButton_f =
-                lib.LoadFunction<SDL_GameControllerGetStringForButton_d>(nameof(SDL_GameControllerGetStringForButton));
+                FuncLoader.LoadFunction<SDL_GameControllerGetStringForButton_d>(lib, nameof(SDL_GameControllerGetStringForButton));
             SDL_GameControllerMapping_f =
-                lib.LoadFunction<SDL_GameControllerMapping_d>(nameof(SDL_GameControllerMapping));
+                FuncLoader.LoadFunction<SDL_GameControllerMapping_d>(lib, nameof(SDL_GameControllerMapping));
             SDL_GameControllerMappingForGUID_f =
-                lib.LoadFunction<SDL_GameControllerMappingForGUID_d>(nameof(SDL_GameControllerMappingForGUID));
-            SDL_GameControllerName_f = lib.LoadFunction<SDL_GameControllerName_d>(nameof(SDL_GameControllerName));
+                FuncLoader.LoadFunction<SDL_GameControllerMappingForGUID_d>(lib, nameof(SDL_GameControllerMappingForGUID));
+            SDL_GameControllerName_f = FuncLoader.LoadFunction<SDL_GameControllerName_d>(lib, nameof(SDL_GameControllerName));
             SDL_GameControllerNameForIndex_f =
-                lib.LoadFunction<SDL_GameControllerNameForIndex_d>(nameof(SDL_GameControllerNameForIndex));
-            SDL_GameControllerOpen_f = lib.LoadFunction<SDL_GameControllerOpen_d>(nameof(SDL_GameControllerOpen));
-            SDL_GameControllerUpdate_f = lib.LoadFunction<SDL_GameControllerUpdate_d>(nameof(SDL_GameControllerUpdate));
-            SDL_GetClipboardText_f = lib.LoadFunction<SDL_GetClipboardText_d>(nameof(SDL_GetClipboardText));
-            SDL_GetClipRect_f = lib.LoadFunction<SDL_GetClipRect_d>(nameof(SDL_GetClipRect));
-            SDL_GetClosestDisplayMode_f =
-                lib.LoadFunction<SDL_GetClosestDisplayMode_d>(nameof(SDL_GetClosestDisplayMode));
-            SDL_GetColorKey_f = lib.LoadFunction<SDL_GetColorKey_d>(nameof(SDL_GetColorKey));
-            SDL_GetCurrentDisplayMode_f =
-                lib.LoadFunction<SDL_GetCurrentDisplayMode_d>(nameof(SDL_GetCurrentDisplayMode));
-            SDL_GetCurrentVideoDriver_f =
-                lib.LoadFunction<SDL_GetCurrentVideoDriver_d>(nameof(SDL_GetCurrentVideoDriver));
-            SDL_GetCursor_f = lib.LoadFunction<SDL_GetCursor_d>(nameof(SDL_GetCursor));
-            SDL_GetDefaultCursor_f = lib.LoadFunction<SDL_GetDefaultCursor_d>(nameof(SDL_GetDefaultCursor));
-            SDL_GetDesktopDisplayMode_f =
-                lib.LoadFunction<SDL_GetDesktopDisplayMode_d>(nameof(SDL_GetDesktopDisplayMode));
-            SDL_GetDisplayBounds_f = lib.LoadFunction<SDL_GetDisplayBounds_d>(nameof(SDL_GetDisplayBounds));
-            SDL_GetDisplayDPI_f = lib.LoadFunction<SDL_GetDisplayDPI_d>(nameof(SDL_GetDisplayDPI));
-            SDL_GetDisplayMode_f = lib.LoadFunction<SDL_GetDisplayMode_d>(nameof(SDL_GetDisplayMode));
-            SDL_GetDisplayName_f = lib.LoadFunction<SDL_GetDisplayName_d>(nameof(SDL_GetDisplayName));
-            SDL_GetDisplayUsableBounds_f =
-                lib.LoadFunction<SDL_GetDisplayUsableBounds_d>(nameof(SDL_GetDisplayUsableBounds));
-            SDL_GetError_f = lib.LoadFunction<SDL_GetError_d>(nameof(SDL_GetError));
-            SDL_GetEventFilter_f = lib.LoadFunction<SDL_GetEventFilter_d>(nameof(SDL_GetEventFilter));
-            SDL_GetGlobalMouseState_f = lib.LoadFunction<SDL_GetGlobalMouseState_d>(nameof(SDL_GetGlobalMouseState));
-            SDL_GetGrabbedWindow_f = lib.LoadFunction<SDL_GetGrabbedWindow_d>(nameof(SDL_GetGrabbedWindow));
-            SDL_GetKeyboardFocus_f = lib.LoadFunction<SDL_GetKeyboardFocus_d>(nameof(SDL_GetKeyboardFocus));
-            SDL_GetKeyboardState_f = lib.LoadFunction<SDL_GetKeyboardState_d>(nameof(SDL_GetKeyboardState));
-            SDL_GetKeyFromName_f = lib.LoadFunction<SDL_GetKeyFromName_d>(nameof(SDL_GetKeyFromName));
-            SDL_GetKeyFromScancode_f = lib.LoadFunction<SDL_GetKeyFromScancode_d>(nameof(SDL_GetKeyFromScancode));
-            SDL_GetKeyName_f = lib.LoadFunction<SDL_GetKeyName_d>(nameof(SDL_GetKeyName));
-            SDL_GetModState_f = lib.LoadFunction<SDL_GetModState_d>(nameof(SDL_GetModState));
-            SDL_GetMouseFocus_f = lib.LoadFunction<SDL_GetMouseFocus_d>(nameof(SDL_GetMouseFocus));
-            SDL_GetMouseState_f = lib.LoadFunction<SDL_GetMouseState_d>(nameof(SDL_GetMouseState));
-            SDL_GetNumDisplayModes_f = lib.LoadFunction<SDL_GetNumDisplayModes_d>(nameof(SDL_GetNumDisplayModes));
-            SDL_GetNumRenderDrivers_f = lib.LoadFunction<SDL_GetNumRenderDrivers_d>(nameof(SDL_GetNumRenderDrivers));
-            SDL_GetNumTouchDevices_f = lib.LoadFunction<SDL_GetNumTouchDevices_d>(nameof(SDL_GetNumTouchDevices));
-            SDL_GetNumTouchFingers_f = lib.LoadFunction<SDL_GetNumTouchFingers_d>(nameof(SDL_GetNumTouchFingers));
-            SDL_GetNumVideoDisplays_f = lib.LoadFunction<SDL_GetNumVideoDisplays_d>(nameof(SDL_GetNumVideoDisplays));
-            SDL_GetNumVideoDrivers_f = lib.LoadFunction<SDL_GetNumVideoDrivers_d>(nameof(SDL_GetNumVideoDrivers));
-            SDL_GetPixelFormatName_f = lib.LoadFunction<SDL_GetPixelFormatName_d>(nameof(SDL_GetPixelFormatName));
-            SDL_GetRelativeMouseMode_f = lib.LoadFunction<SDL_GetRelativeMouseMode_d>(nameof(SDL_GetRelativeMouseMode));
-            SDL_GetRelativeMouseState_f =
-                lib.LoadFunction<SDL_GetRelativeMouseState_d>(nameof(SDL_GetRelativeMouseState));
-            SDL_GetRenderDrawBlendMode_f =
-                lib.LoadFunction<SDL_GetRenderDrawBlendMode_d>(nameof(SDL_GetRenderDrawBlendMode));
-            SDL_GetRenderDrawColor_f = lib.LoadFunction<SDL_GetRenderDrawColor_d>(nameof(SDL_GetRenderDrawColor));
-            SDL_GetRenderDriverInfo_f = lib.LoadFunction<SDL_GetRenderDriverInfo_d>(nameof(SDL_GetRenderDriverInfo));
-            SDL_GetRenderer_f = lib.LoadFunction<SDL_GetRenderer_d>(nameof(SDL_GetRenderer));
-            SDL_GetRendererInfo_f = lib.LoadFunction<SDL_GetRendererInfo_d>(nameof(SDL_GetRendererInfo));
-            SDL_GetRendererOutputSize_f =
-                lib.LoadFunction<SDL_GetRendererOutputSize_d>(nameof(SDL_GetRendererOutputSize));
-            SDL_GetRenderTarget_f = lib.LoadFunction<SDL_GetRenderTarget_d>(nameof(SDL_GetRenderTarget));
-            SDL_GetRevision_f = lib.LoadFunction<SDL_GetRevision_d>(nameof(SDL_GetRevision));
-            SDL_GetRevisionNumber_f = lib.LoadFunction<SDL_GetRevisionNumber_d>(nameof(SDL_GetRevisionNumber));
-            SDL_GetRGB_f = lib.LoadFunction<SDL_GetRGB_d>(nameof(SDL_GetRGB));
-            SDL_GetRGBA_f = lib.LoadFunction<SDL_GetRGBA_d>(nameof(SDL_GetRGBA));
-            SDL_GetScancodeFromKey_f = lib.LoadFunction<SDL_GetScancodeFromKey_d>(nameof(SDL_GetScancodeFromKey));
-            SDL_GetScancodeFromName_f = lib.LoadFunction<SDL_GetScancodeFromName_d>(nameof(SDL_GetScancodeFromName));
-            SDL_GetScancodeName_f = lib.LoadFunction<SDL_GetScancodeName_d>(nameof(SDL_GetScancodeName));
-            SDL_GetSurfaceAlphaMod_f = lib.LoadFunction<SDL_GetSurfaceAlphaMod_d>(nameof(SDL_GetSurfaceAlphaMod));
-            SDL_GetSurfaceBlendMode_f = lib.LoadFunction<SDL_GetSurfaceBlendMode_d>(nameof(SDL_GetSurfaceBlendMode));
-            SDL_GetSurfaceColorMod_f = lib.LoadFunction<SDL_GetSurfaceColorMod_d>(nameof(SDL_GetSurfaceColorMod));
-            SDL_GetTextureAlphaMod_f = lib.LoadFunction<SDL_GetTextureAlphaMod_d>(nameof(SDL_GetTextureAlphaMod));
-            SDL_GetTextureBlendMode_f = lib.LoadFunction<SDL_GetTextureBlendMode_d>(nameof(SDL_GetTextureBlendMode));
-            SDL_GetTextureColorMod_f = lib.LoadFunction<SDL_GetTextureColorMod_d>(nameof(SDL_GetTextureColorMod));
-            SDL_GetTouchDevice_f = lib.LoadFunction<SDL_GetTouchDevice_d>(nameof(SDL_GetTouchDevice));
-            SDL_GetTouchFinger_f = lib.LoadFunction<SDL_GetTouchFinger_d>(nameof(SDL_GetTouchFinger));
-            SDL_GetVersion_f = lib.LoadFunction<SDL_GetVersion_d>(nameof(SDL_GetVersion));
-            SDL_GetVideoDriver_f = lib.LoadFunction<SDL_GetVideoDriver_d>(nameof(SDL_GetVideoDriver));
-            SDL_GetWindowBordersSize_f = lib.LoadFunction<SDL_GetWindowBordersSize_d>(nameof(SDL_GetWindowBordersSize));
-            SDL_GetWindowID_f = lib.LoadFunction<SDL_GetWindowID_d>(nameof(SDL_GetWindowID));
-            SDL_GetWindowBrightness_f = lib.LoadFunction<SDL_GetWindowBrightness_d>(nameof(SDL_GetWindowBrightness));
-            SDL_GetWindowData_f = lib.LoadFunction<SDL_GetWindowData_d>(nameof(SDL_GetWindowData));
-            SDL_GetWindowDisplayIndex_f =
-                lib.LoadFunction<SDL_GetWindowDisplayIndex_d>(nameof(SDL_GetWindowDisplayIndex));
-            SDL_GetWindowDisplayMode_f = lib.LoadFunction<SDL_GetWindowDisplayMode_d>(nameof(SDL_GetWindowDisplayMode));
-            SDL_GetWindowFlags_f = lib.LoadFunction<SDL_GetWindowFlags_d>(nameof(SDL_GetWindowFlags));
-            SDL_GetWindowFromID_f = lib.LoadFunction<SDL_GetWindowFromID_d>(nameof(SDL_GetWindowFromID));
-            SDL_GetWindowMaximumSize_f = lib.LoadFunction<SDL_GetWindowMaximumSize_d>(nameof(SDL_GetWindowMaximumSize));
-            SDL_GetWindowMinimumSize_f = lib.LoadFunction<SDL_GetWindowMinimumSize_d>(nameof(SDL_GetWindowMinimumSize));
-            SDL_GetWindowOpacity_f = lib.LoadFunction<SDL_GetWindowOpacity_d>(nameof(SDL_GetWindowOpacity));
-            SDL_GetWindowPixelFormat_f = lib.LoadFunction<SDL_GetWindowPixelFormat_d>(nameof(SDL_GetWindowPixelFormat));
-            SDL_GetWindowPosition_f = lib.LoadFunction<SDL_GetWindowPosition_d>(nameof(SDL_GetWindowPosition));
-            SDL_GetWindowSize_f = lib.LoadFunction<SDL_GetWindowSize_d>(nameof(SDL_GetWindowSize));
-            SDL_GetWindowTitle_f = lib.LoadFunction<SDL_GetWindowTitle_d>(nameof(SDL_GetWindowTitle));
-            SDL_GetWindowWMInfo_f = lib.LoadFunction<SDL_GetWindowWMInfo_d>(nameof(SDL_GetWindowWMInfo));
-            SDL_GL_BindTexture_f = lib.LoadFunction<SDL_GL_BindTexture_d>(nameof(SDL_GL_BindTexture));
-            SDL_GL_CreateContext_f = lib.LoadFunction<SDL_GL_CreateContext_d>(nameof(SDL_GL_CreateContext));
-            SDL_GL_DeleteContext_f = lib.LoadFunction<SDL_GL_DeleteContext_d>(nameof(SDL_GL_DeleteContext));
-            SDL_GL_ExtensionSupported_f =
-                lib.LoadFunction<SDL_GL_ExtensionSupported_d>(nameof(SDL_GL_ExtensionSupported));
-            SDL_GL_GetAttribute_f = lib.LoadFunction<SDL_GL_GetAttribute_d>(nameof(SDL_GL_GetAttribute));
-            SDL_GL_GetCurrentContext_f = lib.LoadFunction<SDL_GL_GetCurrentContext_d>(nameof(SDL_GL_GetCurrentContext));
-            SDL_GL_GetCurrentWindow_f = lib.LoadFunction<SDL_GL_GetCurrentWindow_d>(nameof(SDL_GL_GetCurrentWindow));
-            SDL_GL_GetDrawableSize_f = lib.LoadFunction<SDL_GL_GetDrawableSize_d>(nameof(SDL_GL_GetDrawableSize));
-            SDL_GL_GetProcAddress_f = lib.LoadFunction<SDL_GL_GetProcAddress_d>(nameof(SDL_GL_GetProcAddress));
-            SDL_GL_GetSwapInterval_f = lib.LoadFunction<SDL_GL_GetSwapInterval_d>(nameof(SDL_GL_GetSwapInterval));
-            SDL_GL_LoadLibrary_f = lib.LoadFunction<SDL_GL_LoadLibrary_d>(nameof(SDL_GL_LoadLibrary));
-            SDL_GL_MakeCurrent_f = lib.LoadFunction<SDL_GL_MakeCurrent_d>(nameof(SDL_GL_MakeCurrent));
-            SDL_GL_ResetAttributes_f = lib.LoadFunction<SDL_GL_ResetAttributes_d>(nameof(SDL_GL_ResetAttributes));
-            SDL_GL_SetAttribute_f = lib.LoadFunction<SDL_GL_SetAttribute_d>(nameof(SDL_GL_SetAttribute));
-            SDL_GL_SetSwapInterval_f = lib.LoadFunction<SDL_GL_SetSwapInterval_d>(nameof(SDL_GL_SetSwapInterval));
-            SDL_GL_SwapWindow_f = lib.LoadFunction<SDL_GL_SwapWindow_d>(nameof(SDL_GL_SwapWindow));
-            SDL_GL_UnbindTexture_f = lib.LoadFunction<SDL_GL_UnbindTexture_d>(nameof(SDL_GL_UnbindTexture));
-            SDL_GL_UnloadLibrary_f = lib.LoadFunction<SDL_GL_UnloadLibrary_d>(nameof(SDL_GL_UnloadLibrary));
-            SDL_HasClipboardText_f = lib.LoadFunction<SDL_HasClipboardText_d>(nameof(SDL_HasClipboardText));
-            SDL_HasEvent_f = lib.LoadFunction<SDL_HasEvent_d>(nameof(SDL_HasEvent));
-            SDL_HasEvents_f = lib.LoadFunction<SDL_HasEvents_d>(nameof(SDL_HasEvents));
-            SDL_HasScreenKeyboardSupport_f =
-                lib.LoadFunction<SDL_HasScreenKeyboardSupport_d>(nameof(SDL_HasScreenKeyboardSupport));
-            SDL_HideWindow_f = lib.LoadFunction<SDL_HideWindow_d>(nameof(SDL_HideWindow));
-            SDL_Init_f = lib.LoadFunction<SDL_Init_d>(nameof(SDL_Init));
-            SDL_InitSubSystem_f = lib.LoadFunction<SDL_InitSubSystem_d>(nameof(SDL_InitSubSystem));
-            SDL_IsGameController_f = lib.LoadFunction<SDL_IsGameController_d>(nameof(SDL_IsGameController));
-            SDL_IsScreenKeyboardShown_f =
-                lib.LoadFunction<SDL_IsScreenKeyboardShown_d>(nameof(SDL_IsScreenKeyboardShown));
-            SDL_IsScreenSaverEnabled_f = lib.LoadFunction<SDL_IsScreenSaverEnabled_d>(nameof(SDL_IsScreenSaverEnabled));
-            SDL_IsTextInputActive_f = lib.LoadFunction<SDL_IsTextInputActive_d>(nameof(SDL_IsTextInputActive));
-            SDL_JoystickClose_f = lib.LoadFunction<SDL_JoystickClose_d>(nameof(SDL_JoystickClose));
+                FuncLoader.LoadFunction<SDL_GameControllerNameForIndex_d>(lib, nameof(SDL_GameControllerNameForIndex));
+            SDL_GameControllerOpen_f = FuncLoader.LoadFunction<SDL_GameControllerOpen_d>(lib, nameof(SDL_GameControllerOpen));
+            SDL_GameControllerUpdate_f = FuncLoader.LoadFunction<SDL_GameControllerUpdate_d>(lib, nameof(SDL_GameControllerUpdate));
+            //SDL_GetClipboardText_f = FuncLoader.LoadFunction<SDL_GetClipboardText_d>(lib, nameof(SDL_GetClipboardText));
+            //SDL_GetClipRect_f = FuncLoader.LoadFunction<SDL_GetClipRect_d>(lib, nameof(SDL_GetClipRect));
+            //SDL_GetClosestDisplayMode_f =
+            //    FuncLoader.LoadFunction<SDL_GetClosestDisplayMode_d>(lib, nameof(SDL_GetClosestDisplayMode));
+            //SDL_GetColorKey_f = FuncLoader.LoadFunction<SDL_GetColorKey_d>(lib, nameof(SDL_GetColorKey));
+            //SDL_GetCurrentDisplayMode_f =
+            //    FuncLoader.LoadFunction<SDL_GetCurrentDisplayMode_d>(lib, nameof(SDL_GetCurrentDisplayMode));
+            //SDL_GetCurrentVideoDriver_f =
+            //    FuncLoader.LoadFunction<SDL_GetCurrentVideoDriver_d>(lib, nameof(SDL_GetCurrentVideoDriver));
+            //SDL_GetCursor_f = FuncLoader.LoadFunction<SDL_GetCursor_d>(lib, nameof(SDL_GetCursor));
+            //SDL_GetDefaultCursor_f = FuncLoader.LoadFunction<SDL_GetDefaultCursor_d>(lib, nameof(SDL_GetDefaultCursor));
+            //SDL_GetDesktopDisplayMode_f =
+                FuncLoader.LoadFunction<SDL_GetDesktopDisplayMode_d>(lib, nameof(SDL_GetDesktopDisplayMode));
+            //SDL_GetDisplayBounds_f = FuncLoader.LoadFunction<SDL_GetDisplayBounds_d>(lib, nameof(SDL_GetDisplayBounds));
+            //SDL_GetDisplayDPI_f = FuncLoader.LoadFunction<SDL_GetDisplayDPI_d>(lib, nameof(SDL_GetDisplayDPI));
+            //SDL_GetDisplayMode_f = FuncLoader.LoadFunction<SDL_GetDisplayMode_d>(lib, nameof(SDL_GetDisplayMode));
+            //SDL_GetDisplayName_f = FuncLoader.LoadFunction<SDL_GetDisplayName_d>(lib, nameof(SDL_GetDisplayName));
+            //SDL_GetDisplayUsableBounds_f =
+            //   FuncLoader.LoadFunction<SDL_GetDisplayUsableBounds_d>(lib, nameof(SDL_GetDisplayUsableBounds));
+            SDL_GetError_f = FuncLoader.LoadFunction<SDL_GetError_d>(lib, nameof(SDL_GetError));
+            //SDL_GetEventFilter_f = FuncLoader.LoadFunction<SDL_GetEventFilter_d>(lib, nameof(SDL_GetEventFilter));
+            SDL_GetGlobalMouseState_f = FuncLoader.LoadFunction<SDL_GetGlobalMouseState_d>(lib, nameof(SDL_GetGlobalMouseState));
+            //SDL_GetGrabbedWindow_f = FuncLoader.LoadFunction<SDL_GetGrabbedWindow_d>(lib, nameof(SDL_GetGrabbedWindow));
+            //SDL_GetKeyboardFocus_f = FuncLoader.LoadFunction<SDL_GetKeyboardFocus_d>(lib, nameof(SDL_GetKeyboardFocus));
+            SDL_GetKeyboardState_f = FuncLoader.LoadFunction<SDL_GetKeyboardState_d>(lib, nameof(SDL_GetKeyboardState));
+            //SDL_GetKeyFromName_f = FuncLoader.LoadFunction<SDL_GetKeyFromName_d>(lib, nameof(SDL_GetKeyFromName));
+            //SDL_GetKeyFromScancode_f = FuncLoader.LoadFunction<SDL_GetKeyFromScancode_d>(lib, nameof(SDL_GetKeyFromScancode));
+            //SDL_GetKeyName_f = FuncLoader.LoadFunction<SDL_GetKeyName_d>(lib, nameof(SDL_GetKeyName));
+            //SDL_GetModState_f = FuncLoader.LoadFunction<SDL_GetModState_d>(lib, nameof(SDL_GetModState));
+            //SDL_GetMouseFocus_f = FuncLoader.LoadFunction<SDL_GetMouseFocus_d>(lib, nameof(SDL_GetMouseFocus));
+            SDL_GetMouseState_f = FuncLoader.LoadFunction<SDL_GetMouseState_d>(lib, nameof(SDL_GetMouseState));
+            //SDL_GetNumDisplayModes_f = FuncLoader.LoadFunction<SDL_GetNumDisplayModes_d>(lib, nameof(SDL_GetNumDisplayModes));
+            //SDL_GetNumRenderDrivers_f = FuncLoader.LoadFunction<SDL_GetNumRenderDrivers_d>(lib, nameof(SDL_GetNumRenderDrivers));
+            //SDL_GetNumTouchDevices_f = FuncLoader.LoadFunction<SDL_GetNumTouchDevices_d>(lib, nameof(SDL_GetNumTouchDevices));
+            //SDL_GetNumTouchFingers_f = FuncLoader.LoadFunction<SDL_GetNumTouchFingers_d>(lib, nameof(SDL_GetNumTouchFingers));
+            //SDL_GetNumVideoDisplays_f = FuncLoader.LoadFunction<SDL_GetNumVideoDisplays_d>(lib, nameof(SDL_GetNumVideoDisplays));
+            //SDL_GetNumVideoDrivers_f = FuncLoader.LoadFunction<SDL_GetNumVideoDrivers_d>(lib, nameof(SDL_GetNumVideoDrivers));
+            //SDL_GetPixelFormatName_f = FuncLoader.LoadFunction<SDL_GetPixelFormatName_d>(lib, nameof(SDL_GetPixelFormatName));
+            //SDL_GetRelativeMouseMode_f = FuncLoader.LoadFunction<SDL_GetRelativeMouseMode_d>(lib, nameof(SDL_GetRelativeMouseMode));
+            //SDL_GetRelativeMouseState_f =
+            //    FuncLoader.LoadFunction<SDL_GetRelativeMouseState_d>(lib, nameof(SDL_GetRelativeMouseState));
+            //SDL_GetRenderDrawBlendMode_f =
+            //    FuncLoader.LoadFunction<SDL_GetRenderDrawBlendMode_d>(lib, nameof(SDL_GetRenderDrawBlendMode));
+            //SDL_GetRenderDrawColor_f = FuncLoader.LoadFunction<SDL_GetRenderDrawColor_d>(lib, nameof(SDL_GetRenderDrawColor));
+            //SDL_GetRenderDriverInfo_f = FuncLoader.LoadFunction<SDL_GetRenderDriverInfo_d>(lib, nameof(SDL_GetRenderDriverInfo));
+            //SDL_GetRenderer_f = FuncLoader.LoadFunction<SDL_GetRenderer_d>(lib, nameof(SDL_GetRenderer));
+            //SDL_GetRendererInfo_f = FuncLoader.LoadFunction<SDL_GetRendererInfo_d>(lib, nameof(SDL_GetRendererInfo));
+            //SDL_GetRendererOutputSize_f =
+            //    FuncLoader.LoadFunction<SDL_GetRendererOutputSize_d>(lib, nameof(SDL_GetRendererOutputSize));
+            //SDL_GetRenderTarget_f = FuncLoader.LoadFunction<SDL_GetRenderTarget_d>(lib, nameof(SDL_GetRenderTarget));
+            //SDL_GetRevision_f = FuncLoader.LoadFunction<SDL_GetRevision_d>(lib, nameof(SDL_GetRevision));
+            //SDL_GetRevisionNumber_f = FuncLoader.LoadFunction<SDL_GetRevisionNumber_d>(lib, nameof(SDL_GetRevisionNumber));
+            //SDL_GetRGB_f = FuncLoader.LoadFunction<SDL_GetRGB_d>(lib, nameof(SDL_GetRGB));
+            //SDL_GetRGBA_f = FuncLoader.LoadFunction<SDL_GetRGBA_d>(lib, nameof(SDL_GetRGBA));
+            //SDL_GetScancodeFromKey_f = FuncLoader.LoadFunction<SDL_GetScancodeFromKey_d>(lib, nameof(SDL_GetScancodeFromKey));
+            //SDL_GetScancodeFromName_f = FuncLoader.LoadFunction<SDL_GetScancodeFromName_d>(lib, nameof(SDL_GetScancodeFromName));
+            //SDL_GetScancodeName_f = FuncLoader.LoadFunction<SDL_GetScancodeName_d>(lib, nameof(SDL_GetScancodeName));
+            //SDL_GetSurfaceAlphaMod_f = FuncLoader.LoadFunction<SDL_GetSurfaceAlphaMod_d>(lib, nameof(SDL_GetSurfaceAlphaMod));
+            //SDL_GetSurfaceBlendMode_f = FuncLoader.LoadFunction<SDL_GetSurfaceBlendMode_d>(lib, nameof(SDL_GetSurfaceBlendMode));
+            //SDL_GetSurfaceColorMod_f = FuncLoader.LoadFunction<SDL_GetSurfaceColorMod_d>(lib, nameof(SDL_GetSurfaceColorMod));
+            //SDL_GetTextureAlphaMod_f = FuncLoader.LoadFunction<SDL_GetTextureAlphaMod_d>(lib, nameof(SDL_GetTextureAlphaMod));
+            //SDL_GetTextureBlendMode_f = FuncLoader.LoadFunction<SDL_GetTextureBlendMode_d>(lib, nameof(SDL_GetTextureBlendMode));
+            //SDL_GetTextureColorMod_f = FuncLoader.LoadFunction<SDL_GetTextureColorMod_d>(lib, nameof(SDL_GetTextureColorMod));
+            //SDL_GetTouchDevice_f = FuncLoader.LoadFunction<SDL_GetTouchDevice_d>(lib, nameof(SDL_GetTouchDevice));
+            //SDL_GetTouchFinger_f = FuncLoader.LoadFunction<SDL_GetTouchFinger_d>(lib, nameof(SDL_GetTouchFinger));
+            SDL_GetVersion_f = FuncLoader.LoadFunction<SDL_GetVersion_d>(lib, nameof(SDL_GetVersion));
+            //SDL_GetVideoDriver_f = FuncLoader.LoadFunction<SDL_GetVideoDriver_d>(lib, nameof(SDL_GetVideoDriver));
+            //SDL_GetWindowBordersSize_f = FuncLoader.LoadFunction<SDL_GetWindowBordersSize_d>(lib, nameof(SDL_GetWindowBordersSize));
+            SDL_GetWindowID_f = FuncLoader.LoadFunction<SDL_GetWindowID_d>(lib, nameof(SDL_GetWindowID));
+            //SDL_GetWindowBrightness_f = FuncLoader.LoadFunction<SDL_GetWindowBrightness_d>(lib, nameof(SDL_GetWindowBrightness));
+            //SDL_GetWindowData_f = FuncLoader.LoadFunction<SDL_GetWindowData_d>(lib, nameof(SDL_GetWindowData));
+            //SDL_GetWindowDisplayIndex_f =
+            //   FuncLoader.LoadFunction<SDL_GetWindowDisplayIndex_d>(lib, nameof(SDL_GetWindowDisplayIndex));
+            //SDL_GetWindowDisplayMode_f = FuncLoader.LoadFunction<SDL_GetWindowDisplayMode_d>(lib, nameof(SDL_GetWindowDisplayMode));
+            //SDL_GetWindowFlags_f = FuncLoader.LoadFunction<SDL_GetWindowFlags_d>(lib, nameof(SDL_GetWindowFlags));
+            //SDL_GetWindowFromID_f = FuncLoader.LoadFunction<SDL_GetWindowFromID_d>(lib, nameof(SDL_GetWindowFromID));
+            //SDL_GetWindowMaximumSize_f = FuncLoader.LoadFunction<SDL_GetWindowMaximumSize_d>(lib, nameof(SDL_GetWindowMaximumSize));
+            //SDL_GetWindowMinimumSize_f = FuncLoader.LoadFunction<SDL_GetWindowMinimumSize_d>(lib, nameof(SDL_GetWindowMinimumSize));
+            //SDL_GetWindowOpacity_f = FuncLoader.LoadFunction<SDL_GetWindowOpacity_d>(lib, nameof(SDL_GetWindowOpacity));
+            //SDL_GetWindowPixelFormat_f = FuncLoader.LoadFunction<SDL_GetWindowPixelFormat_d>(lib, nameof(SDL_GetWindowPixelFormat));
+            SDL_GetWindowPosition_f = FuncLoader.LoadFunction<SDL_GetWindowPosition_d>(lib, nameof(SDL_GetWindowPosition));
+            SDL_GetWindowSize_f = FuncLoader.LoadFunction<SDL_GetWindowSize_d>(lib, nameof(SDL_GetWindowSize));
+            SDL_GetWindowTitle_f = FuncLoader.LoadFunction<SDL_GetWindowTitle_d>(lib, nameof(SDL_GetWindowTitle));
+            SDL_GetWindowWMInfo_f = FuncLoader.LoadFunction<SDL_GetWindowWMInfo_d>(lib, nameof(SDL_GetWindowWMInfo));
+            //SDL_GL_BindTexture_f = FuncLoader.LoadFunction<SDL_GL_BindTexture_d>(lib, nameof(SDL_GL_BindTexture));
+            //SDL_GL_CreateContext_f = FuncLoader.LoadFunction<SDL_GL_CreateContext_d>(lib, nameof(SDL_GL_CreateContext));
+            //SDL_GL_DeleteContext_f = FuncLoader.LoadFunction<SDL_GL_DeleteContext_d>(lib, nameof(SDL_GL_DeleteContext));
+            //SDL_GL_ExtensionSupported_f =
+            //    FuncLoader.LoadFunction<SDL_GL_ExtensionSupported_d>(lib, nameof(SDL_GL_ExtensionSupported));
+            //SDL_GL_GetAttribute_f = FuncLoader.LoadFunction<SDL_GL_GetAttribute_d>(lib, nameof(SDL_GL_GetAttribute));
+            //SDL_GL_GetCurrentContext_f = FuncLoader.LoadFunction<SDL_GL_GetCurrentContext_d>(lib, nameof(SDL_GL_GetCurrentContext));
+            //SDL_GL_GetCurrentWindow_f = FuncLoader.LoadFunction<SDL_GL_GetCurrentWindow_d>(lib, nameof(SDL_GL_GetCurrentWindow));
+            //SDL_GL_GetDrawableSize_f = FuncLoader.LoadFunction<SDL_GL_GetDrawableSize_d>(lib, nameof(SDL_GL_GetDrawableSize));
+            //SDL_GL_GetProcAddress_f = FuncLoader.LoadFunction<SDL_GL_GetProcAddress_d>(lib, nameof(SDL_GL_GetProcAddress));
+            //SDL_GL_GetSwapInterval_f = FuncLoader.LoadFunction<SDL_GL_GetSwapInterval_d>(lib, nameof(SDL_GL_GetSwapInterval));
+            //SDL_GL_LoadLibrary_f = FuncLoader.LoadFunction<SDL_GL_LoadLibrary_d>(lib, nameof(SDL_GL_LoadLibrary));
+            //SDL_GL_MakeCurrent_f = FuncLoader.LoadFunction<SDL_GL_MakeCurrent_d>(lib, nameof(SDL_GL_MakeCurrent));
+            //SDL_GL_ResetAttributes_f = FuncLoader.LoadFunction<SDL_GL_ResetAttributes_d>(lib, nameof(SDL_GL_ResetAttributes));
+            SDL_GL_SetAttribute_f = FuncLoader.LoadFunction<SDL_GL_SetAttribute_d>(lib, nameof(SDL_GL_SetAttribute));
+            //SDL_GL_SetSwapInterval_f = FuncLoader.LoadFunction<SDL_GL_SetSwapInterval_d>(lib, nameof(SDL_GL_SetSwapInterval));
+            //SDL_GL_SwapWindow_f = FuncLoader.LoadFunction<SDL_GL_SwapWindow_d>(lib, nameof(SDL_GL_SwapWindow));
+            //SDL_GL_UnbindTexture_f = FuncLoader.LoadFunction<SDL_GL_UnbindTexture_d>(lib, nameof(SDL_GL_UnbindTexture));
+            //SDL_GL_UnloadLibrary_f = FuncLoader.LoadFunction<SDL_GL_UnloadLibrary_d>(lib, nameof(SDL_GL_UnloadLibrary));
+            //SDL_HasClipboardText_f = FuncLoader.LoadFunction<SDL_HasClipboardText_d>(lib, nameof(SDL_HasClipboardText));
+            //SDL_HasEvent_f = FuncLoader.LoadFunction<SDL_HasEvent_d>(lib, nameof(SDL_HasEvent));
+            //SDL_HasEvents_f = FuncLoader.LoadFunction<SDL_HasEvents_d>(lib, nameof(SDL_HasEvents));
+            //SDL_HasScreenKeyboardSupport_f =
+            //   FuncLoader.LoadFunction<SDL_HasScreenKeyboardSupport_d>(lib, nameof(SDL_HasScreenKeyboardSupport));
+            SDL_HideWindow_f = FuncLoader.LoadFunction<SDL_HideWindow_d>(lib, nameof(SDL_HideWindow));
+            SDL_Init_f = FuncLoader.LoadFunction<SDL_Init_d>(lib, nameof(SDL_Init));
+            //SDL_InitSubSystem_f = FuncLoader.LoadFunction<SDL_InitSubSystem_d>(lib, nameof(SDL_InitSubSystem));
+            //SDL_IsGameController_f = FuncLoader.LoadFunction<SDL_IsGameController_d>(lib, nameof(SDL_IsGameController));
+            //SDL_IsScreenKeyboardShown_f =
+            //    FuncLoader.LoadFunction<SDL_IsScreenKeyboardShown_d>(lib, nameof(SDL_IsScreenKeyboardShown));
+            //SDL_IsScreenSaverEnabled_f = FuncLoader.LoadFunction<SDL_IsScreenSaverEnabled_d>(lib, nameof(SDL_IsScreenSaverEnabled));
+            //SDL_IsTextInputActive_f = FuncLoader.LoadFunction<SDL_IsTextInputActive_d>(lib, nameof(SDL_IsTextInputActive));
+            SDL_JoystickClose_f = FuncLoader.LoadFunction<SDL_JoystickClose_d>(lib, nameof(SDL_JoystickClose));
             SDL_JoystickCurrentPowerLevel_f =
-                lib.LoadFunction<SDL_JoystickCurrentPowerLevel_d>(nameof(SDL_JoystickCurrentPowerLevel));
+                FuncLoader.LoadFunction<SDL_JoystickCurrentPowerLevel_d>(lib, nameof(SDL_JoystickCurrentPowerLevel));
             SDL_JoystickFromInstanceID_f =
-                lib.LoadFunction<SDL_JoystickFromInstanceID_d>(nameof(SDL_JoystickFromInstanceID));
-            SDL_JoystickGetAttached_f = lib.LoadFunction<SDL_JoystickGetAttached_d>(nameof(SDL_JoystickGetAttached));
-            SDL_JoystickGetAxis_f = lib.LoadFunction<SDL_JoystickGetAxis_d>(nameof(SDL_JoystickGetAxis));
-            SDL_JoystickGetBall_f = lib.LoadFunction<SDL_JoystickGetBall_d>(nameof(SDL_JoystickGetBall));
-            SDL_JoystickGetButton_f = lib.LoadFunction<SDL_JoystickGetButton_d>(nameof(SDL_JoystickGetButton));
+                FuncLoader.LoadFunction<SDL_JoystickFromInstanceID_d>(lib, nameof(SDL_JoystickFromInstanceID));
+            SDL_JoystickGetAttached_f = FuncLoader.LoadFunction<SDL_JoystickGetAttached_d>(lib, nameof(SDL_JoystickGetAttached));
+            SDL_JoystickGetAxis_f = FuncLoader.LoadFunction<SDL_JoystickGetAxis_d>(lib, nameof(SDL_JoystickGetAxis));
+            SDL_JoystickGetBall_f = FuncLoader.LoadFunction<SDL_JoystickGetBall_d>(lib, nameof(SDL_JoystickGetBall));
+            SDL_JoystickGetButton_f = FuncLoader.LoadFunction<SDL_JoystickGetButton_d>(lib, nameof(SDL_JoystickGetButton));
             SDL_JoystickGetDeviceGUID_f =
-                lib.LoadFunction<SDL_JoystickGetDeviceGUID_d>(nameof(SDL_JoystickGetDeviceGUID));
-            SDL_JoystickGetGUID_f = lib.LoadFunction<SDL_JoystickGetGUID_d>(nameof(SDL_JoystickGetGUID));
+                FuncLoader.LoadFunction<SDL_JoystickGetDeviceGUID_d>(lib, nameof(SDL_JoystickGetDeviceGUID));
+            SDL_JoystickGetGUID_f = FuncLoader.LoadFunction<SDL_JoystickGetGUID_d>(lib, nameof(SDL_JoystickGetGUID));
             SDL_JoystickGetGUIDFromString_f =
-                lib.LoadFunction<SDL_JoystickGetGUIDFromString_d>(nameof(SDL_JoystickGetGUIDFromString));
+                FuncLoader.LoadFunction<SDL_JoystickGetGUIDFromString_d>(lib, nameof(SDL_JoystickGetGUIDFromString));
             SDL_JoystickGetGUIDString_f =
-                lib.LoadFunction<SDL_JoystickGetGUIDString_d>(nameof(SDL_JoystickGetGUIDString));
-            SDL_JoystickGetHat_f = lib.LoadFunction<SDL_JoystickGetHat_d>(nameof(SDL_JoystickGetHat));
-            SDL_JoystickInstanceID_f = lib.LoadFunction<SDL_JoystickInstanceID_d>(nameof(SDL_JoystickInstanceID));
-            SDL_JoystickName_f = lib.LoadFunction<SDL_JoystickName_d>(nameof(SDL_JoystickName));
-            SDL_JoystickNameForIndex_f = lib.LoadFunction<SDL_JoystickNameForIndex_d>(nameof(SDL_JoystickNameForIndex));
-            SDL_JoystickNumAxes_f = lib.LoadFunction<SDL_JoystickNumAxes_d>(nameof(SDL_JoystickNumAxes));
-            SDL_JoystickNumBalls_f = lib.LoadFunction<SDL_JoystickNumBalls_d>(nameof(SDL_JoystickNumBalls));
-            SDL_JoystickNumButtons_f = lib.LoadFunction<SDL_JoystickNumButtons_d>(nameof(SDL_JoystickNumButtons));
-            SDL_JoystickNumHats_f = lib.LoadFunction<SDL_JoystickNumHats_d>(nameof(SDL_JoystickNumHats));
-            SDL_JoystickOpen_f = lib.LoadFunction<SDL_JoystickOpen_d>(nameof(SDL_JoystickOpen));
-            SDL_JoystickUpdate_f = lib.LoadFunction<SDL_JoystickUpdate_d>(nameof(SDL_JoystickUpdate));
-            SDL_LockSurface_f = lib.LoadFunction<SDL_LockSurface_d>(nameof(SDL_LockSurface));
-            SDL_LockTexture_f = lib.LoadFunction<SDL_LockTexture_d>(nameof(SDL_LockTexture));
-            SDL_LowerBlit_f = lib.LoadFunction<SDL_LowerBlit_d>(nameof(SDL_LowerBlit));
-            SDL_LowerBlitScaled_f = lib.LoadFunction<SDL_LowerBlitScaled_d>(nameof(SDL_LowerBlitScaled));
-            SDL_MapRGB_f = lib.LoadFunction<SDL_MapRGB_d>(nameof(SDL_MapRGB));
-            SDL_MapRGBA_f = lib.LoadFunction<SDL_MapRGBA_d>(nameof(SDL_MapRGBA));
-            SDL_MasksToPixelFormatEnum_f =
-                lib.LoadFunction<SDL_MasksToPixelFormatEnum_d>(nameof(SDL_MasksToPixelFormatEnum));
-            SDL_MaximizeWindow_f = lib.LoadFunction<SDL_MaximizeWindow_d>(nameof(SDL_MaximizeWindow));
-            SDL_MinimizeWindow_f = lib.LoadFunction<SDL_MinimizeWindow_d>(nameof(SDL_MinimizeWindow));
-            SDL_NumJoysticks_f = lib.LoadFunction<SDL_NumJoysticks_d>(nameof(SDL_NumJoysticks));
-            SDL_PeepEvents_f = lib.LoadFunction<SDL_PeepEvents_d>(nameof(SDL_PeepEvents));
-            SDL_PixelFormatEnumToMasks_f =
-                lib.LoadFunction<SDL_PixelFormatEnumToMasks_d>(nameof(SDL_PixelFormatEnumToMasks));
-            SDL_PollEvent_f = lib.LoadFunction<SDL_PollEvent_d>(nameof(SDL_PollEvent));
-            SDL_PumpEvents_f = lib.LoadFunction<SDL_PumpEvents_d>(nameof(SDL_PumpEvents));
-            SDL_PushEvent_f = lib.LoadFunction<SDL_PushEvent_d>(nameof(SDL_PushEvent));
-            SDL_QueryTexture_f = lib.LoadFunction<SDL_QueryTexture_d>(nameof(SDL_QueryTexture));
-            SDL_Quit_f = lib.LoadFunction<SDL_Quit_d>(nameof(SDL_Quit));
-            SDL_QuitSubSystem_f = lib.LoadFunction<SDL_QuitSubSystem_d>(nameof(SDL_QuitSubSystem));
-            SDL_RaiseWindow_f = lib.LoadFunction<SDL_RaiseWindow_d>(nameof(SDL_RaiseWindow));
-            SDL_RegisterEvents_f = lib.LoadFunction<SDL_RegisterEvents_d>(nameof(SDL_RegisterEvents));
-            SDL_RenderClear_f = lib.LoadFunction<SDL_RenderClear_d>(nameof(SDL_RenderClear));
-            SDL_RenderCopy_f = lib.LoadFunction<SDL_RenderCopy_d>(nameof(SDL_RenderCopy));
-            SDL_RenderCopyEx_f = lib.LoadFunction<SDL_RenderCopyEx_d>(nameof(SDL_RenderCopyEx));
-            SDL_RenderDrawLine_f = lib.LoadFunction<SDL_RenderDrawLine_d>(nameof(SDL_RenderDrawLine));
-            SDL_RenderDrawLines_f = lib.LoadFunction<SDL_RenderDrawLines_d>(nameof(SDL_RenderDrawLines));
-            SDL_RenderDrawPoint_f = lib.LoadFunction<SDL_RenderDrawPoint_d>(nameof(SDL_RenderDrawPoint));
-            SDL_RenderDrawPoints_f = lib.LoadFunction<SDL_RenderDrawPoints_d>(nameof(SDL_RenderDrawPoints));
-            SDL_RenderDrawRect_f = lib.LoadFunction<SDL_RenderDrawRect_d>(nameof(SDL_RenderDrawRect));
-            SDL_RenderDrawRects_f = lib.LoadFunction<SDL_RenderDrawRects_d>(nameof(SDL_RenderDrawRects));
-            SDL_RenderFillRect_f = lib.LoadFunction<SDL_RenderFillRect_d>(nameof(SDL_RenderFillRect));
-            SDL_RenderFillRects_f = lib.LoadFunction<SDL_RenderFillRects_d>(nameof(SDL_RenderFillRects));
-            SDL_RenderGetClipRect_f = lib.LoadFunction<SDL_RenderGetClipRect_d>(nameof(SDL_RenderGetClipRect));
+                FuncLoader.LoadFunction<SDL_JoystickGetGUIDString_d>(lib, nameof(SDL_JoystickGetGUIDString));
+            SDL_JoystickGetHat_f = FuncLoader.LoadFunction<SDL_JoystickGetHat_d>(lib, nameof(SDL_JoystickGetHat));
+            SDL_JoystickInstanceID_f = FuncLoader.LoadFunction<SDL_JoystickInstanceID_d>(lib, nameof(SDL_JoystickInstanceID));
+            SDL_JoystickName_f = FuncLoader.LoadFunction<SDL_JoystickName_d>(lib, nameof(SDL_JoystickName));
+            SDL_JoystickNameForIndex_f = FuncLoader.LoadFunction<SDL_JoystickNameForIndex_d>(lib, nameof(SDL_JoystickNameForIndex));
+            SDL_JoystickNumAxes_f = FuncLoader.LoadFunction<SDL_JoystickNumAxes_d>(lib, nameof(SDL_JoystickNumAxes));
+            SDL_JoystickNumBalls_f = FuncLoader.LoadFunction<SDL_JoystickNumBalls_d>(lib, nameof(SDL_JoystickNumBalls));
+            SDL_JoystickNumButtons_f = FuncLoader.LoadFunction<SDL_JoystickNumButtons_d>(lib, nameof(SDL_JoystickNumButtons));
+            SDL_JoystickNumHats_f = FuncLoader.LoadFunction<SDL_JoystickNumHats_d>(lib, nameof(SDL_JoystickNumHats));
+            SDL_JoystickOpen_f = FuncLoader.LoadFunction<SDL_JoystickOpen_d>(lib, nameof(SDL_JoystickOpen));
+            SDL_JoystickUpdate_f = FuncLoader.LoadFunction<SDL_JoystickUpdate_d>(lib, nameof(SDL_JoystickUpdate));
+            //SDL_LockSurface_f = FuncLoader.LoadFunction<SDL_LockSurface_d>(lib, nameof(SDL_LockSurface));
+            //SDL_LockTexture_f = FuncLoader.LoadFunction<SDL_LockTexture_d>(lib, nameof(SDL_LockTexture));
+            //SDL_LowerBlit_f = FuncLoader.LoadFunction<SDL_LowerBlit_d>(lib, nameof(SDL_LowerBlit));
+            //SDL_LowerBlitScaled_f = FuncLoader.LoadFunction<SDL_LowerBlitScaled_d>(lib, nameof(SDL_LowerBlitScaled));
+            //SDL_MapRGB_f = FuncLoader.LoadFunction<SDL_MapRGB_d>(lib, nameof(SDL_MapRGB));
+            //SDL_MapRGBA_f = FuncLoader.LoadFunction<SDL_MapRGBA_d>(lib, nameof(SDL_MapRGBA));
+            //SDL_MasksToPixelFormatEnum_f =
+            //    FuncLoader.LoadFunction<SDL_MasksToPixelFormatEnum_d>(lib, nameof(SDL_MasksToPixelFormatEnum));
+            SDL_MaximizeWindow_f = FuncLoader.LoadFunction<SDL_MaximizeWindow_d>(lib, nameof(SDL_MaximizeWindow));
+            SDL_MinimizeWindow_f = FuncLoader.LoadFunction<SDL_MinimizeWindow_d>(lib, nameof(SDL_MinimizeWindow));
+            SDL_NumJoysticks_f = FuncLoader.LoadFunction<SDL_NumJoysticks_d>(lib, nameof(SDL_NumJoysticks));
+            //SDL_PeepEvents_f = FuncLoader.LoadFunction<SDL_PeepEvents_d>(lib, nameof(SDL_PeepEvents));
+            //SDL_PixelFormatEnumToMasks_f =
+            //    FuncLoader.LoadFunction<SDL_PixelFormatEnumToMasks_d>(lib, nameof(SDL_PixelFormatEnumToMasks));
+            SDL_PollEvent_f = FuncLoader.LoadFunction<SDL_PollEvent_d>(lib, nameof(SDL_PollEvent));
+            SDL_PumpEvents_f = FuncLoader.LoadFunction<SDL_PumpEvents_d>(lib, nameof(SDL_PumpEvents));
+            //SDL_PushEvent_f = FuncLoader.LoadFunction<SDL_PushEvent_d>(lib, nameof(SDL_PushEvent));
+            //SDL_QueryTexture_f = FuncLoader.LoadFunction<SDL_QueryTexture_d>(lib, nameof(SDL_QueryTexture));
+            SDL_Quit_f = FuncLoader.LoadFunction<SDL_Quit_d>(lib, nameof(SDL_Quit));
+            //SDL_QuitSubSystem_f = FuncLoader.LoadFunction<SDL_QuitSubSystem_d>(lib, nameof(SDL_QuitSubSystem));
+            //SDL_RaiseWindow_f = FuncLoader.LoadFunction<SDL_RaiseWindow_d>(lib, nameof(SDL_RaiseWindow));
+            //SDL_RegisterEvents_f = FuncLoader.LoadFunction<SDL_RegisterEvents_d>(lib, nameof(SDL_RegisterEvents));
+            //SDL_RenderClear_f = FuncLoader.LoadFunction<SDL_RenderClear_d>(lib, nameof(SDL_RenderClear));
+            //SDL_RenderCopy_f = FuncLoader.LoadFunction<SDL_RenderCopy_d>(lib, nameof(SDL_RenderCopy));
+            //SDL_RenderCopyEx_f = FuncLoader.LoadFunction<SDL_RenderCopyEx_d>(lib, nameof(SDL_RenderCopyEx));
+            //SDL_RenderDrawLine_f = FuncLoader.LoadFunction<SDL_RenderDrawLine_d>(lib, nameof(SDL_RenderDrawLine));
+            //SDL_RenderDrawLines_f = FuncLoader.LoadFunction<SDL_RenderDrawLines_d>(lib, nameof(SDL_RenderDrawLines));
+            //SDL_RenderDrawPoint_f = FuncLoader.LoadFunction<SDL_RenderDrawPoint_d>(lib, nameof(SDL_RenderDrawPoint));
+            /*SDL_RenderDrawPoints_f = FuncLoader.LoadFunction<SDL_RenderDrawPoints_d>(lib, nameof(SDL_RenderDrawPoints));
+            SDL_RenderDrawRect_f = FuncLoader.LoadFunction<SDL_RenderDrawRect_d>(lib, nameof(SDL_RenderDrawRect));
+            SDL_RenderDrawRects_f = FuncLoader.LoadFunction<SDL_RenderDrawRects_d>(lib, nameof(SDL_RenderDrawRects));
+            SDL_RenderFillRect_f = FuncLoader.LoadFunction<SDL_RenderFillRect_d>(lib, nameof(SDL_RenderFillRect));
+            SDL_RenderFillRects_f = FuncLoader.LoadFunction<SDL_RenderFillRects_d>(lib, nameof(SDL_RenderFillRects));
+            SDL_RenderGetClipRect_f = FuncLoader.LoadFunction<SDL_RenderGetClipRect_d>(lib, nameof(SDL_RenderGetClipRect));
             SDL_RenderGetIntegerScale_f =
-                lib.LoadFunction<SDL_RenderGetIntegerScale_d>(nameof(SDL_RenderGetIntegerScale));
-            SDL_RenderGetLogicalSize_f = lib.LoadFunction<SDL_RenderGetLogicalSize_d>(nameof(SDL_RenderGetLogicalSize));
-            SDL_RenderGetScale_f = lib.LoadFunction<SDL_RenderGetScale_d>(nameof(SDL_RenderGetScale));
-            SDL_RenderGetViewport_f = lib.LoadFunction<SDL_RenderGetViewport_d>(nameof(SDL_RenderGetViewport));
-            SDL_RenderIsClipEnabled_f = lib.LoadFunction<SDL_RenderIsClipEnabled_d>(nameof(SDL_RenderIsClipEnabled));
-            SDL_RenderPresent_f = lib.LoadFunction<SDL_RenderPresent_d>(nameof(SDL_RenderPresent));
-            SDL_RenderReadPixels_f = lib.LoadFunction<SDL_RenderReadPixels_d>(nameof(SDL_RenderReadPixels));
-            SDL_RenderSetClipRect_f = lib.LoadFunction<SDL_RenderSetClipRect_d>(nameof(SDL_RenderSetClipRect));
+                FuncLoader.LoadFunction<SDL_RenderGetIntegerScale_d>(lib, nameof(SDL_RenderGetIntegerScale));
+            SDL_RenderGetLogicalSize_f = FuncLoader.LoadFunction<SDL_RenderGetLogicalSize_d>(lib, nameof(SDL_RenderGetLogicalSize));
+            SDL_RenderGetScale_f = FuncLoader.LoadFunction<SDL_RenderGetScale_d>(lib, nameof(SDL_RenderGetScale));
+            SDL_RenderGetViewport_f = FuncLoader.LoadFunction<SDL_RenderGetViewport_d>(lib, nameof(SDL_RenderGetViewport));
+            SDL_RenderIsClipEnabled_f = FuncLoader.LoadFunction<SDL_RenderIsClipEnabled_d>(lib, nameof(SDL_RenderIsClipEnabled));
+            SDL_RenderPresent_f = FuncLoader.LoadFunction<SDL_RenderPresent_d>(lib, nameof(SDL_RenderPresent));
+            SDL_RenderReadPixels_f = FuncLoader.LoadFunction<SDL_RenderReadPixels_d>(lib, nameof(SDL_RenderReadPixels));
+            SDL_RenderSetClipRect_f = FuncLoader.LoadFunction<SDL_RenderSetClipRect_d>(lib, nameof(SDL_RenderSetClipRect));
             SDL_RenderSetIntegerScale_f =
-                lib.LoadFunction<SDL_RenderSetIntegerScale_d>(nameof(SDL_RenderSetIntegerScale));
-            SDL_RenderSetLogicalSize_f = lib.LoadFunction<SDL_RenderSetLogicalSize_d>(nameof(SDL_RenderSetLogicalSize));
-            SDL_RenderSetScale_f = lib.LoadFunction<SDL_RenderSetScale_d>(nameof(SDL_RenderSetScale));
-            SDL_RenderSetViewport_f = lib.LoadFunction<SDL_RenderSetViewport_d>(nameof(SDL_RenderSetViewport));
+                FuncLoader.LoadFunction<SDL_RenderSetIntegerScale_d>(lib, nameof(SDL_RenderSetIntegerScale));
+            SDL_RenderSetLogicalSize_f = FuncLoader.LoadFunction<SDL_RenderSetLogicalSize_d>(lib, nameof(SDL_RenderSetLogicalSize));
+            SDL_RenderSetScale_f = FuncLoader.LoadFunction<SDL_RenderSetScale_d>(lib, nameof(SDL_RenderSetScale));
+            SDL_RenderSetViewport_f = FuncLoader.LoadFunction<SDL_RenderSetViewport_d>(lib, nameof(SDL_RenderSetViewport));
             SDL_RenderTargetSupported_f =
-                lib.LoadFunction<SDL_RenderTargetSupported_d>(nameof(SDL_RenderTargetSupported));
-            SDL_RestoreWindow_f = lib.LoadFunction<SDL_RestoreWindow_d>(nameof(SDL_RestoreWindow));
-            SDL_SetClipboardText_f = lib.LoadFunction<SDL_SetClipboardText_d>(nameof(SDL_SetClipboardText));
-            SDL_SetClipRect_f = lib.LoadFunction<SDL_SetClipRect_d>(nameof(SDL_SetClipRect));
-            SDL_SetColorKey_f = lib.LoadFunction<SDL_SetColorKey_d>(nameof(SDL_SetColorKey));
-            SDL_SetCursor_f = lib.LoadFunction<SDL_SetCursor_d>(nameof(SDL_SetCursor));
-            SDL_SetEventFilter_f = lib.LoadFunction<SDL_SetEventFilter_d>(nameof(SDL_SetEventFilter));
-            SDL_SetModState_f = lib.LoadFunction<SDL_SetModState_d>(nameof(SDL_SetModState));
-            SDL_SetPaletteColors_f = lib.LoadFunction<SDL_SetPaletteColors_d>(nameof(SDL_SetPaletteColors));
+                FuncLoader.LoadFunction<SDL_RenderTargetSupported_d>(lib, nameof(SDL_RenderTargetSupported));*/
+            /*SDL_RestoreWindow_f = FuncLoader.LoadFunction<SDL_RestoreWindow_d>(lib, nameof(SDL_RestoreWindow));
+            SDL_SetClipboardText_f = FuncLoader.LoadFunction<SDL_SetClipboardText_d>(lib, nameof(SDL_SetClipboardText));
+            SDL_SetClipRect_f = FuncLoader.LoadFunction<SDL_SetClipRect_d>(lib, nameof(SDL_SetClipRect));
+            SDL_SetColorKey_f = FuncLoader.LoadFunction<SDL_SetColorKey_d>(lib, nameof(SDL_SetColorKey));
+            SDL_SetCursor_f = FuncLoader.LoadFunction<SDL_SetCursor_d>(lib, nameof(SDL_SetCursor));
+            SDL_SetEventFilter_f = FuncLoader.LoadFunction<SDL_SetEventFilter_d>(lib, nameof(SDL_SetEventFilter));
+            SDL_SetModState_f = FuncLoader.LoadFunction<SDL_SetModState_d>(lib, nameof(SDL_SetModState));
+            SDL_SetPaletteColors_f = FuncLoader.LoadFunction<SDL_SetPaletteColors_d>(lib, nameof(SDL_SetPaletteColors));
             SDL_SetPixelFormatPalette_f =
-                lib.LoadFunction<SDL_SetPixelFormatPalette_d>(nameof(SDL_SetPixelFormatPalette));
-            SDL_SetRelativeMouseMode_f = lib.LoadFunction<SDL_SetRelativeMouseMode_d>(nameof(SDL_SetRelativeMouseMode));
+                FuncLoader.LoadFunction<SDL_SetPixelFormatPalette_d>(lib, nameof(SDL_SetPixelFormatPalette));
+            SDL_SetRelativeMouseMode_f = FuncLoader.LoadFunction<SDL_SetRelativeMouseMode_d>(lib, nameof(SDL_SetRelativeMouseMode));
             SDL_SetRenderDrawBlendMode_f =
-                lib.LoadFunction<SDL_SetRenderDrawBlendMode_d>(nameof(SDL_SetRenderDrawBlendMode));
-            SDL_SetRenderDrawColor_f = lib.LoadFunction<SDL_SetRenderDrawColor_d>(nameof(SDL_SetRenderDrawColor));
-            SDL_SetRenderTarget_f = lib.LoadFunction<SDL_SetRenderTarget_d>(nameof(SDL_SetRenderTarget));
-            SDL_SetSurfaceAlphaMod_f = lib.LoadFunction<SDL_SetSurfaceAlphaMod_d>(nameof(SDL_SetSurfaceAlphaMod));
-            SDL_SetSurfaceBlendMode_f = lib.LoadFunction<SDL_SetSurfaceBlendMode_d>(nameof(SDL_SetSurfaceBlendMode));
-            SDL_SetSurfaceColorMod_f = lib.LoadFunction<SDL_SetSurfaceColorMod_d>(nameof(SDL_SetSurfaceColorMod));
-            SDL_SetSurfacePalette_f = lib.LoadFunction<SDL_SetSurfacePalette_d>(nameof(SDL_SetSurfacePalette));
-            SDL_SetSurfaceRLE_f = lib.LoadFunction<SDL_SetSurfaceRLE_d>(nameof(SDL_SetSurfaceRLE));
-            SDL_SetTextInputRect_f = lib.LoadFunction<SDL_SetTextInputRect_d>(nameof(SDL_SetTextInputRect));
-            SDL_SetTextureAlphaMod_f = lib.LoadFunction<SDL_SetTextureAlphaMod_d>(nameof(SDL_SetTextureAlphaMod));
-            SDL_SetTextureBlendMode_f = lib.LoadFunction<SDL_SetTextureBlendMode_d>(nameof(SDL_SetTextureBlendMode));
-            SDL_SetTextureColorMod_f = lib.LoadFunction<SDL_SetTextureColorMod_d>(nameof(SDL_SetTextureColorMod));
-            SDL_SetWindowBordered_f = lib.LoadFunction<SDL_SetWindowBordered_d>(nameof(SDL_SetWindowBordered));
-            SDL_SetWindowBrightness_f = lib.LoadFunction<SDL_SetWindowBrightness_d>(nameof(SDL_SetWindowBrightness));
-            SDL_SetWindowData_f = lib.LoadFunction<SDL_SetWindowData_d>(nameof(SDL_SetWindowData));
-            SDL_SetWindowDisplayMode_f = lib.LoadFunction<SDL_SetWindowDisplayMode_d>(nameof(SDL_SetWindowDisplayMode));
-            SDL_SetWindowFullscreen_f = lib.LoadFunction<SDL_SetWindowFullscreen_d>(nameof(SDL_SetWindowFullscreen));
-            SDL_SetWindowGammaRamp_f = lib.LoadFunction<SDL_SetWindowGammaRamp_d>(nameof(SDL_SetWindowGammaRamp));
-            SDL_SetWindowGrab_f = lib.LoadFunction<SDL_SetWindowGrab_d>(nameof(SDL_SetWindowGrab));
-            SDL_SetWindowHitTest_f = lib.LoadFunction<SDL_SetWindowHitTest_d>(nameof(SDL_SetWindowHitTest));
-            SDL_SetWindowInputFocus_f = lib.LoadFunction<SDL_SetWindowInputFocus_d>(nameof(SDL_SetWindowInputFocus));
-            SDL_SetWindowMaximumSize_f = lib.LoadFunction<SDL_SetWindowMaximumSize_d>(nameof(SDL_SetWindowMaximumSize));
-            SDL_SetWindowMinimumSize_f = lib.LoadFunction<SDL_SetWindowMinimumSize_d>(nameof(SDL_SetWindowMinimumSize));
-            SDL_SetWindowModalFor_f = lib.LoadFunction<SDL_SetWindowModalFor_d>(nameof(SDL_SetWindowModalFor));
-            SDL_SetWindowOpacity_f = lib.LoadFunction<SDL_SetWindowOpacity_d>(nameof(SDL_SetWindowOpacity));
-            SDL_SetWindowPosition_f = lib.LoadFunction<SDL_SetWindowPosition_d>(nameof(SDL_SetWindowPosition));
-            SDL_SetWindowResizable_f = lib.LoadFunction<SDL_SetWindowResizable_d>(nameof(SDL_SetWindowResizable));
-            SDL_SetWindowSize_f = lib.LoadFunction<SDL_SetWindowSize_d>(nameof(SDL_SetWindowSize));
-            SDL_SetWindowTitle_f = lib.LoadFunction<SDL_SetWindowTitle_d>(nameof(SDL_SetWindowTitle));
-            SDL_ShowCursor_f = lib.LoadFunction<SDL_ShowCursor_d>(nameof(SDL_ShowCursor));
-            SDL_ShowWindow_f = lib.LoadFunction<SDL_ShowWindow_d>(nameof(SDL_ShowWindow));
-            SDL_StartTextInput_f = lib.LoadFunction<SDL_StartTextInput_d>(nameof(SDL_StartTextInput));
-            SDL_StopTextInput_f = lib.LoadFunction<SDL_StopTextInput_d>(nameof(SDL_StopTextInput));
-            SDL_UnlockSurface_f = lib.LoadFunction<SDL_UnlockSurface_d>(nameof(SDL_UnlockSurface));
-            SDL_UnlockTexture_f = lib.LoadFunction<SDL_UnlockTexture_d>(nameof(SDL_UnlockTexture));
-            SDL_UpdateTexture_f = lib.LoadFunction<SDL_UpdateTexture_d>(nameof(SDL_UpdateTexture));
-            SDL_UpdateYUVTexture_f = lib.LoadFunction<SDL_UpdateYUVTexture_d>(nameof(SDL_UpdateYUVTexture));
-            SDL_UpperBlit_f = lib.LoadFunction<SDL_UpperBlit_d>(nameof(SDL_UpperBlit));
-            SDL_UpperBlitScaled_f = lib.LoadFunction<SDL_UpperBlitScaled_d>(nameof(SDL_UpperBlitScaled));
-            SDL_VideoInit_f = lib.LoadFunction<SDL_VideoInit_d>(nameof(SDL_VideoInit));
-            SDL_VideoQuit_f = lib.LoadFunction<SDL_VideoQuit_d>(nameof(SDL_VideoQuit));
-            SDL_WaitEvent_f = lib.LoadFunction<SDL_WaitEvent_d>(nameof(SDL_WaitEvent));
-            SDL_WaitEventTimeout_f = lib.LoadFunction<SDL_WaitEventTimeout_d>(nameof(SDL_WaitEventTimeout));
-            SDL_WarpMouseGlobal_f = lib.LoadFunction<SDL_WarpMouseGlobal_d>(nameof(SDL_WarpMouseGlobal));
-            SDL_WarpMouseInWindow_f = lib.LoadFunction<SDL_WarpMouseInWindow_d>(nameof(SDL_WarpMouseInWindow));
-            SDL_WasInit_f = lib.LoadFunction<SDL_WasInit_d>(nameof(SDL_WasInit));
+                FuncLoader.LoadFunction<SDL_SetRenderDrawBlendMode_d>(lib, nameof(SDL_SetRenderDrawBlendMode));
+            SDL_SetRenderDrawColor_f = FuncLoader.LoadFunction<SDL_SetRenderDrawColor_d>(lib, nameof(SDL_SetRenderDrawColor));
+            SDL_SetRenderTarget_f = FuncLoader.LoadFunction<SDL_SetRenderTarget_d>(lib, nameof(SDL_SetRenderTarget));
+            SDL_SetSurfaceAlphaMod_f = FuncLoader.LoadFunction<SDL_SetSurfaceAlphaMod_d>(lib, nameof(SDL_SetSurfaceAlphaMod));
+            SDL_SetSurfaceBlendMode_f = FuncLoader.LoadFunction<SDL_SetSurfaceBlendMode_d>(lib, nameof(SDL_SetSurfaceBlendMode));
+            SDL_SetSurfaceColorMod_f = FuncLoader.LoadFunction<SDL_SetSurfaceColorMod_d>(lib, nameof(SDL_SetSurfaceColorMod));
+            SDL_SetSurfacePalette_f = FuncLoader.LoadFunction<SDL_SetSurfacePalette_d>(lib, nameof(SDL_SetSurfacePalette));
+            SDL_SetSurfaceRLE_f = FuncLoader.LoadFunction<SDL_SetSurfaceRLE_d>(lib, nameof(SDL_SetSurfaceRLE));
+            SDL_SetTextInputRect_f = FuncLoader.LoadFunction<SDL_SetTextInputRect_d>(lib, nameof(SDL_SetTextInputRect));
+            SDL_SetTextureAlphaMod_f = FuncLoader.LoadFunction<SDL_SetTextureAlphaMod_d>(lib, nameof(SDL_SetTextureAlphaMod));
+            SDL_SetTextureBlendMode_f = FuncLoader.LoadFunction<SDL_SetTextureBlendMode_d>(lib, nameof(SDL_SetTextureBlendMode));
+            SDL_SetTextureColorMod_f = FuncLoader.LoadFunction<SDL_SetTextureColorMod_d>(lib, nameof(SDL_SetTextureColorMod));
+            SDL_SetWindowBordered_f = FuncLoader.LoadFunction<SDL_SetWindowBordered_d>(lib, nameof(SDL_SetWindowBordered));
+            SDL_SetWindowBrightness_f = FuncLoader.LoadFunction<SDL_SetWindowBrightness_d>(lib, nameof(SDL_SetWindowBrightness));
+            SDL_SetWindowData_f = FuncLoader.LoadFunction<SDL_SetWindowData_d>(lib, nameof(SDL_SetWindowData));
+            SDL_SetWindowDisplayMode_f = FuncLoader.LoadFunction<SDL_SetWindowDisplayMode_d>(lib, nameof(SDL_SetWindowDisplayMode));*/
+            SDL_SetWindowFullscreen_f = FuncLoader.LoadFunction<SDL_SetWindowFullscreen_d>(lib, nameof(SDL_SetWindowFullscreen));
+            /*SDL_SetWindowGammaRamp_f = FuncLoader.LoadFunction<SDL_SetWindowGammaRamp_d>(lib, nameof(SDL_SetWindowGammaRamp));
+            SDL_SetWindowGrab_f = FuncLoader.LoadFunction<SDL_SetWindowGrab_d>(lib, nameof(SDL_SetWindowGrab));
+            SDL_SetWindowHitTest_f = FuncLoader.LoadFunction<SDL_SetWindowHitTest_d>(lib, nameof(SDL_SetWindowHitTest));
+            SDL_SetWindowInputFocus_f = FuncLoader.LoadFunction<SDL_SetWindowInputFocus_d>(lib, nameof(SDL_SetWindowInputFocus));
+            SDL_SetWindowMaximumSize_f = FuncLoader.LoadFunction<SDL_SetWindowMaximumSize_d>(lib, nameof(SDL_SetWindowMaximumSize));
+            SDL_SetWindowMinimumSize_f = FuncLoader.LoadFunction<SDL_SetWindowMinimumSize_d>(lib, nameof(SDL_SetWindowMinimumSize));
+            SDL_SetWindowModalFor_f = FuncLoader.LoadFunction<SDL_SetWindowModalFor_d>(lib, nameof(SDL_SetWindowModalFor));
+            SDL_SetWindowOpacity_f = FuncLoader.LoadFunction<SDL_SetWindowOpacity_d>(lib, nameof(SDL_SetWindowOpacity));*/
+            SDL_SetWindowPosition_f = FuncLoader.LoadFunction<SDL_SetWindowPosition_d>(lib, nameof(SDL_SetWindowPosition));
+            SDL_SetWindowResizable_f = FuncLoader.LoadFunction<SDL_SetWindowResizable_d>(lib, nameof(SDL_SetWindowResizable));
+            SDL_SetWindowSize_f = FuncLoader.LoadFunction<SDL_SetWindowSize_d>(lib, nameof(SDL_SetWindowSize));
+            SDL_SetWindowTitle_f = FuncLoader.LoadFunction<SDL_SetWindowTitle_d>(lib, nameof(SDL_SetWindowTitle));
+            SDL_ShowCursor_f = FuncLoader.LoadFunction<SDL_ShowCursor_d>(lib, nameof(SDL_ShowCursor));
+            SDL_ShowWindow_f = FuncLoader.LoadFunction<SDL_ShowWindow_d>(lib, nameof(SDL_ShowWindow));
+            SDL_StartTextInput_f = FuncLoader.LoadFunction<SDL_StartTextInput_d>(lib, nameof(SDL_StartTextInput));
+            SDL_StopTextInput_f = FuncLoader.LoadFunction<SDL_StopTextInput_d>(lib, nameof(SDL_StopTextInput));
+            /*SDL_UnlockSurface_f = FuncLoader.LoadFunction<SDL_UnlockSurface_d>(lib, nameof(SDL_UnlockSurface));
+            SDL_UnlockTexture_f = FuncLoader.LoadFunction<SDL_UnlockTexture_d>(lib, nameof(SDL_UnlockTexture));
+            SDL_UpdateTexture_f = FuncLoader.LoadFunction<SDL_UpdateTexture_d>(lib, nameof(SDL_UpdateTexture));
+            SDL_UpdateYUVTexture_f = FuncLoader.LoadFunction<SDL_UpdateYUVTexture_d>(lib, nameof(SDL_UpdateYUVTexture));
+            SDL_UpperBlit_f = FuncLoader.LoadFunction<SDL_UpperBlit_d>(lib, nameof(SDL_UpperBlit));
+            SDL_UpperBlitScaled_f = FuncLoader.LoadFunction<SDL_UpperBlitScaled_d>(lib, nameof(SDL_UpperBlitScaled));
+            SDL_VideoInit_f = FuncLoader.LoadFunction<SDL_VideoInit_d>(lib, nameof(SDL_VideoInit));
+            SDL_VideoQuit_f = FuncLoader.LoadFunction<SDL_VideoQuit_d>(lib, nameof(SDL_VideoQuit));
+            SDL_WaitEvent_f = FuncLoader.LoadFunction<SDL_WaitEvent_d>(lib, nameof(SDL_WaitEvent));
+            SDL_WaitEventTimeout_f = FuncLoader.LoadFunction<SDL_WaitEventTimeout_d>(lib, nameof(SDL_WaitEventTimeout));
+            SDL_WarpMouseGlobal_f = FuncLoader.LoadFunction<SDL_WarpMouseGlobal_d>(lib, nameof(SDL_WarpMouseGlobal));
+            SDL_WarpMouseInWindow_f = FuncLoader.LoadFunction<SDL_WarpMouseInWindow_d>(lib, nameof(SDL_WarpMouseInWindow));
+            SDL_WasInit_f = FuncLoader.LoadFunction<SDL_WasInit_d>(lib, nameof(SDL_WasInit));*/
 
             return lib;
         }
@@ -2127,16 +2121,17 @@ namespace BLITTEngine.Foundation
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate SDL_HitTestResult SDL_HitTest(SDL_Window window, SDL_Point* area, void* data);
-
+        
+        
+        [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate SDL_Window SDL_CreateWindow_d(
             string title, int x, int y, int width, int height, SDL_WindowFlags flags);
-
         private static SDL_CreateWindow_d SDL_CreateWindow_f;
-
         public static SDL_Window SDL_CreateWindow(string title, int x, int y, int width, int height,
             SDL_WindowFlags flags) => SDL_CreateWindow_f(title, x, y, width, height, flags);
 
+        [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate SDL_Window SDL_CreateWindowFrom_d(IntPtr nativeWindow);
 
@@ -2144,6 +2139,7 @@ namespace BLITTEngine.Foundation
 
         public static SDL_Window SDL_CreateWindowFrom(IntPtr nativeWindow) => SDL_CreateWindowFrom_f(nativeWindow);
 
+        [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate SDL_Window SDL_DestroyWindow_d(SDL_Window window);
 
@@ -2151,6 +2147,7 @@ namespace BLITTEngine.Foundation
 
         public static SDL_Window SDL_DestroyWindow(SDL_Window window) => SDL_DestroyWindow_f(window);
 
+        [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void SDL_DisableScreenSaver_d();
 
@@ -2158,6 +2155,7 @@ namespace BLITTEngine.Foundation
 
         public static void SDL_DisableScreenSaver() => SDL_DisableScreenSaver_f();
 
+        [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void SDL_EnableScreenSaver_d();
 
@@ -2165,6 +2163,7 @@ namespace BLITTEngine.Foundation
 
         public static void SDL_EnableScreenSaver() => SDL_EnableScreenSaver_f();
 
+        [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate SDL_DisplayMode* SDL_GetClosestDisplayMode_d(int displayIndex, SDL_DisplayMode* mode,
             SDL_DisplayMode* closest);
@@ -2174,6 +2173,7 @@ namespace BLITTEngine.Foundation
         public static SDL_DisplayMode* SDL_GetClosestDisplayMode(int displayIndex, SDL_DisplayMode* mode,
             SDL_DisplayMode* closest) => SDL_GetClosestDisplayMode_f(displayIndex, mode, closest);
 
+        [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int SDL_GetCurrentDisplayMode_d(int displayIndex, SDL_DisplayMode* mode);
 

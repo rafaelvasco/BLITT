@@ -11,8 +11,11 @@ namespace BLITTEngine
 
         internal static bool NeedsUpdate;
 
-        internal static void Init()
+        internal static void Init(int width, int height)
         {
+            w = width;
+            h = height;
+            
             Game.Platform.OnWinResized += OnWinResized;
             Game.Platform.OnWinMinimized += OnWinMinimized;
             Game.Platform.OnWinRestored += OnWinRestored;
@@ -64,8 +67,8 @@ namespace BLITTEngine
             }
         }
         
-        public static float CenterX => w * 0.5f;
-        public static float CenterY => h * 0.5f;
+        public static float CenterX => Width * 0.5f;
+        public static float CenterY => Height * 0.5f;
         public static Vector2 Center => new Vector2(CenterX, CenterY);
         
 

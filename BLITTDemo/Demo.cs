@@ -2,11 +2,25 @@ using System;
 using BLITTEngine;
 using BLITTEngine.Graphics;
 using BLITTEngine.Input;
+using BLITTEngine.Resources;
 
 namespace BLITTDemo
 {
     public class Demo : Scene
     {
+        private Color draw_color = Color.White;
+        private Image image;
+
+        public override void Init()
+        {
+            image = Content.Get<Image>("ball");
+            
+            Canvas.SetBlitSource(image);
+            
+            
+            Console.WriteLine("INIT");
+        }
+
         public override void Update(float dt)
         {
             if (Keyboard.Pressed(Key.Escape))
@@ -16,12 +30,22 @@ namespace BLITTDemo
 
             if (Keyboard.Pressed(Key.F11))
             {
-                //Screen.ToggleFullscreen();
+                Console.WriteLine("TOGGLE FS");
+                Screen.ToggleFullscreen();
             }
         }
 
-        public override void Draw(Canvas canvas)
+        public override void Draw()
         {
+            Canvas.SetTint(Color.Orange);
+            Canvas.Blit(Screen.CenterX, Screen.CenterY);
+            
+            Canvas.SetTint(Color.Blue);
+            Canvas.FillRect(10,10, 100, 100);
+            
+            Canvas.SetTint(Color.White);
+            Canvas.FillCircle(200, 200, 50);
+            
         }
     }
 }

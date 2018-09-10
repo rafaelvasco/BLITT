@@ -9,4 +9,14 @@
       <ProjectReference Include="..\BLITTEngine\BLITTEngine.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Assets\ball.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

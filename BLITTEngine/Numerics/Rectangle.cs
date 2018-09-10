@@ -174,14 +174,6 @@ namespace BLITTEngine.Numerics
         {
             return new Rectangle(minX, minY, maxX - minX, maxY - minY);
         }
-        public static Rectangle FromBounds(Vector2 min, Vector2 max)
-        {
-            if (min.X > max.X)
-                Calc.Swap(ref min.X, ref max.X);
-            if (min.Y > max.Y)
-                Calc.Swap(ref min.Y, ref max.Y);
-            return new Rectangle(min.X, min.Y, max.X - min.X, max.Y - min.Y);
-        }
 
         public Rectangle Inflated(float x, float y)
         {

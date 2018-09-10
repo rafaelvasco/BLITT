@@ -33,7 +33,7 @@ namespace BLITTEngine.Platform
 
         public abstract bool IsFullscreen { get; }
         public abstract IntPtr NativeDisplayHandle { get; }
-        public abstract uint WindowID { get; }
+        public abstract GraphicsModule Graphics { get; }
 
         public abstract void Init(string title, int width, int height, GraphicsBackend graphics_backend);
         public abstract void Quit();

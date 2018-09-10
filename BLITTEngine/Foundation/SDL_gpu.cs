@@ -1,51 +1,74 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-using NativeLibraryLoader;
 
 namespace BLITTEngine.Foundation
 {
-    internal static unsafe class SDLGpu
+    internal static class SDLGpu
     {
-        private static readonly NativeLibrary lib = LoadSDLGPU();
+        private static readonly IntPtr sdl_gpu_lib = LoadSDLGPU();
 
-        private static NativeLibrary LoadSDLGPU()
+        private static IntPtr LoadSDLGPU()
         {
-            string[] names;
+            string lib_name;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                names = new[] { "libSDL2_gpu.dll" };
+                lib_name = "libSDL2_gpu.dll";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                names = new[]
-                {
-                    "libSDL2_gpu.so",
-                    "libSDL2_gpu.so.0",
-                    "libSDL2_gpu.so.1",
-                };
+                lib_name = "libSDL2_gpu.so.0";
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                names = new[]
-                {
-                    "libSDL2_gpu.dylib"
-                };
+                lib_name = "libSDL2_gpu.dylib";
+                
             }
             else
             {
-                throw new Exception("Unknown SDL_gpu platform. ");
+                Debug.WriteLine("Unknown SDL platform. Attempting to load \"SDL2\"");
+                lib_name = "SDL2.dll";
             }
+
+
+
+            var lib = FuncLoader.LoadLibrary(lib_name); 
+
+            GPU_SetDebugLevel_f = FuncLoader.LoadFunction<GPU_SetDebugLevel_d>(lib, nameof(GPU_SetDebugLevel));
+            GPU_SetInitWindow_f = FuncLoader.LoadFunction<GPU_SetInitWindow_d>(lib, nameof(GPU_SetInitWindow));
+            GPU_Init_f = FuncLoader.LoadFunction<GPU_Init_d>(lib, nameof(GPU_Init));
+            GPU_Clear_f = FuncLoader.LoadFunction<GPU_Clear_d>(lib, nameof(GPU_Clear));
+            GPU_ClearRGB_f = FuncLoader.LoadFunction<GPU_ClearRGB_d>(lib, nameof(GPU_ClearRGB));
+            GPU_LoadTarget_f = FuncLoader.LoadFunction<GPU_LoadTarget_d>(lib, nameof(GPU_LoadTarget));
+            GPU_FreeTarget_f = FuncLoader.LoadFunction<GPU_FreeTarget_d>(lib, nameof(GPU_FreeTarget));
+            GPU_SetVirtualResolution_f = FuncLoader.LoadFunction<GPU_SetVirtualResolution_d>(lib, nameof(GPU_SetVirtualResolution));
+            GPU_SetViewport_f = FuncLoader.LoadFunction<GPU_SetViewport_d>(lib, nameof(GPU_SetViewport));
+            GPU_LoadImage_f = FuncLoader.LoadFunction<GPU_LoadImage_d>(lib, nameof(GPU_LoadImage));
+            GPU_FreeImage_f = FuncLoader.LoadFunction<GPU_FreeImage_d>(lib, nameof(GPU_FreeImage));
+            GPU_CreateImage_f = FuncLoader.LoadFunction<GPU_CreateImage_d>(lib, nameof(GPU_CreateImage));
+            GPU_UpdateImage_f = FuncLoader.LoadFunction<GPU_UpdateImage_d>(lib, nameof(GPU_UpdateImage));
+            GPU_UpdateImageBytes_f = FuncLoader.LoadFunction<GPU_UpdateImageBytes_d>(lib, nameof(GPU_UpdateImageBytes));
+            GPU_UpdateImageBytes_f2 = FuncLoader.LoadFunction<GPU_UpdateImageBytes_d2>(lib, nameof(GPU_UpdateImageBytes));
+            GPU_Flip_f = FuncLoader.LoadFunction<GPU_Flip_d>(lib, nameof(GPU_Flip));
+            GPU_Quit_f = FuncLoader.LoadFunction<GPU_Quit_d>(lib, nameof(GPU_Quit));
+            GPU_Blit_f = FuncLoader.LoadFunction<GPU_Blit_d>(lib, nameof(GPU_Blit));
+            GPU_Blit_f2 = FuncLoader.LoadFunction<GPU_Blit_d2>(lib, nameof(GPU_Blit));
+            GPU_BlitRect_f = FuncLoader.LoadFunction<GPU_BlitRect_d>(lib, nameof(GPU_Blit));
+            GPU_BlitRect_f2 = FuncLoader.LoadFunction<GPU_BlitRect_d2>(lib, nameof(GPU_Blit));
+            GPU_RectangleFilled_f = FuncLoader.LoadFunction<GPU_RectangleFilled_d>(lib, nameof(GPU_RectangleFilled));
+            GPU_Rectangle_f = FuncLoader.LoadFunction<GPU_Rectangle_d>(lib, nameof(GPU_Rectangle));
+            GPU_Line_f = FuncLoader.LoadFunction<GPU_Line_d>(lib, nameof(GPU_Line));
+            GPU_Pixel_f = FuncLoader.LoadFunction<GPU_Pixel_d>(lib, nameof(GPU_Pixel));
+            GPU_SetTargetRGB_f = FuncLoader.LoadFunction<GPU_SetTargetRGB_d>(lib, nameof(GPU_SetTargetRGB));
+            GPU_SetTargetRGBA_f = FuncLoader.LoadFunction<GPU_SetTargetRGBA_d>(lib, nameof(GPU_SetTargetRGBA));
+            GPU_Circle_f = FuncLoader.LoadFunction<GPU_Circle_d>(lib, nameof(GPU_Circle));
+            GPU_CircleFilled_f = FuncLoader.LoadFunction<GPU_CircleFilled_d>(lib, nameof(GPU_CircleFilled));
             
-            var _lib = new NativeLibrary(names);
+            
+                
+            
 
-            GPU_SetDebugLevel_f = _lib.LoadFunction<GPU_SetDebugLevel_d>(nameof(GPU_SetDebugLevel));
-            GPU_SetInitWindow_f = _lib.LoadFunction<GPU_SetInitWindow_d>(nameof(GPU_SetInitWindow));
-            GPU_Init_f = _lib.LoadFunction<GPU_Init_d>(nameof(GPU_Init));
-            GPU_Clear_f = _lib.LoadFunction<GPU_Clear_d>(nameof(GPU_Clear));
-            GPU_Flip_f = _lib.LoadFunction<GPU_Flip_d>(nameof(GPU_Flip));
-            GPU_Quit_f = _lib.LoadFunction<GPU_Quit_d>(nameof(GPU_Quit));
-
-            return _lib;
+            return lib;
         }
 
 
@@ -330,7 +353,6 @@ namespace BLITTEngine.Foundation
             GPU_BlendFunc dest_color;
             GPU_BlendFunc source_alpha;
             GPU_BlendFunc dest_alpha;
-    
             GPU_BlendEq color_equation;
             GPU_BlendEq alpha_equation;
         }
@@ -351,41 +373,27 @@ namespace BLITTEngine.Foundation
             public IntPtr renderer; // GPU_Renderer
             public IntPtr context_target; // GPU_Target;
             public IntPtr target; // GPU_Target;
-
             public ushort w, h;
-
             public bool using_virtual_resolution;
-
             public GPU_Format format;
-
             public int num_layers;
             public int bytes_per_pixel;
-
             public ushort base_w, base_h;
-
             public ushort texture_w, texture_h;
-
             public bool has_mipmaps;
-
             public float anchor_x;
             public float anchor_y;
-
             public SDL.SDL_Color color;
-
             public bool use_blending;
             public GPU_BlendMode blend_mode;
             public GPU_Filter filter_mode;
             public GPU_Snap snap_mode;
             public GPU_Wrap wrap_mode_x;
             public GPU_Wrap wrap_mode_y;
-
+            
             public IntPtr data; // void*
-
             public int refcount;
-
             public bool is_alias;
-         
-
         }
         
         [StructLayout(LayoutKind.Sequential)]
@@ -403,7 +411,6 @@ namespace BLITTEngine.Foundation
             public int position_loc;
             public int texcoord_loc;
             public int color_loc;
-
             private int modelViewProjection_loc;
         }
         
@@ -420,53 +427,37 @@ namespace BLITTEngine.Foundation
         {
             public IntPtr context; // void*
             public bool failed;
-
             public uint windowID;
-
             public int window_w;
             public int window_h;
-
             public int drawable_w;
             public int drawable_h;
-
             public int stored_window_w;
             public int stored_window_h;
-
             public uint current_shader_program;
             public uint default_textured_shader_program;
             public uint default_untextured_shader_program;
-
             public GPU_ShaderBlock current_shader_block;
             public GPU_ShaderBlock default_textured_shader_block;
             public GPU_ShaderBlock default_untextured_shader_block;
-
             public bool shapes_use_blending;
             public GPU_BlendMode shapes_blend_mode;
             public float line_thickness;
             public bool use_texturing;
-
             public int matrix_mode;
             public GPU_MatrixStack projection_matrix;
             public GPU_MatrixStack modelview_matrix;
-
             public int refcount;
-
             public IntPtr data; // void*
-
         }
         
         [StructLayout(LayoutKind.Sequential)]
         public struct GPU_Target
         {
             public IntPtr renderer; // GPU_Renderer
-
-
             public IntPtr context_target; // GPU_Target
-
             public IntPtr image; // GPU_Image
-
             public IntPtr data; // void*
-
             public ushort w, h;
             public bool using_virtual_resolution;
             public ushort base_w, base_h;
@@ -474,22 +465,14 @@ namespace BLITTEngine.Foundation
             public GPU_Rect clip_rect;
             public bool use_color;
             public SDL.SDL_Color color;
-
             public GPU_Rect viewport;
-
             public GPU_Camera camera;
-
             public bool use_camera;
-
             public bool use_depth_test;
             public bool use_depth_write;
-
             public GPU_Comparison depth_function;
-
             public IntPtr context; // GPU_Context
-
             public int refcount;
-
             public bool is_alias;
         }
 
@@ -582,7 +565,6 @@ namespace BLITTEngine.Foundation
         private delegate void GPU_SetPreInitFlags_d(GPU_InitFlag GPU_Flags);
         private static GPU_SetPreInitFlags_d GPU_SetPreInitFlags_f;
         public static void GPU_SetPreInitFlags(GPU_InitFlag GPU_Flags) => GPU_SetPreInitFlags_f(GPU_Flags);
-
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void GPU_SetRequiredFeatures_d();
@@ -755,8 +737,6 @@ namespace BLITTEngine.Foundation
         private static GPU_ResetRendererState_d GPU_ResetRendererState_f;
         public static void GPU_ResetRendererState() => GPU_ResetRendererState_f();
 
-
-
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void GPU_SetCoordinateMode_d(bool use_math_coords);
         private static GPU_SetCoordinateMode_d GPU_SetCoordinateMode_f;
@@ -776,8 +756,6 @@ namespace BLITTEngine.Foundation
         private delegate void GPU_GetDefaultAnchor_d(out int anchor_x, out int anchor_y);
         private static GPU_GetDefaultAnchor_d GPU_GetDefaultAnchor_f;
         public static void GPU_GetDefaultAnchor(out int anchor_x, out int anchor_y) => GPU_GetDefaultAnchor_f(out anchor_x, out anchor_y);
-
-
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate /*GPU_Target*/ IntPtr GPU_GetContextTarget_d();
@@ -997,7 +975,6 @@ namespace BLITTEngine.Foundation
         private static GPU_UnsetTargetColor_d GPU_UnsetTargetColor_f;
         public static void GPU_UnsetTargetColor(/*GPU_Target*/ IntPtr target) => GPU_UnsetTargetColor_f(target);
 
-
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate /*SDL_Surface*/ IntPtr GPU_LoadSurface_d(string filename);
         private static GPU_LoadSurface_d GPU_LoadSurface_f;
@@ -1023,6 +1000,7 @@ namespace BLITTEngine.Foundation
         private static GPU_LoadImage_d GPU_LoadImage_f;
         public static /*GPU_Image*/ IntPtr GPU_LoadImage(string filename) => GPU_LoadImage_f(filename);
 
+        
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate /*GPU_Image*/ IntPtr GPU_CreateAliasImage_d(/*GPU_Image*/ IntPtr image);
         private static GPU_CreateAliasImage_d GPU_CreateAliasImage_f;
@@ -1049,10 +1027,22 @@ namespace BLITTEngine.Foundation
         public static void GPU_UnsetImageVirtualResolution(/*GPU_Image*/ IntPtr image) => GPU_UnsetImageVirtualResolution_f(image);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void GPU_UpdateImage_d(/*GPU_Image*/ IntPtr image, /*GPU_Rect*/ IntPtr image_rect, /*SDL_Surface*/ IntPtr surface, /*GPU_Rect*/ IntPtr surface_rect);
+        private delegate void GPU_UpdateImage_d(/*GPU_Image*/ IntPtr image, ref GPU_Rect image_rect, /*SDL_Surface*/ IntPtr surface, ref GPU_Rect surface_rect);
         private static GPU_UpdateImage_d GPU_UpdateImage_f;
-        public static void GPU_UpdateImage(/*GPU_Image*/ IntPtr image, /*GPU_Rect*/ IntPtr image_rect, /*SDL_Surface*/ IntPtr surface, /*GPU_Rect*/ IntPtr surface_rect)
-            => GPU_UpdateImage_f(image, image_rect, surface, surface_rect);
+        public static void GPU_UpdateImage(/*GPU_Image*/ IntPtr image, ref GPU_Rect image_rect, /*SDL_Surface*/ IntPtr surface, ref GPU_Rect surface_rect)
+            => GPU_UpdateImage_f(image, ref image_rect, surface, ref surface_rect);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_UpdateImageBytes_d(/*GPU_Image*/ IntPtr image, /*GPU_Rect*/ ref GPU_Rect image_rect,  [In,Out] byte[] bytes, int bytes_per_row);
+        private static GPU_UpdateImageBytes_d GPU_UpdateImageBytes_f;
+        public static void GPU_UpdateImageBytes(/*GPU_Image*/ IntPtr image, /*GPU_Rect*/ ref GPU_Rect image_rect,  [In,Out] byte[] bytes, int bytes_per_row)
+            => GPU_UpdateImageBytes_f(image, ref image_rect, bytes, bytes_per_row);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_UpdateImageBytes_d2(/*GPU_Image*/ IntPtr image, /*GPU_Rect*/ IntPtr image_rect,  [In,Out] byte[] bytes, int bytes_per_row);
+        private static GPU_UpdateImageBytes_d2 GPU_UpdateImageBytes_f2;
+        public static void GPU_UpdateImageBytes(/*GPU_Image*/ IntPtr image, /*GPU_Rect*/ IntPtr image_rect,  [In,Out] byte[] bytes, int bytes_per_row)
+            => GPU_UpdateImageBytes_f2(image, image_rect, bytes, bytes_per_row);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void GPU_Clear_d(IntPtr target);
@@ -1060,8 +1050,76 @@ namespace BLITTEngine.Foundation
         public static void GPU_Clear(IntPtr target) => GPU_Clear_f(target); // GPU_Target
         
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_ClearRGB_d(/*GPU_Target*/ IntPtr target, byte r, byte g, byte b);
+        private static GPU_ClearRGB_d GPU_ClearRGB_f;
+        public static void GPU_ClearRGB(/*GPU_Target*/ IntPtr target, byte r, byte g, byte b) => GPU_ClearRGB_f(target, r, g, b);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void GPU_Flip_d(IntPtr target);
         private static GPU_Flip_d GPU_Flip_f;
-        public static void GPU_Flip(IntPtr target) => GPU_Flip_f(target); // // GPU_Target
+        public static void GPU_Flip(/*GPU_Target*/ IntPtr target) => GPU_Flip_f(target); // // GPU_Target
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_Blit_d(/*GPU_Image*/ IntPtr image, ref GPU_Rect src_rect, /*GPU_Target*/ IntPtr target, float x, float y);
+        private static GPU_Blit_d GPU_Blit_f;
+        public static void GPU_Blit(/*GPU_Image*/ IntPtr image, ref GPU_Rect src_rect, /*GPU_Target*/ IntPtr target, float x, float y) 
+            => GPU_Blit_f(image, ref src_rect, target, x, y);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_Blit_d2(/*GPU_Image*/ IntPtr image, IntPtr src_rect, /*GPU_Target*/ IntPtr target, float x, float y);
+        private static GPU_Blit_d2 GPU_Blit_f2;
+        public static void GPU_Blit(/*GPU_Image*/ IntPtr image, IntPtr src_rect, /*GPU_Target*/ IntPtr target, float x, float y) 
+            => GPU_Blit_f2(image, src_rect, target, x, y);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_BlitRect_d(/*GPU_Image*/ IntPtr image, ref GPU_Rect src_rect, /*GPU_Target*/ IntPtr target, ref GPU_Rect dst_rect);
+        private static GPU_BlitRect_d GPU_BlitRect_f;
+        public static void GPU_BlitRect(/*GPU_Image*/ IntPtr image, ref GPU_Rect src_rect, /*GPU_Target*/ IntPtr target, ref GPU_Rect dst_rect) 
+            => GPU_BlitRect_f(image, ref src_rect, target, ref dst_rect);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_BlitRect_d2(/*GPU_Image*/ IntPtr image, IntPtr src_rect, /*GPU_Target*/ IntPtr target, IntPtr dst_rect);
+        private static GPU_BlitRect_d2 GPU_BlitRect_f2;
+        public static void GPU_BlitRect(/*GPU_Image*/ IntPtr image, IntPtr src_rect, /*GPU_Target*/ IntPtr target, IntPtr dst_rect) 
+            => GPU_BlitRect_f2(image, src_rect, target, dst_rect);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_RectangleFilled_d(/*GPU_Target*/ IntPtr target, float x1, float y1, float x2, float y2, SDL.SDL_Color color);
+        private static GPU_RectangleFilled_d GPU_RectangleFilled_f;
+        public static void GPU_RectangleFilled(/*GPU_Target*/ IntPtr target, float x1, float y1, float x2, float y2, SDL.SDL_Color color) 
+            => GPU_RectangleFilled_f(target, x1, y1, x2, y2, color);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_Rectangle_d(/*GPU_Target*/ IntPtr target, float x1, float y1, float x2, float y2, SDL.SDL_Color color);
+        private static GPU_Rectangle_d GPU_Rectangle_f;
+        public static void GPU_Rectangle(/*GPU_Target*/ IntPtr target, float x1, float y1, float x2, float y2, SDL.SDL_Color color) 
+            =>GPU_Rectangle_f(target, x1, y1, x2, y2, color);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_Line_d(/*GPU_Target*/ IntPtr target, float x1, float y1, float x2, float y2, SDL.SDL_Color color);
+        private static GPU_Line_d GPU_Line_f;
+        public static void GPU_Line(/*GPU_Target*/ IntPtr target, float x1, float y1, float x2, float y2, SDL.SDL_Color color) 
+            => GPU_Line_f(target, x1, y1, x2, y2, color);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_Pixel_d(/*GPU_Target*/ IntPtr target, float x, float y, SDL.SDL_Color color);
+        private static GPU_Pixel_d GPU_Pixel_f;
+        public static void GPU_Pixel(/*GPU_Target*/ IntPtr target, float x, float y, SDL.SDL_Color color) => GPU_Pixel_f(target, x, y, color);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_Circle_d(/*GPU_Target*/ IntPtr target, float x, float y, float radius, SDL.SDL_Color color);
+        private static GPU_Circle_d GPU_Circle_f;
+        public static void GPU_Circle(/*GPU_Target*/ IntPtr target, float x, float y, float radius, SDL.SDL_Color color) 
+            => GPU_Circle_f(target, x, y, radius, color);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_CircleFilled_d(/*GPU_Target*/ IntPtr target, float x, float y, float radius, SDL.SDL_Color color);
+        private static GPU_CircleFilled_d GPU_CircleFilled_f;
+        public static void GPU_CircleFilled(/*GPU_Target*/ IntPtr target, float x, float y, float radius, SDL.SDL_Color color) 
+            => GPU_CircleFilled_f(target, x, y, radius, color);
+
+
+            
+            
     }
 }

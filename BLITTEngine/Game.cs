@@ -1,13 +1,18 @@
 using System;
+using System.Diagnostics;
 using BLITTEngine.Graphics;
 using BLITTEngine.Input;
 using BLITTEngine.Platform;
+using BLITTEngine.Resources;
 using BLITTEngine.Temporal;
 
 namespace BLITTEngine
 {
     public static class Game
     {
+        private static bool error = false;
+        private static string error_msg = null;
+        
         internal static GamePlatform Platform;
         
         public static bool Running { get; internal set; }
@@ -15,10 +20,9 @@ namespace BLITTEngine
         public static bool ExitOnCloseWindow { get; set; } = true;
         public static Scene CurrentScene { get; private set; }
 
-        private static Canvas canvas;
-
         public static void Run(Scene scene = null)
         {
+            
             if (Running)
             {
                 return;
@@ -34,13 +38,15 @@ namespace BLITTEngine
             
             Platform.OnQuit += OnPlatformQuit;
             
-            Platform.PollEvents();
-            
             Platform.GetWindowSize(out int windowW, out int windowH);
             
-            canvas = new Canvas(Platform.WindowID, windowW, windowH);
+            Screen.Init(windowW , windowH);
+            Canvas.Init(Platform.Graphics);
             
             Keyboard.Init();
+            Content.Init("Assets");
+            
+            CurrentScene?.Init();
             
             Platform.ShowWindow(true);
             
@@ -52,6 +58,13 @@ namespace BLITTEngine
             Running = false;
         }
 
+        internal static void ThrowError(string message, params object[] args)
+        {
+            error = true;
+
+            error_msg = string.Format(message, args);
+        }
+        
         private static void OnPlatformQuit()
         {
             if (ExitOnCloseWindow)
@@ -65,6 +78,8 @@ namespace BLITTEngine
             GameClock.FrameRate = 60;
             GameClock.Start();
 
+            var graphics = Platform.Graphics;
+            
             while (Running)
             {
                 Platform.PollEvents();
@@ -79,17 +94,17 @@ namespace BLITTEngine
                 while (GameClock.TotalTime >= GameClock.FrameDuration)
                 {
                     CurrentScene?.Update(GameClock.DeltaTime);
-                    
-                    Keyboard.PostUpdate();
-                    
                     GameClock.TotalTime -= GameClock.FrameDuration;
+                    //Platform.SetWindowTitle(GameClock.FPS.ToString());
                 }
                 
-                canvas.Begin();
+                Keyboard.PostUpdate();
                 
-                CurrentScene?.Draw(canvas);
+                graphics.BeginDraw();
                 
-                canvas.End();
+                CurrentScene?.Draw();
+                
+                graphics.EndDraw();
 
                 if (Screen.NeedsUpdate)
                 {
@@ -110,7 +125,7 @@ namespace BLITTEngine
                 
             }
             
-            canvas.Dispose();
+            Content.UnloadAll();
             Platform.Quit();
             
             
@@ -123,7 +138,6 @@ namespace BLITTEngine
             Console.WriteLine(
                 $"Gen-0: {gen0} | Gen-1: {gen1} | Gen-2: {gen2}"
             );
-            
 #endif
         }
 

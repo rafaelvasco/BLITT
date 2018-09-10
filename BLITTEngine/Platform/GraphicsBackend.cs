@@ -1,4 +1,4 @@
-namespace BLITTEngine.Graphics
+namespace BLITTEngine.Platform
 {
     public enum GraphicsBackend
     {

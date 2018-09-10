@@ -43,7 +43,7 @@ namespace BLITTEngine
             Screen.Init(windowW , windowH);
             Canvas.Init(Platform.Graphics);
             
-            Keyboard.Init();
+            Keyboard.Init(Platform);
             Content.Init("Assets");
             
             CurrentScene?.Init();
@@ -93,12 +93,12 @@ namespace BLITTEngine
 
                 while (GameClock.TotalTime >= GameClock.FrameDuration)
                 {
+                    Keyboard.Update();
+
                     CurrentScene?.Update(GameClock.DeltaTime);
                     GameClock.TotalTime -= GameClock.FrameDuration;
                     //Platform.SetWindowTitle(GameClock.FPS.ToString());
                 }
-                
-                Keyboard.PostUpdate();
                 
                 graphics.BeginDraw();
                 

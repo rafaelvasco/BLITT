@@ -1,11 +1,13 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using BLITTEngine.Foundation;
+using BLITTEngine.Input;
 using static BLITTEngine.Foundation.SDL;
 
 namespace BLITTEngine.Platform
 {
-    internal class SDLGamePlatform : GamePlatform
+    internal partial class SDLGamePlatform : GamePlatform
     {
         private SDL_Window window;
         private uint window_id;
@@ -13,9 +15,12 @@ namespace BLITTEngine.Platform
         private bool is_fullscreen;
         private SDLGpuGraphicsModule sdl_gpu_graphics;
 
+        
+
         public override bool IsFullscreen => is_fullscreen;
         public override IntPtr NativeDisplayHandle => native_handle;
         public override GraphicsModule Graphics => sdl_gpu_graphics;
+
 
         public override void Init(string title, int width, int height, GraphicsBackend graphics_backend)
         {
@@ -81,6 +86,9 @@ namespace BLITTEngine.Platform
             Console.WriteLine($"Graphics took: {sw.Elapsed.TotalSeconds}");
             
             sw.Stop();
+
+            InitializeKeyboard();
+
         }
         
         private unsafe IntPtr GetWindowNativeHandle()
@@ -126,37 +134,28 @@ namespace BLITTEngine.Platform
                         OnQuit?.Invoke();
                         break;
                     case SDL_EventType.SDL_KEYDOWN:
-                        OnKeyDown?.Invoke((int)ev.keyboard.keysym.sym, (int)ev.keyboard.keysym.scancode);
+                        AddKey((int)ev.keyboard.keysym.sym);
                         break;
                     case SDL_EventType.SDL_KEYUP:
-                        OnKeyUp?.Invoke((int)ev.keyboard.keysym.sym, (int)ev.keyboard.keysym.scancode);
+                        RemoveKey((int)ev.keyboard.keysym.sym);
                         break;
                     case SDL_EventType.SDL_MOUSEMOTION:
-                        OnMouseMove?.Invoke(ev.motion.x, ev.motion.y);
                         break;
                     case SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                        OnMouseButtonDown?.Invoke((int) ev.button.button);
                         break;
                     case SDL_EventType.SDL_MOUSEBUTTONUP:
-                        OnMouseButtonUp?.Invoke((int)ev.button.button);
                         break;
                     case SDL_EventType.SDL_MOUSEWHEEL:
-                        OnMouseScroll?.Invoke(ev.wheel.x, ev.wheel.y);
                         break;
                     case SDL_EventType.SDL_JOYDEVICEADDED:
-                        OnJoyDeviceAdd?.Invoke(ev.jdevice.which);
                         break;
                     case SDL_EventType.SDL_JOYDEVICEREMOVED:
-                        OnJoyDeviceRemove?.Invoke(ev.jdevice.which);
                         break;
                     case SDL_EventType.SDL_JOYBUTTONDOWN:
-                        OnJoyButtonDown?.Invoke(ev.jdevice.which, ev.jbutton.button);
                         break;
                     case SDL_EventType.SDL_JOYBUTTONUP:
-                        OnJoyButtonUp?.Invoke(ev.jdevice.which, ev.jbutton.button);
                         break;
                     case SDL_EventType.SDL_JOYAXISMOTION:
-                        OnJoyAxisMove?.Invoke(ev.jdevice.which, ev.jaxis.axis, ev.jaxis.value / (float)short.MaxValue);
                         break;
                     case SDL_EventType.SDL_WINDOWEVENT:
                         switch (ev.window.evt)

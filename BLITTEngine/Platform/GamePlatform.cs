@@ -1,30 +1,14 @@
 using System;
-using BLITTEngine.Graphics;
+using BLITTEngine.Input;
 
 namespace BLITTEngine.Platform
 {
     internal abstract class GamePlatform
     {
-        public delegate void KeyEvent(int keyCode, int scanCode);
-        public delegate void MouseMoveEvent(int x, int y);
-        public delegate void MouseButtonEvent(int buttonID);
-        public delegate void MouseScrollEvent(int x, int y);
-        public delegate void JoyDeviceEvent(int deviceID);
-        public delegate void JoyButtonEvent(int deviceID, int buttonID);
-        public delegate void JoyAxisEvent(int deviceID, int axisID, float value);
+        
 
         public Action OnQuit;
-        public KeyEvent OnKeyDown;
-        public KeyEvent OnKeyUp;
-        public MouseMoveEvent OnMouseMove;
-        public MouseButtonEvent OnMouseButtonDown;
-        public MouseButtonEvent OnMouseButtonUp;
-        public MouseScrollEvent OnMouseScroll;
-        public JoyDeviceEvent OnJoyDeviceAdd;
-        public JoyDeviceEvent OnJoyDeviceRemove;
-        public JoyButtonEvent OnJoyButtonDown;
-        public JoyButtonEvent OnJoyButtonUp;
-        public JoyAxisEvent OnJoyAxisMove;
+       
 
         public Action OnWinResized;
         public Action OnWinMinimized;
@@ -44,5 +28,6 @@ namespace BLITTEngine.Platform
         public abstract void ShowWindowCursor(bool show);
         public abstract void ShowWindow(bool show);
         public abstract void SetFullscreen(bool enabled);
+        public abstract ref KeyboardState GetKeyboardState();
     }
 }

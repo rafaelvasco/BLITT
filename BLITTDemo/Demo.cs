@@ -8,7 +8,6 @@ namespace BLITTDemo
 {
     public class Demo : Scene
     {
-        private Color draw_color = Color.White;
         private Image image;
 
         public override void Init()
@@ -16,9 +15,6 @@ namespace BLITTDemo
             image = Content.Get<Image>("ball");
             
             Canvas.SetBlitSource(image);
-            
-            
-            Console.WriteLine("INIT");
         }
 
         public override void Update(float dt)
@@ -28,10 +24,10 @@ namespace BLITTDemo
                 Game.Quit();
             }
 
-            if (Keyboard.Pressed(Key.F11))
+            if (Keyboard.Down(Key.F11))
             {
                 Console.WriteLine("TOGGLE FS");
-                Screen.ToggleFullscreen();
+                //Screen.ToggleFullscreen();
             }
         }
 

@@ -24,10 +24,18 @@ namespace BLITTDemo
                 Game.Quit();
             }
 
-            if (Keyboard.Down(Key.F11))
+            if (Keyboard.Pressed(Key.B))
             {
-                Console.WriteLine("TOGGLE FS");
-                //Screen.ToggleFullscreen();
+                Screen.Resize(1024, 768);
+            }
+            else if (Keyboard.Pressed(Key.S))
+            {
+                Screen.Resize(800, 600);
+            }
+
+            if (Keyboard.Pressed(Key.F11))
+            {
+                Screen.ToggleFullscreen();
             }
         }
 

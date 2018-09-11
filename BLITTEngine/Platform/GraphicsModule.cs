@@ -12,7 +12,6 @@ namespace BLITTEngine.Platform
         Texture CreateTexture(int width, int height, bool is_render_target);
         void DestroyTexture(Texture texture);
         void UpdateTexture(Texture texture, Pixmap pixmap);
-        void Terminate();
         void SetColor(ref Color color);
         void SetClearColor(ref Color color);
         Color GetClearColor();
@@ -21,6 +20,7 @@ namespace BLITTEngine.Platform
         void BeginDraw();
         void EndDraw();
         void SetViewport(float x, float y, float w, float h);
+        void Resize(float w, float h);
         void DrawRect(float x, float y, float w, float h);
         void FillRect(float x, float y, float w, float h);
         void DrawLine(float x1, float y1, float x2, float y2);

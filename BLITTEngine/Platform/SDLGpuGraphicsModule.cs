@@ -24,9 +24,10 @@ namespace BLITTEngine.Platform
         private GPU_Rect blit_rect;
         private GPU_Rect blit_dst_rect;
 
-        public SDLGpuGraphicsModule(uint windowId, int viewport_width, int viewport_height)
+        public SDLGpuGraphicsModule(uint windowId, int screen_w, int screen_h)
         {
             
+            Console.WriteLine($"GRAPHICS MODULE INIT: {screen_w}, {screen_h}");
             
 #if DEBUG
             GPU_SetDebugLevel(GPU_DebugLevel.LEVEL_MAX);
@@ -35,8 +36,8 @@ namespace BLITTEngine.Platform
 #endif
             
             GPU_SetInitWindow(windowId);
-
-            main_target = GPU_Init((ushort) viewport_width, (ushort) viewport_height, GPU_DEFAULT_INIT_FLAGS);
+            
+            main_target = GPU_Init((ushort) screen_w, (ushort) screen_h, GPU_DEFAULT_INIT_FLAGS);
 
             if (main_target == IntPtr.Zero)
             {
@@ -153,7 +154,14 @@ namespace BLITTEngine.Platform
         public void SetViewport(float x, float y, float w, float h)
         {
             GPU_Rect viewport = new GPU_Rect {x = x, y = y, w = w, h = h};
+            GPU_UnsetClip(target);
             GPU_SetViewport(target, viewport);
+           
+        }
+
+        public void Resize(float w, float h)
+        {
+            GPU_SetWindowResolution((ushort) w, (ushort) h);
         }
 
         public void DrawRect(float x, float y, float w, float h)

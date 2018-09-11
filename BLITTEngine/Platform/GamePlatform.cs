@@ -10,7 +10,7 @@ namespace BLITTEngine.Platform
         public Action OnQuit;
        
 
-        public Action OnWinResized;
+        public Action<int, int> OnWinResized;
         public Action OnWinMinimized;
         public Action OnWinRestored;
        
@@ -19,7 +19,7 @@ namespace BLITTEngine.Platform
         public abstract IntPtr NativeDisplayHandle { get; }
         public abstract GraphicsModule Graphics { get; }
 
-        public abstract void Init(string title, int width, int height, GraphicsBackend graphics_backend);
+        public abstract void Init(string title, int width, int height, bool fullscreen, GraphicsBackend graphics_backend);
         public abstract void Quit();
         public abstract void PollEvents();
         public abstract void GetWindowSize(out int w, out int h);

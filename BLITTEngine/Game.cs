@@ -34,13 +34,13 @@ namespace BLITTEngine
             
             Platform = new SDLGamePlatform();
             
-            Platform.Init("BLITT", 800, 600, GraphicsBackend.OpenGL);
+            Platform.Init("BLITT", 800, 600, fullscreen: true, GraphicsBackend.OpenGL);
             
             Platform.OnQuit += OnPlatformQuit;
             
             Platform.GetWindowSize(out int windowW, out int windowH);
             
-            Screen.Init(windowW , windowH);
+            Screen.Init(windowW , windowH, Platform.IsFullscreen);
             Canvas.Init(Platform.Graphics);
             
             Keyboard.Init(Platform);
@@ -106,23 +106,28 @@ namespace BLITTEngine
                 
                 graphics.EndDraw();
 
-                if (Screen.NeedsUpdate)
+                if (Screen.ScreenResized)
                 {
-                    Console.WriteLine("UPDATE SCREEN");
+                    Console.WriteLine("GAME SCREEN RESIZED");
+                    Platform.SetWindowSize(Screen.Width, Screen.Height);
+                    Screen.ScreenResized = false;
+                }
+                else if (Screen.ScreenToggledUpdate)
+                {
+                    Console.WriteLine("GAME SCREEN TOGGLED FS");
                     
                     if (!Platform.IsFullscreen && Screen.Fullscreen)
                     {
-                        Console.WriteLine("GO FULLSCREEN");
                         Platform.SetFullscreen(true);
                     }
                     else
                     {
-                        Platform.SetWindowSize(Screen.Width, Screen.Height);
+                        Platform.SetFullscreen(false);
+                        
                     }
 
-                    Screen.NeedsUpdate = false;
+                    Screen.ScreenToggledUpdate = false;
                 }
-                
             }
             
             Content.UnloadAll();

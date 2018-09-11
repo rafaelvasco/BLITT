@@ -126,7 +126,7 @@ namespace BLITTEngine.Foundation
             //    FuncLoader.LoadFunction<SDL_GetCurrentVideoDriver_d>(lib, nameof(SDL_GetCurrentVideoDriver));
             //SDL_GetCursor_f = FuncLoader.LoadFunction<SDL_GetCursor_d>(lib, nameof(SDL_GetCursor));
             //SDL_GetDefaultCursor_f = FuncLoader.LoadFunction<SDL_GetDefaultCursor_d>(lib, nameof(SDL_GetDefaultCursor));
-            //SDL_GetDesktopDisplayMode_f =
+            SDL_GetDesktopDisplayMode_f =
                 FuncLoader.LoadFunction<SDL_GetDesktopDisplayMode_d>(lib, nameof(SDL_GetDesktopDisplayMode));
             //SDL_GetDisplayBounds_f = FuncLoader.LoadFunction<SDL_GetDisplayBounds_d>(lib, nameof(SDL_GetDisplayBounds));
             //SDL_GetDisplayDPI_f = FuncLoader.LoadFunction<SDL_GetDisplayDPI_d>(lib, nameof(SDL_GetDisplayDPI));
@@ -2195,12 +2195,12 @@ namespace BLITTEngine.Foundation
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int SDL_GetDesktopDisplayMode_d(int displayIndex, SDL_DisplayMode* mode);
+        private delegate int SDL_GetDesktopDisplayMode_d(int displayIndex, out SDL_DisplayMode mode);
 
         private static SDL_GetDesktopDisplayMode_d SDL_GetDesktopDisplayMode_f;
 
-        public static int SDL_GetDesktopDisplayMode(int displayIndex, SDL_DisplayMode* mode) =>
-            SDL_GetDesktopDisplayMode_f(displayIndex, mode);
+        public static int SDL_GetDesktopDisplayMode(int displayIndex, out SDL_DisplayMode mode) =>
+            SDL_GetDesktopDisplayMode_f(displayIndex, out mode);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int SDL_GetDisplayBounds_d(int displayIndex, SDL_Rect* rect);

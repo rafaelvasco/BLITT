@@ -15,15 +15,22 @@ namespace BLITTEngine.Platform
         private bool is_fullscreen;
         private SDLGpuGraphicsModule sdl_gpu_graphics;
 
-        
+        private int prev_win_w;
+        private int prev_win_h;
+        private int screen_w;
+        private int screen_h;
 
         public override bool IsFullscreen => is_fullscreen;
         public override IntPtr NativeDisplayHandle => native_handle;
         public override GraphicsModule Graphics => sdl_gpu_graphics;
 
 
-        public override void Init(string title, int width, int height, GraphicsBackend graphics_backend)
+        public override void Init(string title, int width, int height, bool fullscreen, GraphicsBackend graphics_backend)
         {
+            prev_win_w = width;
+            prev_win_h = height;
+            is_fullscreen = fullscreen;
+            
             var initFlags = SDL_InitFlags.SDL_INIT_VIDEO
                             | SDL_InitFlags.SDL_INIT_JOYSTICK;
             
@@ -62,7 +69,10 @@ namespace BLITTEngine.Platform
                     break;
             }
 
-            
+            if (fullscreen)
+            {
+                windowFlags |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
+            }
             
             window = SDL_CreateWindow(
                 title, 
@@ -76,12 +86,27 @@ namespace BLITTEngine.Platform
                 throw new Exception(SDL_GetError());
             }
             
+            if (fullscreen)
+            {
+                SDL_GetDesktopDisplayMode(0, out SDL_DisplayMode dm);
+
+                screen_w = dm.w;
+                screen_h = dm.h;
+            
+                Console.WriteLine($"FULLSCREEN RES: {screen_w},{screen_h}");
+            }
+            else
+            {
+                screen_w = prev_win_w;
+                screen_h = prev_win_h;
+            }
+            
             Console.WriteLine($"Create window took: {sw.Elapsed.TotalSeconds}");
 
             window_id = SDL_GetWindowID(window);
             native_handle = GetWindowNativeHandle();
             
-            sdl_gpu_graphics = new SDLGpuGraphicsModule(window_id, width, height);
+            sdl_gpu_graphics = new SDLGpuGraphicsModule(window_id, screen_w, screen_h);
             
             Console.WriteLine($"Graphics took: {sw.Elapsed.TotalSeconds}");
             
@@ -164,7 +189,20 @@ namespace BLITTEngine.Platform
                                 OnQuit?.Invoke();
                                 break;
                             case SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                                OnWinResized?.Invoke();
+                                
+                                int w = ev.window.data1;
+                                int h = ev.window.data2;
+
+                                if (screen_w != w || screen_h != h)
+                                {
+                                    Console.WriteLine("GRAPHICS RESIZE");
+                                    Graphics.Resize(w, h);
+                                }
+                                
+                                screen_w = w;
+                                screen_h = h;
+                                
+                                OnWinResized?.Invoke(ev.window.data1, ev.window.data2);
                                 break;
                             case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
                                 OnWinMinimized?.Invoke();
@@ -180,26 +218,24 @@ namespace BLITTEngine.Platform
             }
         }
 
-        public override unsafe void GetWindowSize(out int w, out int h)
+        public override void GetWindowSize(out int w, out int h)
         {
-            int _w = 0;
-            int _h = 0;
-
-            SDL.SDL_GetWindowSize(window, &_w, &_h);
-
-            w = _w;
-            h = _h;
+            w = screen_w;
+            h = screen_h;
         }
 
         public override void SetWindowSize(int w, int h)
         {
             if(is_fullscreen)
             {
-                SetFullscreen(false);
+                return;
             }
 
-            SDL_SetWindowPosition(window, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED);
+            prev_win_w = w;
+            prev_win_h = h;
+
             SDL_SetWindowSize(window, w, h);
+            SDL_SetWindowPosition(window, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED);
         }
 
         public override void SetWindowTitle(string title)
@@ -221,9 +257,14 @@ namespace BLITTEngine.Platform
         {
             if (is_fullscreen != enabled)
             {
-                if (SDL_SetWindowFullscreen(window, enabled ? SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP: 0) == 0)
+
+                SDL_SetWindowFullscreen(window, enabled ? SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+
+                is_fullscreen = enabled;
+
+                if (!is_fullscreen)
                 {
-                    is_fullscreen = enabled;
+                    SetWindowSize(prev_win_w, prev_win_h);                    
                 }
             }
         }

@@ -37,10 +37,14 @@ namespace BLITTEngine.Foundation
             GPU_SetDebugLevel_f = FuncLoader.LoadFunction<GPU_SetDebugLevel_d>(lib, nameof(GPU_SetDebugLevel));
             GPU_SetInitWindow_f = FuncLoader.LoadFunction<GPU_SetInitWindow_d>(lib, nameof(GPU_SetInitWindow));
             GPU_Init_f = FuncLoader.LoadFunction<GPU_Init_d>(lib, nameof(GPU_Init));
+            GPU_InitRenderer_f = FuncLoader.LoadFunction<GPU_InitRenderer_d>(lib, nameof(GPU_InitRenderer));
             GPU_Clear_f = FuncLoader.LoadFunction<GPU_Clear_d>(lib, nameof(GPU_Clear));
+            GPU_UnsetClip_f = FuncLoader.LoadFunction<GPU_UnsetClip_d>(lib, nameof(GPU_UnsetClip));
             GPU_ClearRGB_f = FuncLoader.LoadFunction<GPU_ClearRGB_d>(lib, nameof(GPU_ClearRGB));
             GPU_LoadTarget_f = FuncLoader.LoadFunction<GPU_LoadTarget_d>(lib, nameof(GPU_LoadTarget));
             GPU_FreeTarget_f = FuncLoader.LoadFunction<GPU_FreeTarget_d>(lib, nameof(GPU_FreeTarget));
+            GPU_SetFullscreen_f = FuncLoader.LoadFunction<GPU_SetFullscreen_d>(lib, nameof(GPU_SetFullscreen));
+            GPU_SetWindowResolution_f = FuncLoader.LoadFunction<GPU_SetWindowResolution_d>(lib, nameof(GPU_SetWindowResolution));
             GPU_SetVirtualResolution_f = FuncLoader.LoadFunction<GPU_SetVirtualResolution_d>(lib, nameof(GPU_SetVirtualResolution));
             GPU_SetViewport_f = FuncLoader.LoadFunction<GPU_SetViewport_d>(lib, nameof(GPU_SetViewport));
             GPU_LoadImage_f = FuncLoader.LoadFunction<GPU_LoadImage_d>(lib, nameof(GPU_LoadImage));
@@ -64,10 +68,6 @@ namespace BLITTEngine.Foundation
             GPU_Circle_f = FuncLoader.LoadFunction<GPU_Circle_d>(lib, nameof(GPU_Circle));
             GPU_CircleFilled_f = FuncLoader.LoadFunction<GPU_CircleFilled_d>(lib, nameof(GPU_CircleFilled));
             
-            
-                
-            
-
             return lib;
         }
 

@@ -6,38 +6,34 @@ namespace BLITTEngine.Graphics
 {
     public static class Canvas
     {
-        public static Color BackgroundColor
-        {
-            get => background_color;
-            set
-            {
-                background_color = value;
-                
-                gfx.SetClearColor(ref background_color);
-            }
-        }
+        private static Color default_clear_col = Color.Black;
         
         private static GraphicsModule gfx;
-        private static Color background_color;
-        private static BlitSource blit_source;
-        
-        internal static void Init(GraphicsModule graphicsModule)
+      
+
+        internal static void Init(GamePlatform platform)
         {
-            gfx = graphicsModule;
-            
-            BackgroundColor = Color.Black;
+            gfx = platform.Graphics;
         }
 
-        
-
-        public static void SetSurface(Image image)
+        public static void Begin(Image target = null)
         {
-            
+            gfx.BeginDraw(target?.Texture);
         }
 
-        public static void SetBlitSource(BlitSource source)
+        public static void Clear()
         {
-            blit_source = source;
+            gfx.Clear(ref default_clear_col);
+        }
+
+        public static void Clear(Color color)
+        {
+            gfx.Clear(ref color);
+        }
+
+        public static void End()
+        {
+            gfx.EndDraw();
         }
 
         public static void SetTint(Color color)
@@ -65,16 +61,19 @@ namespace BLITTEngine.Graphics
             gfx.FillCircle(x, y, radius);
         }
 
-        public static void Blit(float x, float y)
+        public static void Draw(Image image, float x, float y)
         {
-            gfx.DrawTexture(blit_source.SourceImage.Texture, x, y);
+            gfx.DrawTexture(image.Texture, x, y);
         }
 
-        public static void Blit(float x, float y, int tile)
+        public static void Draw(Image image, float x, float y, RectangleI srcRect)
         {
-            ref RectangleI src_rect = ref blit_source[tile];
-            
-            gfx.DrawTexture(blit_source.SourceImage.Texture, x, y, ref src_rect);
+            gfx.DrawTexture(image.Texture, x, y, ref srcRect);
+        }
+
+        public static void Draw(Image image, RectangleI srcRect, Rectangle dstRect)
+        {
+            gfx.DrawTexture(image.Texture, ref srcRect, ref dstRect);
         }
     }
 }

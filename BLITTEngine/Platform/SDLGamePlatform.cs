@@ -27,6 +27,8 @@ namespace BLITTEngine.Platform
 
         public override void Init(string title, int width, int height, bool fullscreen, GraphicsBackend graphics_backend)
         {
+            Console.WriteLine($"GamePlatform Starting: Graphics Backend: {graphics_backend}, Base Screen W: {width}, Base Screen W: {height}");
+
             prev_win_w = width;
             prev_win_h = height;
             is_fullscreen = fullscreen;
@@ -185,6 +187,11 @@ namespace BLITTEngine.Platform
                     case SDL_EventType.SDL_WINDOWEVENT:
                         switch (ev.window.evt)
                         {
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
+
+                                Graphics.Resize(screen_w, screen_h);
+                                break;
+
                             case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                                 OnQuit?.Invoke();
                                 break;
@@ -195,10 +202,10 @@ namespace BLITTEngine.Platform
 
                                 if (screen_w != w || screen_h != h)
                                 {
-                                    Console.WriteLine("GRAPHICS RESIZE");
+                                    Console.WriteLine($"GRAPHICS RESIZE: {w}, {h}");
                                     Graphics.Resize(w, h);
                                 }
-                                
+
                                 screen_w = w;
                                 screen_h = h;
                                 

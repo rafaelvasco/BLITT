@@ -2,11 +2,20 @@
 
 namespace BLITTDemo
 {
-    class Program
+    static class Program
     {
-        static void Main()
+        private static void Main()
         {
-            Game.Run(new Demo());
+            var props = new GameProps()
+            {
+                Title = "BLITT DEMO",
+                ScreenWidth = 800,
+                ScreenHeight = 600,
+                Fullscreen = false,
+                StartingScene = new Demo()
+            };
+
+            Game.Run(props);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Numerics;
+using BLITTEngine.Platform;
 using BLITTEngine.Temporal;
 
 namespace BLITTEngine
@@ -12,11 +13,13 @@ namespace BLITTEngine
         internal static bool ScreenResized;
         internal static bool ScreenToggledUpdate;
 
-        internal static void Init(int width, int height, bool is_full_screen)
+        internal static void Init(GamePlatform platform)
         {
+            platform.GetWindowSize(out int width, out int height);
+
             w = width;
             h = height;
-            full_screen = is_full_screen;
+            full_screen = platform.IsFullscreen;
             
             Game.Platform.OnWinResized += OnPlatformWinResized;
             Game.Platform.OnWinMinimized += OnPlatformWinMinimized;

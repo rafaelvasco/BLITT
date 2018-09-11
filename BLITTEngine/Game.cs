@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using BLITTEngine.Graphics;
 using BLITTEngine.Input;
 using BLITTEngine.Platform;
@@ -8,10 +7,20 @@ using BLITTEngine.Temporal;
 
 namespace BLITTEngine
 {
+    public struct GameProps
+    {
+        public string Title;
+        public int ScreenWidth;
+        public int ScreenHeight;
+        public bool Fullscreen;
+        public Scene StartingScene;
+
+    }
+
     public static class Game
     {
-        private static bool error = false;
-        private static string error_msg = null;
+        private static bool error;
+        private static string error_msg;
         
         internal static GamePlatform Platform;
         
@@ -20,29 +29,30 @@ namespace BLITTEngine
         public static bool ExitOnCloseWindow { get; set; } = true;
         public static Scene CurrentScene { get; private set; }
 
-        public static void Run(Scene scene = null)
+        public static void Run(GameProps props)
         {
+
+            Console.WriteLine("BLITT is Starting...");
             
             if (Running)
             {
                 return;
             }
 
-            CurrentScene = scene;
+            CurrentScene = props.StartingScene;
 
             Running = true;
-            
+
+            Console.WriteLine("Initializing GamePlatform...");
+
             Platform = new SDLGamePlatform();
             
-            Platform.Init("BLITT", 800, 600, fullscreen: true, GraphicsBackend.OpenGL);
+            Platform.Init(props.Title, props.ScreenWidth, props.ScreenHeight, fullscreen: props.Fullscreen, GraphicsBackend.OpenGL);
             
             Platform.OnQuit += OnPlatformQuit;
             
-            Platform.GetWindowSize(out int windowW, out int windowH);
-            
-            Screen.Init(windowW , windowH, Platform.IsFullscreen);
-            Canvas.Init(Platform.Graphics);
-            
+            Screen.Init(Platform);
+            Canvas.Init(Platform);
             Keyboard.Init(Platform);
             Content.Init("Assets");
             
@@ -99,12 +109,10 @@ namespace BLITTEngine
                     GameClock.TotalTime -= GameClock.FrameDuration;
                     //Platform.SetWindowTitle(GameClock.FPS.ToString());
                 }
-                
-                graphics.BeginDraw();
+
+                graphics.Clear();
                 
                 CurrentScene?.Draw();
-                
-                graphics.EndDraw();
 
                 if (Screen.ScreenResized)
                 {
@@ -115,7 +123,7 @@ namespace BLITTEngine
                 else if (Screen.ScreenToggledUpdate)
                 {
                     Console.WriteLine("GAME SCREEN TOGGLED FS");
-                    
+
                     if (!Platform.IsFullscreen && Screen.Fullscreen)
                     {
                         Platform.SetFullscreen(true);
@@ -123,11 +131,15 @@ namespace BLITTEngine
                     else
                     {
                         Platform.SetFullscreen(false);
-                        
+
                     }
 
                     Screen.ScreenToggledUpdate = false;
                 }
+
+                graphics.Flip();
+
+                
             }
             
             Content.UnloadAll();

@@ -1,5 +1,3 @@
-using System;
-using System.Drawing;
 using BLITTEngine.Graphics;
 using BLITTEngine.Numerics;
 using Color = BLITTEngine.Graphics.Color;
@@ -13,12 +11,11 @@ namespace BLITTEngine.Platform
         void DestroyTexture(Texture texture);
         void UpdateTexture(Texture texture, Pixmap pixmap);
         void SetColor(ref Color color);
-        void SetClearColor(ref Color color);
-        Color GetClearColor();
-        void SetRenderTarget(Texture texture);
-        void ResetRenderTarget();
-        void BeginDraw();
+        void BeginDraw(Texture target = null);
         void EndDraw();
+        void Clear(ref Color color);
+        void Clear();
+        void Flip();
         void SetViewport(float x, float y, float w, float h);
         void Resize(float w, float h);
         void DrawRect(float x, float y, float w, float h);
@@ -29,7 +26,7 @@ namespace BLITTEngine.Platform
         void DrawPixel(float x, float y);
         void DrawTexture(Texture texture, float x, float y);
         void DrawTexture(Texture texture, float x, float y, ref RectangleI srcRect);
-        void DrawTexture(Texture texture, ref RectangleI srcRect, ref RectangleF dstRect);
+        void DrawTexture(Texture texture, ref RectangleI srcRect, ref Rectangle dstRect);
         
         void Translate(float x, float y);
         void Rotate(float rotation);

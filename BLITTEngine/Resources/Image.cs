@@ -10,7 +10,7 @@ namespace BLITTEngine.Resources
         
         internal Texture Texture { get; }
         internal Pixmap Pixmap { get; }
-        
+
         internal bool Invalidated { get; set; }
 
         public int Width => Pixmap.Width;
@@ -22,6 +22,23 @@ namespace BLITTEngine.Resources
             this.Pixmap = pixmap;
             
             bounding_rect = new RectangleI(0, 0, Width, Height);
+        }
+
+        public void Fill(Color color)
+        {
+            var pixel_data = this.Pixmap.PixelData;
+
+            int length = pixel_data.Length - 4;
+            
+            for (int i = 0; i < length; i+=4)
+            {
+                pixel_data[i+0] = color.R;
+                pixel_data[i+1] = color.G;
+                pixel_data[i+2] = color.B;
+                pixel_data[i+3] = color.A;
+            }
+
+            Invalidated = true;
         }
 
         public void BlitImage(Image image, int x, int y)
@@ -68,8 +85,8 @@ namespace BLITTEngine.Resources
 
         internal override void Dispose()
         {
-            Texture.Dispose();
             Pixmap.Dispose();
+            // Texture is disposed by the GraphicsModule
         }
 
         public ref RectangleI this[int index] => ref bounding_rect;

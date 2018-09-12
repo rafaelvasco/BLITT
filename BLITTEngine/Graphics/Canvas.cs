@@ -18,6 +18,12 @@ namespace BLITTEngine.Graphics
 
         public static void Begin(Image target = null)
         {
+            if (target != null && target.Invalidated)
+            {
+                gfx.UpdateTexture(target.Texture, target.Pixmap);
+                target.Invalidated = false;
+            }
+            
             gfx.BeginDraw(target?.Texture);
         }
 
@@ -63,16 +69,46 @@ namespace BLITTEngine.Graphics
 
         public static void Draw(Image image, float x, float y)
         {
+            if (image.Invalidated)
+            {
+                gfx.UpdateTexture(image.Texture, image.Pixmap);
+                image.Invalidated = false;
+            }
+            
             gfx.DrawTexture(image.Texture, x, y);
         }
 
         public static void Draw(Image image, float x, float y, RectangleI srcRect)
         {
+            if (image.Invalidated)
+            {
+                gfx.UpdateTexture(image.Texture, image.Pixmap);
+                image.Invalidated = false;
+            }
+            
             gfx.DrawTexture(image.Texture, x, y, ref srcRect);
         }
 
+        public static void Draw(Image image, Rectangle dstRect)
+        {
+            if (image.Invalidated)
+            {
+                gfx.UpdateTexture(image.Texture, image.Pixmap);
+                image.Invalidated = false;
+            }
+            
+            gfx.DrawTexture(image.Texture, ref dstRect);
+        }
+            
+
         public static void Draw(Image image, RectangleI srcRect, Rectangle dstRect)
         {
+            if (image.Invalidated)
+            {
+                gfx.UpdateTexture(image.Texture, image.Pixmap);
+                image.Invalidated = false;
+            }
+            
             gfx.DrawTexture(image.Texture, ref srcRect, ref dstRect);
         }
     }

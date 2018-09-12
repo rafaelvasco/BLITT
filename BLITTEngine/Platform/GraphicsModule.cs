@@ -8,7 +8,6 @@ namespace BLITTEngine.Platform
     {
         Texture CreateTexture(Pixmap pixmap, bool is_render_target);
         Texture CreateTexture(int width, int height, bool is_render_target);
-        void DestroyTexture(Texture texture);
         void UpdateTexture(Texture texture, Pixmap pixmap);
         void SetColor(ref Color color);
         void BeginDraw(Texture target = null);
@@ -26,12 +25,11 @@ namespace BLITTEngine.Platform
         void DrawPixel(float x, float y);
         void DrawTexture(Texture texture, float x, float y);
         void DrawTexture(Texture texture, float x, float y, ref RectangleI srcRect);
+        void DrawTexture(Texture texture, ref Rectangle dstRect);
         void DrawTexture(Texture texture, ref RectangleI srcRect, ref Rectangle dstRect);
-        
         void Translate(float x, float y);
         void Rotate(float rotation);
         void Scale(float scale);
-
         void PushTransform();
         void PopTransform();
     }

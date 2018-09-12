@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BLITTEngine.Graphics;
 using BLITTEngine.Numerics;
 using Color = BLITTEngine.Graphics.Color;
@@ -16,6 +17,8 @@ namespace BLITTEngine.Platform
         private GPU_Rect blit_rect;
         private GPU_Rect blit_dst_rect;
 
+        private readonly List<Texture> textures;
+
         public SDLGpuGraphicsModule(uint windowId, int screen_w, int screen_h)
         {
             
@@ -28,8 +31,7 @@ namespace BLITTEngine.Platform
 #endif
             
             GPU_SetInitWindow(windowId);
-            
-            main_target = GPU_Init((ushort) screen_w, (ushort) screen_h, GPU_DEFAULT_INIT_FLAGS);
+            main_target = GPU_InitRenderer(GPU_RendererBackEnd.OPENGL_3, (ushort) screen_w, (ushort) screen_h, 0);
 
             if (main_target == IntPtr.Zero)
             {
@@ -37,6 +39,8 @@ namespace BLITTEngine.Platform
             }
 
             current_target = main_target;
+            
+            textures = new List<Texture>();
         }
 
         public Texture CreateTexture(Pixmap pixmap, bool is_render_target)
@@ -52,7 +56,13 @@ namespace BLITTEngine.Platform
                 render_target_handle = GPU_LoadTarget(gpu_image);
             }
             
-            return new Texture(gpu_image, render_target_handle, pixmap.Width, pixmap.Height);
+            var tex = new Texture(gpu_image, render_target_handle, pixmap.Width, pixmap.Height);
+ 
+            textures.Add(tex);
+
+            Console.WriteLine($"Graphics: Created Texture from Pixmap");
+            
+            return tex;
         }
 
         public Texture CreateTexture(int width, int height, bool is_render_target)
@@ -65,22 +75,20 @@ namespace BLITTEngine.Platform
             {
                 render_target_handle = GPU_LoadTarget(gpu_image);
             }
+
+            var tex = new Texture(gpu_image, render_target_handle, width, height);
+
+            textures.Add(tex);
             
-            return new Texture(gpu_image, render_target_handle, width, height);
-        }
-
-        public void DestroyTexture(Texture texture)
-        {
-            GPU_FreeImage(texture.TextureHandle);
-
-            if (texture.IsRenderTarget)
-            {
-                GPU_FreeTarget(texture.RenderTargetHandle);
-            }
+            Console.WriteLine($"Created Empty Texture W: {width}, H{height}");
+            
+            return tex;
         }
 
         public void UpdateTexture(Texture texture, Pixmap pixmap)
         {
+            Console.WriteLine($"Graphics Update Texture");
+            
             if (texture.Width != pixmap.Width || texture.Height != pixmap.Height)
             {
                 return;
@@ -91,6 +99,18 @@ namespace BLITTEngine.Platform
 
         public void Terminate()
         {
+            Console.WriteLine($"Grahics Terminate: Disposing {textures.Count} textures.");
+            
+            foreach (var texture in textures)
+            {
+                if (texture.IsRenderTarget)
+                {
+                    GPU_FreeTarget(texture.RenderTargetHandle);
+                }
+            
+                GPU_FreeImage(texture.TextureHandle);
+            }
+            
             GPU_Quit();
         }
 
@@ -105,15 +125,18 @@ namespace BLITTEngine.Platform
 
         public void BeginDraw(Texture target = null)
         {
-            current_target = target != null ? target.RenderTargetHandle : main_target;
+            current_target = target?.RenderTargetHandle ?? main_target;
         }
 
         public void EndDraw()
         {
             if(current_target != main_target)
             {
+                current_target = main_target;
                 GPU_Flip(current_target);
             }
+            
+            
         }
 
         public void Flip()
@@ -188,6 +211,16 @@ namespace BLITTEngine.Platform
             blit_rect.h = srcRect.H;
             
             GPU_Blit(texture.TextureHandle, ref blit_rect, current_target, x, y);
+        }
+
+        public void DrawTexture(Texture texture, ref Rectangle dstRect)
+        {
+            blit_dst_rect.x = dstRect.X;
+            blit_dst_rect.y = dstRect.Y;
+            blit_dst_rect.w = dstRect.W;
+            blit_dst_rect.h = dstRect.H;
+            
+            GPU_BlitRect(texture.TextureHandle, IntPtr.Zero, current_target, ref blit_dst_rect);
         }
 
         public void DrawTexture(Texture texture, ref RectangleI srcRect, ref Rectangle dstRect)

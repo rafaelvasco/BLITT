@@ -91,7 +91,7 @@ namespace BLITTEngine.Resources
             return null;
         }
 
-        public static Image CreateImage(int width, int height, bool is_draw_target)
+        public static Image CreateImage(int width, int height, bool is_draw_target=false)
         {
             var pixmap = new Pixmap(width, height);
             var texture = Game.Platform.Graphics.CreateTexture(width, height, is_draw_target);

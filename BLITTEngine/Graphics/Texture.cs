@@ -2,7 +2,7 @@ using System;
 
 namespace BLITTEngine.Graphics
 {
-    public class Texture : IDisposable
+    public class Texture
     {
         public IntPtr TextureHandle { get; }
         public IntPtr RenderTargetHandle { get; }
@@ -17,11 +17,6 @@ namespace BLITTEngine.Graphics
             this.RenderTargetHandle = render_target_handle;
             this.Width = width;
             this.Height = height;
-        }
-
-        public void Dispose()
-        {
-            Game.Platform.Graphics.DestroyTexture(this);
         }
     }
 }

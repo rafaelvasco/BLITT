@@ -55,13 +55,6 @@ namespace BLITTEngine.Platform
                 case GraphicsBackend.OpenGL:
                     
                     windowFlags |= SDL_WindowFlags.SDL_WINDOW_OPENGL;
-
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 3);
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int) SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_FLAGS, (int) SDL_GLcontextFlag.SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-                    SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_DOUBLEBUFFER, 1);
-                    
                     break;
                 case GraphicsBackend.Vulkan:
                     throw new Exception("Vulkan Graphics Backend is not implemented yet.");

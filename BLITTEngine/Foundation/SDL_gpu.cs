@@ -59,6 +59,9 @@ namespace BLITTEngine.Foundation
             GPU_Blit_f2 = FuncLoader.LoadFunction<GPU_Blit_d2>(lib, nameof(GPU_Blit));
             GPU_BlitRect_f = FuncLoader.LoadFunction<GPU_BlitRect_d>(lib, nameof(GPU_Blit));
             GPU_BlitRect_f2 = FuncLoader.LoadFunction<GPU_BlitRect_d2>(lib, nameof(GPU_Blit));
+            GPU_BlitRect_f3 = FuncLoader.LoadFunction<GPU_BlitRect_d3>(lib, nameof(GPU_BlitRect));
+            
+                
             GPU_RectangleFilled_f = FuncLoader.LoadFunction<GPU_RectangleFilled_d>(lib, nameof(GPU_RectangleFilled));
             GPU_Rectangle_f = FuncLoader.LoadFunction<GPU_Rectangle_d>(lib, nameof(GPU_Rectangle));
             GPU_Line_f = FuncLoader.LoadFunction<GPU_Line_d>(lib, nameof(GPU_Line));
@@ -1082,6 +1085,12 @@ namespace BLITTEngine.Foundation
         private static GPU_BlitRect_d2 GPU_BlitRect_f2;
         public static void GPU_BlitRect(/*GPU_Image*/ IntPtr image, IntPtr src_rect, /*GPU_Target*/ IntPtr target, IntPtr dst_rect) 
             => GPU_BlitRect_f2(image, src_rect, target, dst_rect);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_BlitRect_d3(/*GPU_Image*/ IntPtr image, IntPtr src_rect, /*GPU_Target*/ IntPtr target, ref GPU_Rect dst_rect);
+        private static GPU_BlitRect_d3 GPU_BlitRect_f3;
+        public static void GPU_BlitRect(/*GPU_Image*/ IntPtr image, IntPtr src_rect, /*GPU_Target*/ IntPtr target, ref GPU_Rect dst_rect) 
+            => GPU_BlitRect_f3(image, src_rect, target, ref dst_rect);
         
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void GPU_RectangleFilled_d(/*GPU_Target*/ IntPtr target, float x1, float y1, float x2, float y2, SDL.SDL_Color color);

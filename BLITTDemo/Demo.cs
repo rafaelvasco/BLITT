@@ -43,17 +43,13 @@ namespace BLITTDemo
             random = new RandomEx();
 
 
+
+
         }
 
         public override void Update(float dt)
         {
-            timer += dt;
-
-            if (timer > 1.0f)
-            {
-                timer = 0;
-                dyn_image.Fill(random.NextColor());
-            }
+          
             
             if (Keyboard.Pressed(Key.Escape))
             {
@@ -72,6 +68,15 @@ namespace BLITTDemo
             if (Keyboard.Pressed(Key.F11))
             {
                 Screen.ToggleFullscreen();
+            }
+
+            if(Keyboard.Down(Key.Left))
+            {
+                Canvas.Translate(-5f, 0);
+            }
+            else if(Keyboard.Down(Key.Right))
+            {
+                Canvas.Translate(5f, 0);
             }
             
             

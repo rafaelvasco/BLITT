@@ -38,6 +38,8 @@ namespace BLITTEngine.Platform
                 throw new Exception("Failed to Initialize SDL_Gpu");
             }
 
+            GPU_MatrixMode(GPU_MODELVIEW);
+
             current_target = main_target;
             
             textures = new List<Texture>();
@@ -87,8 +89,6 @@ namespace BLITTEngine.Platform
 
         public void UpdateTexture(Texture texture, Pixmap pixmap)
         {
-            Console.WriteLine($"Graphics Update Texture");
-            
             if (texture.Width != pixmap.Width || texture.Height != pixmap.Height)
             {
                 return;
@@ -135,8 +135,6 @@ namespace BLITTEngine.Platform
                 current_target = main_target;
                 GPU_Flip(current_target);
             }
-            
-            
         }
 
         public void Flip()
@@ -237,27 +235,6 @@ namespace BLITTEngine.Platform
             
             GPU_BlitRect(texture.TextureHandle, ref blit_rect, current_target, ref blit_dst_rect);
         }
-
-        public void Translate(float x, float y)
-        {
-        }
-
-        public void Rotate(float rotation)
-        {
-        }
-
-        public void Scale(float scale)
-        {
-        }
-
-        public void PushTransform()
-        {
-        }
-
-        public void PopTransform()
-        {
-        }
-
        
     }
 }

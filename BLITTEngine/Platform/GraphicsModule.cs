@@ -27,10 +27,10 @@ namespace BLITTEngine.Platform
         void DrawTexture(Texture texture, float x, float y, ref RectangleI srcRect);
         void DrawTexture(Texture texture, ref Rectangle dstRect);
         void DrawTexture(Texture texture, ref RectangleI srcRect, ref Rectangle dstRect);
-        void Translate(float x, float y);
-        void Rotate(float rotation);
-        void Scale(float scale);
-        void PushTransform();
-        void PopTransform();
+        //void Translate(float x, float y);
+        //void Rotate(float rotation);
+        //void Scale(float scale);
+        //void PushTransform();
+        //void PopTransform();
     }
 }

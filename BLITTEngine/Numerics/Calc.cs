@@ -63,6 +63,7 @@ namespace BLITTEngine.Numerics
             return Math.Abs(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Round(float value)
         {
             return (float) Math.Round(value);

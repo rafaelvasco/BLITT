@@ -1,3 +1,4 @@
+using System.Numerics;
 using BLITTEngine.Numerics;
 using BLITTEngine.Platform;
 using BLITTEngine.Resources;
@@ -9,14 +10,24 @@ namespace BLITTEngine.Graphics
         private static Color default_clear_col = Color.Black;
         
         private static GraphicsModule gfx;
-      
 
-        internal static void Init(GamePlatform platform)
+        private static readonly Vector2[] translate_stack;
+
+        private static int translate_stack_idx;
+
+        private static Vector2 current_translate;
+
+        private static Texture render_target;
+       
+
+        internal static void Init(GamePlatform platform, int virtual_width, int virtual_height)
         {
             gfx = platform.Graphics;
+
+            render_target = gfx.CreateTexture(virtual_width, virtual_height, is_render_target: true);
         }
 
-        public static void Begin(Image target = null)
+        public static void BeginTarget(Image target)
         {
             if (target != null && target.Invalidated)
             {
@@ -24,7 +35,23 @@ namespace BLITTEngine.Graphics
                 target.Invalidated = false;
             }
             
-            gfx.BeginDraw(target?.Texture);
+            gfx.BeginDraw(target.Texture);
+            
+        }
+
+        public static void EndTarget()
+        {
+           gfx. 
+        }
+
+        internal static void BeginDraw()
+        {
+
+        }
+
+        internal static void EndDraw()
+        {
+            gfx.EndDraw();
         }
 
         public static void Clear()
@@ -37,10 +64,7 @@ namespace BLITTEngine.Graphics
             gfx.Clear(ref color);
         }
 
-        public static void End()
-        {
-            gfx.EndDraw();
-        }
+       
 
         public static void SetTint(Color color)
         {
@@ -54,7 +78,9 @@ namespace BLITTEngine.Graphics
 
         public static void FillRect(float x, float y, float w, float h)
         {
-            gfx.FillRect(x, y, w, h);
+            ref Vector2 ct = ref current_translate;
+
+            gfx.FillRect(x + ct.X, y + ct.Y, w, h);
         }
 
         public static void DrawCircle(float x, float y, float radius)
@@ -74,8 +100,10 @@ namespace BLITTEngine.Graphics
                 gfx.UpdateTexture(image.Texture, image.Pixmap);
                 image.Invalidated = false;
             }
-            
-            gfx.DrawTexture(image.Texture, x, y);
+
+            ref Vector2 ct = ref current_translate;
+
+            gfx.DrawTexture(image.Texture, x + ct.X, y + ct.Y);
         }
 
         public static void Draw(Image image, float x, float y, RectangleI srcRect)
@@ -110,6 +138,30 @@ namespace BLITTEngine.Graphics
             }
             
             gfx.DrawTexture(image.Texture, ref srcRect, ref dstRect);
+        }
+
+        public static void Translate(float x, float y)
+        {
+            current_translate.X += Calc.Round(x);
+            current_translate.Y += Calc.Round(y);
+        }
+
+        public static void PushTransform()
+        {
+            if(translate_stack_idx >= translate_stack.Length)
+            {
+                return;
+            }
+
+            translate_stack[translate_stack_idx++] = current_translate;
+        }
+
+        public static void PopTransform()
+        {
+            if(translate_stack_idx >= 0)
+            {
+                current_translate = translate_stack[--translate_stack_idx];
+            }
         }
     }
 }

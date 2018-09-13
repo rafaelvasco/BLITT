@@ -123,23 +123,14 @@ namespace BLITTEngine.Platform
             GPU_SetTargetRGBA(current_target, color.R, color.G, color.B, color.A);
         }
 
-        public void BeginDraw(Texture target = null)
+        public void Begin(Texture target=null)
         {
             current_target = target?.RenderTargetHandle ?? main_target;
         }
 
-        public void EndDraw()
+        public void Submit()
         {
-            if(current_target != main_target)
-            {
-                current_target = main_target;
-                GPU_Flip(current_target);
-            }
-        }
-
-        public void Flip()
-        {
-            GPU_Flip(main_target);
+            GPU_Flip(current_target);
         }
 
         public void Clear(ref Color color)
@@ -151,7 +142,6 @@ namespace BLITTEngine.Platform
         {
             GPU_ClearRGB(current_target, 0, 0, 0);
         }
-
 
         public void SetViewport(float x, float y, float w, float h)
         {

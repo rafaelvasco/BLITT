@@ -110,7 +110,7 @@ namespace BLITTEngine
                     //Platform.SetWindowTitle(GameClock.FPS.ToString());
                 }
 
-                graphics.Clear();
+                Canvas.Begin();
                 
                 CurrentScene?.Draw();
 
@@ -137,7 +137,7 @@ namespace BLITTEngine
                     Screen.ScreenToggledUpdate = false;
                 }
 
-                graphics.Flip();
+                Canvas.End();
 
                 
             }

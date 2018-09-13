@@ -26,32 +26,31 @@ namespace BLITTEngine.Graphics
 
             render_target = gfx.CreateTexture(virtual_width, virtual_height, is_render_target: true);
         }
-
+        
         public static void BeginTarget(Image target)
         {
-            if (target != null && target.Invalidated)
+            if (target.Invalidated)
             {
                 gfx.UpdateTexture(target.Texture, target.Pixmap);
                 target.Invalidated = false;
             }
             
-            gfx.BeginDraw(target.Texture);
-            
+            gfx.Begin(target.Texture);
         }
 
         public static void EndTarget()
         {
-           gfx. 
+           gfx.Submit();;
         }
 
-        internal static void BeginDraw()
+        internal static void Begin()
         {
-
+            gfx.Begin();
         }
 
-        internal static void EndDraw()
+        internal static void End()
         {
-            gfx.EndDraw();
+            gfx.Submit();
         }
 
         public static void Clear()

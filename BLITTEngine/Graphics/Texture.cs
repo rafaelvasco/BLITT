@@ -4,8 +4,8 @@ namespace BLITTEngine.Graphics
 {
     public class Texture
     {
-        public IntPtr TextureHandle { get; }
-        public IntPtr RenderTargetHandle { get; }
+        public IntPtr TextureHandle { get; internal set; }
+        public IntPtr RenderTargetHandle { get; internal set; }
         public int Width { get; }
         public int Height { get; }
 

@@ -97,20 +97,34 @@ namespace BLITTEngine.Platform
             GPU_UpdateImageBytes(texture.TextureHandle, IntPtr.Zero, pixmap.PixelData, pixmap.Width*4);
         }
 
+        public void DestroyTexture(Texture texture)
+        {
+            if (texture.IsRenderTarget && texture.RenderTargetHandle != IntPtr.Zero)
+            {
+                GPU_FreeTarget(texture.RenderTargetHandle);
+            }
+
+            GPU_FreeImage(texture.TextureHandle);
+
+            texture.TextureHandle = IntPtr.Zero;
+            texture.RenderTargetHandle = IntPtr.Zero;
+            
+        }
+
         public void Terminate()
         {
             Console.WriteLine($"Grahics Terminate: Disposing {textures.Count} textures.");
             
             foreach (var texture in textures)
             {
-                if (texture.IsRenderTarget)
+                if(texture.TextureHandle != IntPtr.Zero)
                 {
-                    GPU_FreeTarget(texture.RenderTargetHandle);
+                    DestroyTexture(texture);
                 }
-            
-                GPU_FreeImage(texture.TextureHandle);
             }
-            
+
+            textures.Clear();
+
             GPU_Quit();
         }
 
@@ -225,6 +239,7 @@ namespace BLITTEngine.Platform
             
             GPU_BlitRect(texture.TextureHandle, ref blit_rect, current_target, ref blit_dst_rect);
         }
-       
+
+        
     }
 }

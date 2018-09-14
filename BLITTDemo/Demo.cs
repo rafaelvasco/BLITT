@@ -21,8 +21,7 @@ namespace BLITTDemo
 
             target = Content.CreateImage(320, 240, is_draw_target: true);
 
-            Canvas.Begin(target);
-            Canvas.Clear();
+            Canvas.BeginTarget(target);
 
             Canvas.SetTint(Color.White);
             Canvas.FillRect(0, 0, target.Width, target.Height);
@@ -34,16 +33,13 @@ namespace BLITTDemo
             Canvas.SetTint(Color.White);
             Canvas.Draw(image, new Rectangle(0, 0, 128, 128) );
 
-            Canvas.End();
+            Canvas.EndTarget();
 
             dyn_image = Content.CreateImage(320, 240, is_draw_target: true);
             
             dyn_image.Fill(Color.Gold);
 
             random = new RandomEx();
-
-
-
 
         }
 
@@ -58,16 +54,16 @@ namespace BLITTDemo
 
             if (Keyboard.Pressed(Key.B))
             {
-                Screen.Resize(1024, 768);
+                Canvas.Resize(1024, 768);
             }
             else if (Keyboard.Pressed(Key.S))
             {
-                Screen.Resize(800, 600);
+                Canvas.Resize(800, 600);
             }
 
             if (Keyboard.Pressed(Key.F11))
             {
-                Screen.ToggleFullscreen();
+                Game.ToggleFullscreen();
             }
 
             if(Keyboard.Down(Key.Left))
@@ -84,11 +80,9 @@ namespace BLITTDemo
 
         public override void Draw()
         {
-            Canvas.Begin();
-            Canvas.Clear(Color.CornflowerBlue);
 
             Canvas.SetTint(Color.Orange);
-            Canvas.Draw(image, Screen.CenterX, Screen.CenterY);
+            Canvas.Draw(image, Canvas.CenterX, Canvas.CenterY);
             
             Canvas.SetTint(Color.Blue);
             Canvas.FillRect(10,10, 100, 100);
@@ -100,7 +94,6 @@ namespace BLITTDemo
             
             Canvas.Draw(dyn_image, 400, 400);
 
-            Canvas.End();
             
         }
     }

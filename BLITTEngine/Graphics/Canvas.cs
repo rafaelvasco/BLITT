@@ -5,9 +5,17 @@ using BLITTEngine.Resources;
 
 namespace BLITTEngine.Graphics
 {
+    public enum FullScreenMode
+    {
+        StretchPixelPerfect,
+        StretchLetterBox
+    }
+
     public static class Canvas
     {
-        private static Color default_clear_col = Color.Black;
+        private static Color default_bg_color = Color.Black;
+
+        private static Color bg_color = Color.CornflowerBlue;
         
         private static GraphicsModule gfx;
 
@@ -18,13 +26,68 @@ namespace BLITTEngine.Graphics
         private static Vector2 current_translate;
 
         private static Texture render_target;
-       
 
-        internal static void Init(GamePlatform platform, int virtual_width, int virtual_height)
+        private static int canvas_width;
+
+        private static int canvas_height;
+
+        private static Rectangle render_area;
+
+        private static bool can_draw;
+
+        private static FullScreenMode fullscreen_mode;
+
+        internal static bool SizeChanged;
+             
+
+        public static Color BackColor
         {
+            get => bg_color;
+            set => bg_color = value;
+        }
+
+
+        public static int Width => canvas_width;
+
+        public static int Height => canvas_height;
+
+        public static float CenterX => canvas_width * 0.5f;
+
+        public static float CenterY => canvas_height * 0.5f;
+
+        public static Vector2 Center => new Vector2(CenterX, CenterY);
+
+        public static FullScreenMode FullScreenBehavior
+        {
+            get => fullscreen_mode;
+            set
+            {
+                if (fullscreen_mode != value)
+                {
+                    fullscreen_mode = value;
+
+                    Game.Platform.GetScreenSize(out int screen_w, out int screen_h);
+
+                    RecalculateRenderArea(screen_w, screen_h);
+                }
+            }
+        }
+
+
+        internal static void Init(GamePlatform platform, int width, int height)
+        {
+            canvas_width = width;
+            canvas_height = height;
+
             gfx = platform.Graphics;
 
-            render_target = gfx.CreateTexture(virtual_width, virtual_height, is_render_target: true);
+            fullscreen_mode = FullScreenMode.StretchPixelPerfect;
+
+            render_target = gfx.CreateTexture(width, height, is_render_target: true);
+
+            Game.Platform.GetScreenSize(out int screen_w, out int screen_h);
+
+            RecalculateRenderArea(screen_w, screen_h);
         }
         
         public static void BeginTarget(Image target)
@@ -36,34 +99,35 @@ namespace BLITTEngine.Graphics
             }
             
             gfx.Begin(target.Texture);
+            gfx.Clear(ref default_bg_color);
         }
 
         public static void EndTarget()
         {
-           gfx.Submit();;
+           gfx.Submit();
         }
 
         internal static void Begin()
         {
-            gfx.Begin();
+            can_draw = true;
+
+            gfx.Begin(render_target);
+            gfx.Clear(ref bg_color);
         }
 
         internal static void End()
         {
+            can_draw = false;
+
+            gfx.Submit();
+
+            gfx.Begin();
+            gfx.Clear(ref default_bg_color);
+
+            gfx.DrawTexture(render_target, ref render_area);
+
             gfx.Submit();
         }
-
-        public static void Clear()
-        {
-            gfx.Clear(ref default_clear_col);
-        }
-
-        public static void Clear(Color color)
-        {
-            gfx.Clear(ref color);
-        }
-
-       
 
         public static void SetTint(Color color)
         {
@@ -127,7 +191,6 @@ namespace BLITTEngine.Graphics
             gfx.DrawTexture(image.Texture, ref dstRect);
         }
             
-
         public static void Draw(Image image, RectangleI srcRect, Rectangle dstRect)
         {
             if (image.Invalidated)
@@ -161,6 +224,109 @@ namespace BLITTEngine.Graphics
             {
                 current_translate = translate_stack[--translate_stack_idx];
             }
+        }
+
+        public static void Resize(int width, int height)
+        {
+            canvas_width = width;
+            canvas_height = height;
+
+            gfx.DestroyTexture(render_target);
+
+            render_target = gfx.CreateTexture(width, height, is_render_target: true);
+
+            SizeChanged = true;
+        }
+
+        private static void RecalculateRenderArea(int screen_w, int screen_h)
+        {
+            
+
+            if (Game.Platform.IsFullscreen)
+            {
+                
+
+                switch (fullscreen_mode)
+                {
+                    case FullScreenMode.StretchPixelPerfect:
+
+                        var canvas_w = canvas_width;
+                        var canvas_h = canvas_height;
+
+                        if (screen_w > canvas_w || screen_h > canvas_h)
+                        {
+                            var asp_ratio_canvas = (float)canvas_w / canvas_h;
+                            var asp_ratio_screen = (float)screen_w / screen_h;
+
+                            var scale_w = Calc.FloorToInt((float)screen_w / canvas_w);
+                            var scale_h = Calc.FloorToInt((float)screen_h / canvas_h);
+
+                            if (asp_ratio_screen > asp_ratio_canvas)
+                            {
+                                scale_w = scale_h;
+                            }
+                            else
+                            {
+                                scale_h = scale_w;
+                            }
+
+                            var margin_x = (int)((screen_w - canvas_w * scale_w) / 2);
+                            var margin_y = (int)((screen_h - canvas_h * scale_h) / 2);
+
+                            render_area = new RectangleI(margin_x, margin_y, canvas_w * scale_w, canvas_h * scale_h);
+                        }
+                        else
+                        {
+                            render_area = new RectangleI(0, 0, screen_w, screen_h);
+                        }
+
+                        break;
+
+                    case FullScreenMode.StretchLetterBox:
+
+                        var canvas_w2 = canvas_width;
+                        var canvas_h2 = canvas_height;
+
+                        if (screen_w > canvas_w2 || screen_h > canvas_h2)
+                        {
+                            var asp_ratio_canvas = (float)canvas_w2 / canvas_h2;
+                            var asp_ratio_screen = (float)screen_w / screen_h;
+
+                            var scale_w = ((float)screen_w / canvas_w2);
+                            var scale_h = ((float)screen_h / canvas_h2);
+
+                            if (asp_ratio_screen > asp_ratio_canvas)
+                            {
+                                scale_w = scale_h;
+                            }
+                            else
+                            {
+                                scale_h = scale_w;
+                            }
+
+                            var margin_x = (int)((screen_w - canvas_w2 * scale_w) / 2);
+                            var margin_y = (int)((screen_h - canvas_h2 * scale_h) / 2);
+
+                            render_area = new RectangleI(margin_x, margin_y, (int)(canvas_w2 * scale_w), (int)(canvas_h2 * scale_h));
+                        }
+                        else
+                        {
+                            render_area = new RectangleI(0, 0, canvas_width, canvas_height);
+                        }
+
+                        break;
+                }
+            }
+            else
+            {
+                render_area = new RectangleI(0, 0, canvas_width, canvas_height);
+            }
+            
+        }
+
+        internal static void OnScreenResized(int screen_w, int screen_h)
+        {
+            RecalculateRenderArea(screen_w, screen_h);
         }
     }
 }

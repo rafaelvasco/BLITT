@@ -1,6 +1,7 @@
 using System;
 using BLITTEngine.Graphics;
 using BLITTEngine.Input;
+using BLITTEngine.Numerics;
 using BLITTEngine.Platform;
 using BLITTEngine.Resources;
 using BLITTEngine.Temporal;
@@ -10,18 +11,18 @@ namespace BLITTEngine
     public struct GameProps
     {
         public string Title;
-        public int ScreenWidth;
-        public int ScreenHeight;
+        public int CanvasWidth;
+        public int CanvasHeight;
         public bool Fullscreen;
         public Scene StartingScene;
-
     }
 
     public static class Game
     {
         private static bool error;
         private static string error_msg;
-        
+        private static bool full_screen;
+
         internal static GamePlatform Platform;
         
         public static bool Running { get; internal set; }
@@ -29,8 +30,26 @@ namespace BLITTEngine
         public static bool ExitOnCloseWindow { get; set; } = true;
         public static Scene CurrentScene { get; private set; }
 
-        public static void Run(GameProps props)
+        public static bool Fullscreen
         {
+            get => full_screen;
+            set
+            {
+                if (full_screen != value)
+                {
+                    full_screen = value;
+                    Platform.SetFullscreen(full_screen);
+                }
+            }
+        }
+
+
+
+        public static void Run(GameProps props = default)
+        {
+            props.Title = props.Title ?? "BLITT Game";
+            props.CanvasWidth = Calc.Max(64, props.CanvasWidth);
+            props.CanvasHeight = Calc.Max(64, props.CanvasHeight);
 
             Console.WriteLine("BLITT is Starting...");
             
@@ -47,18 +66,18 @@ namespace BLITTEngine
 
             Platform = new SDLGamePlatform();
             
-            Platform.Init(props.Title, props.ScreenWidth, props.ScreenHeight, fullscreen: props.Fullscreen, GraphicsBackend.OpenGL);
+            Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, fullscreen: props.Fullscreen, GraphicsBackend.OpenGL);
             
             Platform.OnQuit += OnPlatformQuit;
+            Platform.OnWinResized += OnScreenResized;
             
-            Screen.Init(Platform);
-            Canvas.Init(Platform);
+            Canvas.Init(Platform, props.CanvasWidth, props.CanvasHeight);
             Keyboard.Init(Platform);
             Content.Init("Assets");
             
             CurrentScene?.Init();
             
-            Platform.ShowWindow(true);
+            Platform.ShowScreen(true);
             
             Tick();
         }
@@ -68,11 +87,26 @@ namespace BLITTEngine
             Running = false;
         }
 
+        public static void ShowCursor(bool show)
+        {
+            Platform.ShowCursor(show);
+        }
+
+        public static void ToggleFullscreen()
+        {
+            Fullscreen = !Fullscreen;
+        }
+
         internal static void ThrowError(string message, params object[] args)
         {
             error = true;
 
             error_msg = string.Format(message, args);
+        }
+
+        private static void OnScreenResized(int w, int h)
+        {
+            Canvas.OnScreenResized(w, h);
         }
         
         private static void OnPlatformQuit()
@@ -114,7 +148,9 @@ namespace BLITTEngine
                 
                 CurrentScene?.Draw();
 
-                if (Screen.ScreenResized)
+                
+
+                /*if (Screen.ScreenResized)
                 {
                     Console.WriteLine("GAME SCREEN RESIZED");
                     Platform.SetWindowSize(Screen.Width, Screen.Height);
@@ -135,9 +171,19 @@ namespace BLITTEngine
                     }
 
                     Screen.ScreenToggledUpdate = false;
-                }
+                }*/
 
                 Canvas.End();
+
+                if(Canvas.SizeChanged)
+                {
+                    Canvas.SizeChanged = false;
+
+                    if(!Fullscreen)
+                    {
+                        Platform.SetScreenSize(Canvas.Width, Canvas.Height);
+                    }
+                }
 
                 
             }

@@ -9,6 +9,7 @@ namespace BLITTEngine.Platform
         Texture CreateTexture(Pixmap pixmap, bool is_render_target);
         Texture CreateTexture(int width, int height, bool is_render_target);
         void UpdateTexture(Texture texture, Pixmap pixmap);
+        void DestroyTexture(Texture texture);
         void SetColor(ref Color color);
         void Begin(Texture target = null);
         void Submit();

@@ -9,8 +9,8 @@ namespace BLITTDemo
             var props = new GameProps()
             {
                 Title = "BLITT DEMO",
-                ScreenWidth = 800,
-                ScreenHeight = 600,
+                CanvasWidth = 800,
+                CanvasHeight = 600,
                 Fullscreen = false,
                 StartingScene = new Demo()
             };

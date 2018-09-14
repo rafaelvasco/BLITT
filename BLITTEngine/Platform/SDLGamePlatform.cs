@@ -1,8 +1,6 @@
 using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using BLITTEngine.Foundation;
-using BLITTEngine.Input;
 using static BLITTEngine.Foundation.SDL;
 
 namespace BLITTEngine.Platform
@@ -218,13 +216,13 @@ namespace BLITTEngine.Platform
             }
         }
 
-        public override void GetWindowSize(out int w, out int h)
+        public override void GetScreenSize(out int w, out int h)
         {
             w = screen_w;
             h = screen_h;
         }
 
-        public override void SetWindowSize(int w, int h)
+        public override void SetScreenSize(int w, int h)
         {
             if(is_fullscreen)
             {
@@ -238,17 +236,17 @@ namespace BLITTEngine.Platform
             SDL_SetWindowPosition(window, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED);
         }
 
-        public override void SetWindowTitle(string title)
+        public override void SetTitle(string title)
         {
             SDL_SetWindowTitle(window, title);
         }
 
-        public override void ShowWindowCursor(bool show)
+        public override void ShowCursor(bool show)
         {
             SDL_ShowCursor(show ? 1 : 0);
         }
 
-        public override void ShowWindow(bool show)
+        public override void ShowScreen(bool show)
         {
             SDL_ShowWindow(window);
         }
@@ -264,7 +262,7 @@ namespace BLITTEngine.Platform
 
                 if (!is_fullscreen)
                 {
-                    SetWindowSize(prev_win_w, prev_win_h);                    
+                    SetScreenSize(prev_win_w, prev_win_h);                    
                 }
             }
         }

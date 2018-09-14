@@ -81,7 +81,7 @@ namespace BLITTEngine.Graphics
 
             gfx = platform.Graphics;
 
-            fullscreen_mode = FullScreenMode.StretchPixelPerfect;
+            fullscreen_mode = FullScreenMode.StretchLetterBox;
 
             render_target = gfx.CreateTexture(width, height, is_render_target: true);
 

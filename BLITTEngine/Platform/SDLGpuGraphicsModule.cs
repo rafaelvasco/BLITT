@@ -50,6 +50,7 @@ namespace BLITTEngine.Platform
             IntPtr gpu_image = GPU_CreateImage((ushort) pixmap.Width, (ushort) pixmap.Height, GPU_Format.FORMAT_RGBA);
             
             GPU_UpdateImageBytes(gpu_image, IntPtr.Zero, pixmap.PixelData, pixmap.Width*4);
+            GPU_SetImageFilter(gpu_image, GPU_Filter.FILTER_NEAREST);
 
             IntPtr render_target_handle = IntPtr.Zero;
             
@@ -70,7 +71,8 @@ namespace BLITTEngine.Platform
         public Texture CreateTexture(int width, int height, bool is_render_target)
         {
             IntPtr gpu_image = GPU_CreateImage((ushort) width, (ushort) height, GPU_Format.FORMAT_RGBA);
-            
+            GPU_SetImageFilter(gpu_image, GPU_Filter.FILTER_NEAREST);
+
             IntPtr render_target_handle = IntPtr.Zero;
             
             if (is_render_target)

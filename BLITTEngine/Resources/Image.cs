@@ -4,9 +4,24 @@ using BLITTEngine.Numerics;
 
 namespace BLITTEngine.Resources
 {
+    public enum ImageWrapMode
+    {
+        None,
+        Repeat,
+        Mirrored
+    }
+
+    public enum ImageFilterMode
+    {
+        Crisp,
+        Smooth
+    }
+
     public class Image : Resource, BlitSource
     {
         private RectangleI bounding_rect;
+        private ImageWrapMode wrap_mode;
+        private ImageFilterMode filter_mode;
         
         internal Texture Texture { get; }
         internal Pixmap Pixmap { get; }
@@ -15,6 +30,7 @@ namespace BLITTEngine.Resources
 
         public int Width => Pixmap.Width;
         public int Height => Pixmap.Height;
+
             
         public Image(Pixmap pixmap, Texture texture)
         {
@@ -86,7 +102,6 @@ namespace BLITTEngine.Resources
         internal override void Dispose()
         {
             Pixmap.Dispose();
-            // Texture is disposed by the GraphicsModule
         }
 
         public ref RectangleI this[int index] => ref bounding_rect;

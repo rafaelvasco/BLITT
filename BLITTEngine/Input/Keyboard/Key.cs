@@ -1,5 +1,5 @@
 ﻿
-namespace BLITTEngine.Input
+namespace BLITTEngine.Input.Keyboard
 {
     public enum Key
     {

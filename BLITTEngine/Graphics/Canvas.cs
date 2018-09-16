@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using BLITTEngine.Numerics;
 using BLITTEngine.Platform;
@@ -124,7 +125,7 @@ namespace BLITTEngine.Graphics
             gfx.Begin();
             gfx.Clear(ref default_bg_color);
 
-            gfx.DrawTexture(render_target, ref render_area);
+            gfx.DrawQuad(render_target, ref render_area);
 
             gfx.Submit();
         }
@@ -158,48 +159,58 @@ namespace BLITTEngine.Graphics
 
         public static void Draw(Image image, float x, float y)
         {
-            if (image.Invalidated)
+            if (!image.Invalidated)
+            {
+                ref Vector2 ct = ref current_translate;
+                gfx.DrawQuad(image.Texture, x + ct.X, y + ct.Y);
+            }
+            else
             {
                 gfx.UpdateTexture(image.Texture, image.Pixmap);
                 image.Invalidated = false;
             }
-
-            ref Vector2 ct = ref current_translate;
-
-            gfx.DrawTexture(image.Texture, x + ct.X, y + ct.Y);
+            
         }
 
         public static void Draw(Image image, float x, float y, RectangleI srcRect)
         {
-            if (image.Invalidated)
+            if (!image.Invalidated)
+            {
+                gfx.DrawQuad(image.Texture, x, y, ref srcRect);
+            }
+            else
             {
                 gfx.UpdateTexture(image.Texture, image.Pixmap);
                 image.Invalidated = false;
             }
-            
-            gfx.DrawTexture(image.Texture, x, y, ref srcRect);
         }
 
         public static void Draw(Image image, Rectangle dstRect)
         {
-            if (image.Invalidated)
+            if (!image.Invalidated)
+            {
+                gfx.DrawQuad(image.Texture, ref dstRect);
+            }
+            else
             {
                 gfx.UpdateTexture(image.Texture, image.Pixmap);
                 image.Invalidated = false;
             }
-            
-            gfx.DrawTexture(image.Texture, ref dstRect);
+           
         }
             
         public static void Draw(Image image, RectangleI srcRect, Rectangle dstRect)
         {
-            if (image.Invalidated)
+            if (!image.Invalidated)
+            {
+                gfx.DrawQuad(image.Texture, ref srcRect, ref dstRect);
+            }
+            else
             {
                 gfx.UpdateTexture(image.Texture, image.Pixmap);
                 image.Invalidated = false;
             }
             
-            gfx.DrawTexture(image.Texture, ref srcRect, ref dstRect);
         }
 
         public static void Translate(float x, float y)
@@ -274,6 +285,7 @@ namespace BLITTEngine.Graphics
                             var margin_y = (int)((screen_h - canvas_h * scale_h) / 2);
 
                             render_area = new RectangleI(margin_x, margin_y, canvas_w * scale_w, canvas_h * scale_h);
+                            
                         }
                         else
                         {
@@ -287,33 +299,28 @@ namespace BLITTEngine.Graphics
                         var canvas_w2 = canvas_width;
                         var canvas_h2 = canvas_height;
 
-                        if (screen_w > canvas_w2 || screen_h > canvas_h2)
+                        var target_ar = canvas_w2 / (float)canvas_h2;
+
+                        var width = screen_w;
+
+                        var height = (int)(width / target_ar + 0.5f);
+
+                        if (height > screen_h)
                         {
-                            var asp_ratio_canvas = (float)canvas_w2 / canvas_h2;
-                            var asp_ratio_screen = (float)screen_w / screen_h;
+                            height = screen_h;
 
-                            var scale_w = ((float)screen_w / canvas_w2);
-                            var scale_h = ((float)screen_h / canvas_h2);
-
-                            if (asp_ratio_screen > asp_ratio_canvas)
-                            {
-                                scale_w = scale_h;
-                            }
-                            else
-                            {
-                                scale_h = scale_w;
-                            }
-
-                            var margin_x = (int)((screen_w - canvas_w2 * scale_w) / 2);
-                            var margin_y = (int)((screen_h - canvas_h2 * scale_h) / 2);
-
-                            render_area = new RectangleI(margin_x, margin_y, (int)(canvas_w2 * scale_w), (int)(canvas_h2 * scale_h));
+                            width = (int)(height * target_ar + 0.5f);
                         }
-                        else
-                        {
-                            render_area = new RectangleI(0, 0, canvas_width, canvas_height);
-                        }
+                        
+                        render_area = new RectangleI(
+                            (screen_w/2) - (width/2),
+                            (screen_h/2) - (height/2), 
+                            width, 
+                            height);
+                        
+                        Console.WriteLine($"Render Area: {render_area.X}, {render_area.Y}, {render_area.W}, {render_area.H}");
 
+                        
                         break;
                 }
             }

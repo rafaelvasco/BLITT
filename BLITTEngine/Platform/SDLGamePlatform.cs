@@ -1,13 +1,12 @@
 using System;
 using System.Diagnostics;
 using BLITTEngine.Foundation;
-using static BLITTEngine.Foundation.SDL;
 
 namespace BLITTEngine.Platform
 {
     internal partial class SDLGamePlatform : GamePlatform
     {
-        private SDL_Window window;
+        private IntPtr window;
         private uint window_id;
         private IntPtr native_handle;
         private bool is_fullscreen;
@@ -31,28 +30,23 @@ namespace BLITTEngine.Platform
             prev_win_h = height;
             is_fullscreen = fullscreen;
             
-            var initFlags = SDL_InitFlags.SDL_INIT_VIDEO
-                            | SDL_InitFlags.SDL_INIT_JOYSTICK;
+            var initFlags = SDL.InitFlags.Video
+                            | SDL.InitFlags.Joystick;
             
             var sw = Stopwatch.StartNew();
             
-            if (SDL_Init(initFlags) != 0)
-            {
-                SDL_Quit();
-                throw new Exception(SDL_GetError());
-            }
+            SDL.Init((int) initFlags);
             
             Console.WriteLine($"Init sdl took: {sw.Elapsed.TotalSeconds}");
 
             var windowFlags =
-                SDL_WindowFlags.SDL_WINDOW_HIDDEN;
-
+                SDL.Window.State.Hidden;
 
             switch (graphics_backend)
             {
                 case GraphicsBackend.OpenGL:
                     
-                    windowFlags |= SDL_WindowFlags.SDL_WINDOW_OPENGL;
+                    windowFlags |= SDL.Window.State.OpenGL;
                     break;
                 case GraphicsBackend.Vulkan:
                     throw new Exception("Vulkan Graphics Backend is not implemented yet.");
@@ -64,27 +58,27 @@ namespace BLITTEngine.Platform
 
             if (fullscreen)
             {
-                windowFlags |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
+                windowFlags |= SDL.Window.State.FullscreenDesktop;
             }
             
-            window = SDL_CreateWindow(
+            window = SDL.Window.Create(
                 title, 
-                SDL_WINDOWPOS_CENTERED,
-                SDL_WINDOWPOS_CENTERED,
+                SDL.Window.PosCentered,
+                SDL.Window.PosCentered,
                 width, height, windowFlags);
             
             if (window == IntPtr.Zero)
             {
-                SDL_Quit();
-                throw new Exception(SDL_GetError());
+                SDL.Quit();
+                throw new Exception(SDL.GetError());
             }
             
             if (fullscreen)
             {
-                SDL_GetDesktopDisplayMode(0, out SDL_DisplayMode dm);
-
-                screen_w = dm.w;
-                screen_h = dm.h;
+                SDL.Display.GetDisplayMode(0, 0, out SDL.Display.Mode dm);
+                
+                screen_w = dm.Width;
+                screen_h = dm.Height;
             
                 Console.WriteLine($"FULLSCREEN RES: {screen_w},{screen_h}");
             }
@@ -96,11 +90,12 @@ namespace BLITTEngine.Platform
             
             Console.WriteLine($"Create window took: {sw.Elapsed.TotalSeconds}");
 
-            window_id = SDL_GetWindowID(window);
+
+            window_id = SDL.Window.GetWindowID(window);
             native_handle = GetWindowNativeHandle();
             
             sdl_gpu_graphics = new SDLGpuGraphicsModule(window_id, screen_w, screen_h);
-            
+
             Console.WriteLine($"Graphics took: {sw.Elapsed.TotalSeconds}");
             
             sw.Stop();
@@ -109,23 +104,21 @@ namespace BLITTEngine.Platform
 
         }
         
-        private unsafe IntPtr GetWindowNativeHandle()
+        private IntPtr GetWindowNativeHandle()
         {
-            SDL_SysWMinfo wmInfo;
+            SDL.Window.SDL_SysWMinfo wmInfo = new SDL.Window.SDL_SysWMinfo();
 
-            SDL_GetVersion(&wmInfo.version);
+            SDL.Window.GetWindowWMInfo(window, ref wmInfo);
 
-            SDL_GetWindowWMInfo(window, &wmInfo);
-
-            if(wmInfo.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS)
+            if(wmInfo.subsystem == SDL.Window.SysWMType.Windows)
             {
                 return wmInfo.info.win.window;
             }
-            else if (wmInfo.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_X11)
+            else if (wmInfo.subsystem == SDL.Window.SysWMType.X11)
             {
                 return wmInfo.info.x11.window;
             }
-            else if (wmInfo.subsystem == SDL_SYSWM_TYPE.SDL_SYSWM_COCOA)
+            else if (wmInfo.subsystem == SDL.Window.SysWMType.Cocoa)
             {
                 return wmInfo.info.cocoa.window;
             }
@@ -133,63 +126,61 @@ namespace BLITTEngine.Platform
             return window;
         }
 
-
         public override void Quit()
         {
             sdl_gpu_graphics.Terminate();
-            SDL_Quit();
+            SDL.Quit();
         }
 
-        public override unsafe void PollEvents()
+        public override void PollEvents()
         {
-            SDL_Event ev;
-
-            while(SDL_PollEvent(&ev) == 1)
+            while(SDL.PollEvent(out var ev) == 1)
             {
-                switch (ev.type)
+                switch (ev.Type)
                 {
-                    case SDL_EventType.SDL_QUIT:
+                    case SDL.EventType.Quit:
                         OnQuit?.Invoke();
                         break;
-                    case SDL_EventType.SDL_KEYDOWN:
-                        AddKey((int)ev.keyboard.keysym.sym);
+                    case SDL.EventType.KeyDown:
+                        AddKey(ev.Key.Keysym.Sym);
                         break;
-                    case SDL_EventType.SDL_KEYUP:
-                        RemoveKey((int)ev.keyboard.keysym.sym);
+                    case SDL.EventType.KeyUp:
+                        RemoveKey(ev.Key.Keysym.Sym);
                         break;
-                    case SDL_EventType.SDL_MOUSEMOTION:
+                    case SDL.EventType.MouseButtonDown:
+                        SetMouseButtonState(ev.Button.Button, down: true);
                         break;
-                    case SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                    case SDL.EventType.MouseButtonup:
+                        SetMouseButtonState(ev.Button.Button, down: false);
                         break;
-                    case SDL_EventType.SDL_MOUSEBUTTONUP:
+                    case SDL.EventType.MouseWheel:
+                        TriggerMouseScroll(ev.Wheel.Y*120);
                         break;
-                    case SDL_EventType.SDL_MOUSEWHEEL:
+                    case SDL.EventType.JoyDeviceAdded:
                         break;
-                    case SDL_EventType.SDL_JOYDEVICEADDED:
+                    case SDL.EventType.JoyDeviceRemoved:
                         break;
-                    case SDL_EventType.SDL_JOYDEVICEREMOVED:
+                    case SDL.EventType.JoyButtonDown:
                         break;
-                    case SDL_EventType.SDL_JOYBUTTONDOWN:
+                    case SDL.EventType.JoyButtonUp:
                         break;
-                    case SDL_EventType.SDL_JOYBUTTONUP:
+                    case SDL.EventType.JoyAxisMotion:
                         break;
-                    case SDL_EventType.SDL_JOYAXISMOTION:
-                        break;
-                    case SDL_EventType.SDL_WINDOWEVENT:
-                        switch (ev.window.evt)
+                    case SDL.EventType.WindowEvent:
+                        switch (ev.Window.EventID)
                         {
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
+                            case SDL.Window.EventId.Shown:
 
                                 Graphics.Resize(screen_w, screen_h);
                                 break;
 
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
+                            case SDL.Window.EventId.Close:
                                 OnQuit?.Invoke();
                                 break;
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
+                            case SDL.Window.EventId.SizeChanged:
                                 
-                                int w = ev.window.data1;
-                                int h = ev.window.data2;
+                                int w = ev.Window.Data1;
+                                int h = ev.Window.Data2;
 
                                 if (screen_w != w || screen_h != h)
                                 {
@@ -200,12 +191,12 @@ namespace BLITTEngine.Platform
                                 screen_w = w;
                                 screen_h = h;
                                 
-                                OnWinResized?.Invoke(ev.window.data1, ev.window.data2);
+                                OnWinResized?.Invoke(ev.Window.Data1, ev.Window.Data2);
                                 break;
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
+                            case SDL.Window.EventId.Minimized:
                                 OnWinMinimized?.Invoke();
                                 break;
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
+                            case SDL.Window.EventId.Restored:
                                 OnWinRestored?.Invoke();
                                 break;
                            
@@ -232,31 +223,31 @@ namespace BLITTEngine.Platform
             prev_win_w = w;
             prev_win_h = h;
 
-            SDL_SetWindowSize(window, w, h);
-            SDL_SetWindowPosition(window, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED);
+            SDL.Window.SetSize(window, w, h);
+            SDL.Window.SetPosition(window, SDL.Window.PosCentered, SDL.Window.PosCentered);
         }
 
         public override void SetTitle(string title)
         {
-            SDL_SetWindowTitle(window, title);
+            SDL.Window.SetTitle(window, title);
         }
 
         public override void ShowCursor(bool show)
         {
-            SDL_ShowCursor(show ? 1 : 0);
+            SDL.Mouse.ShowCursor(show ? 1 : 0);
         }
 
         public override void ShowScreen(bool show)
         {
-            SDL_ShowWindow(window);
+            SDL.Window.Show(window);
         }
 
         public override void SetFullscreen(bool enabled)
         {
             if (is_fullscreen != enabled)
             {
-
-                SDL_SetWindowFullscreen(window, enabled ? SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+                
+                SDL.Window.SetFullscreen(window, enabled ? SDL.Window.State.FullscreenDesktop :  0);
 
                 is_fullscreen = enabled;
 

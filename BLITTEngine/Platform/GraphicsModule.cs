@@ -23,9 +23,9 @@ namespace BLITTEngine.Platform
         void DrawCircle(float x, float y, float radius);
         void FillCircle(float x, float y, float radius);
         void DrawPixel(float x, float y);
-        void DrawTexture(Texture texture, float x, float y);
-        void DrawTexture(Texture texture, float x, float y, ref RectangleI srcRect);
-        void DrawTexture(Texture texture, ref Rectangle dstRect);
-        void DrawTexture(Texture texture, ref RectangleI srcRect, ref Rectangle dstRect);
+        void DrawQuad(Texture texture, float x, float y);
+        void DrawQuad(Texture texture, float x, float y, ref RectangleI srcRect);
+        void DrawQuad(Texture texture, ref Rectangle dstRect);
+        void DrawQuad(Texture texture, ref RectangleI srcRect, ref Rectangle dstRect);
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using BLITTEngine.Foundation;
 using BLITTEngine.Graphics;
 using BLITTEngine.Numerics;
 using Color = BLITTEngine.Graphics.Color;
@@ -115,12 +116,14 @@ namespace BLITTEngine.Platform
 
         public void Terminate()
         {
-            Console.WriteLine($"Grahics Terminate: Disposing {textures.Count} textures.");
+            Console.WriteLine($"Grahics Terminate");
             
             foreach (var texture in textures)
             {
                 if(texture.TextureHandle != IntPtr.Zero)
                 {
+                    Console.WriteLine("Disposing Texture");
+                    
                     DestroyTexture(texture);
                 }
             }
@@ -202,12 +205,12 @@ namespace BLITTEngine.Platform
             GPU_Pixel(current_target, x, y, draw_color);
         }
 
-        public void DrawTexture(Texture texture, float x, float y)
+        public void DrawQuad(Texture texture, float x, float y)
         {
             GPU_Blit(texture.TextureHandle, IntPtr.Zero, current_target, x, y);
         }
 
-        public void DrawTexture(Texture texture, float x, float y, ref RectangleI srcRect)
+        public void DrawQuad(Texture texture, float x, float y, ref RectangleI srcRect)
         {
             blit_rect.x = srcRect.X;
             blit_rect.y = srcRect.Y;
@@ -217,7 +220,7 @@ namespace BLITTEngine.Platform
             GPU_Blit(texture.TextureHandle, ref blit_rect, current_target, x, y);
         }
 
-        public void DrawTexture(Texture texture, ref Rectangle dstRect)
+        public void DrawQuad(Texture texture, ref Rectangle dstRect)
         {
             blit_dst_rect.x = dstRect.X;
             blit_dst_rect.y = dstRect.Y;
@@ -227,7 +230,7 @@ namespace BLITTEngine.Platform
             GPU_BlitRect(texture.TextureHandle, IntPtr.Zero, current_target, ref blit_dst_rect);
         }
 
-        public void DrawTexture(Texture texture, ref RectangleI srcRect, ref Rectangle dstRect)
+        public void DrawQuad(Texture texture, ref RectangleI srcRect, ref Rectangle dstRect)
         {
             blit_rect.x = srcRect.X;
             blit_rect.y = srcRect.Y;

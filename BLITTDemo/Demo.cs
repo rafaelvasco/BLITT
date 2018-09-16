@@ -2,6 +2,8 @@ using System.Xml;
 using BLITTEngine;
 using BLITTEngine.Graphics;
 using BLITTEngine.Input;
+using BLITTEngine.Input.Keyboard;
+using BLITTEngine.Input.Mouse;
 using BLITTEngine.Numerics;
 using BLITTEngine.Resources;
 
@@ -12,8 +14,11 @@ namespace BLITTDemo
         private Image image;
         private Image dyn_image;
         private Image target;
-        private float timer;
         private RandomEx random;
+        private float x = Canvas.CenterX;
+        private float y = Canvas.CenterY;
+        private float dx = 2.0f;
+        private float dy = 2.0f;
 
         public override void Init()
         {
@@ -45,44 +50,70 @@ namespace BLITTDemo
 
         public override void Update(float dt)
         {
-          
+
+            x += dx;
+            y += dy;
+
+            if (x > 540)
+            {
+                x = 540;
+                dx *= -1;
+            }
+            else if (x < 125)
+            {
+                x = 125;
+                dx *= -1;
+            }
             
-            if (Keyboard.Pressed(Key.Escape))
+            if (y > 380)
+            {
+                y = 380;
+                dy *= -1;
+            }
+            else if (y < 125)
+            {
+                y = 125;
+                dy *= -1;
+            }
+            
+            if (Control.KeyPressed(Key.Escape))
             {
                 Game.Quit();
             }
 
-            if (Keyboard.Pressed(Key.B))
+            if (Control.KeyPressed(Key.B))
             {
                 Canvas.Resize(1024, 768);
             }
-            else if (Keyboard.Pressed(Key.S))
+            else if (Control.KeyPressed(Key.S))
             {
                 Canvas.Resize(800, 600);
             }
 
-            if (Keyboard.Pressed(Key.F11))
+            if (Control.KeyPressed(Key.F11))
             {
                 Game.ToggleFullscreen();
             }
 
-            if(Keyboard.Down(Key.Left))
+            if(Control.KeyDown(Key.Left))
             {
                 Canvas.Translate(-5f, 0);
             }
-            else if(Keyboard.Down(Key.Right))
+            else if(Control.KeyDown(Key.Right))
             {
                 Canvas.Translate(5f, 0);
             }
-            
-            
+
+            if (Control.MousePressed(MouseButton.Left))
+            {
+                Game.ToggleFullscreen();
+            }
         }
 
         public override void Draw()
         {
 
-            Canvas.SetTint(Color.Orange);
-            Canvas.Draw(image, Canvas.CenterX, Canvas.CenterY);
+            
             
             Canvas.SetTint(Color.Blue);
             Canvas.FillRect(10,10, 100, 100);
@@ -93,6 +124,9 @@ namespace BLITTDemo
             Canvas.Draw(target, 200, 200);
             
             Canvas.Draw(dyn_image, 400, 400);
+            
+            Canvas.SetTint(Color.Orange);
+            Canvas.Draw(image, x, y);
 
             
         }

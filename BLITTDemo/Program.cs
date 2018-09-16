@@ -12,10 +12,11 @@ namespace BLITTDemo
                 CanvasWidth = 800,
                 CanvasHeight = 600,
                 Fullscreen = false,
-                StartingScene = new Demo()
             };
 
-            Game.Run(props);
+            Game.Init(props);
+
+            Game.Run(new Demo2());
         }
     }
 }

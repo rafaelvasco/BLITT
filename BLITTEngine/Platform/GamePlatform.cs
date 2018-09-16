@@ -1,11 +1,14 @@
 using System;
 using BLITTEngine.Input;
+using BLITTEngine.Input.Keyboard;
+using BLITTEngine.Input.Mouse;
 
 namespace BLITTEngine.Platform
 {
     internal abstract class GamePlatform
     {
         public Action OnQuit;
+        public Action<int> OnMouseScroll;
        
 
         public Action<int, int> OnWinResized;
@@ -27,5 +30,7 @@ namespace BLITTEngine.Platform
         public abstract void ShowScreen(bool show);
         public abstract void SetFullscreen(bool enabled);
         public abstract ref KeyboardState GetKeyboardState();
+        public abstract ref MouseState GetMouseState();
+        
     }
 }

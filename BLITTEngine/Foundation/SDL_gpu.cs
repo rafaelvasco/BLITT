@@ -243,8 +243,6 @@ namespace BLITTEngine.Foundation
             TRIANGLE_FAN = 0x6
         }
         
-        
-
         public enum GPU_BatchFlag
         {
             XY = 0x1,

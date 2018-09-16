@@ -1,4 +1,5 @@
 using System;
+using System.Runtime;
 using BLITTEngine.Graphics;
 using BLITTEngine.Input;
 using BLITTEngine.Numerics;
@@ -14,7 +15,6 @@ namespace BLITTEngine
         public int CanvasWidth;
         public int CanvasHeight;
         public bool Fullscreen;
-        public Scene StartingScene;
     }
 
     public static class Game
@@ -26,9 +26,10 @@ namespace BLITTEngine
         internal static GamePlatform Platform;
         
         public static bool Running { get; internal set; }
-        public static bool Focused { get; internal set; } = true;
         public static bool ExitOnCloseWindow { get; set; } = true;
         public static Scene CurrentScene { get; private set; }
+
+        private static bool initialized;
 
         public static bool Fullscreen
         {
@@ -43,25 +44,15 @@ namespace BLITTEngine
             }
         }
 
-
-
-        public static void Run(GameProps props = default)
+        public static void Init(GameProps props = default)
         {
             props.Title = props.Title ?? "BLITT Game";
             props.CanvasWidth = Calc.Max(64, props.CanvasWidth);
             props.CanvasHeight = Calc.Max(64, props.CanvasHeight);
+            full_screen = props.Fullscreen;
 
             Console.WriteLine("BLITT is Starting...");
             
-            if (Running)
-            {
-                return;
-            }
-
-            CurrentScene = props.StartingScene;
-
-            Running = true;
-
             Console.WriteLine("Initializing GamePlatform...");
 
             Platform = new SDLGamePlatform();
@@ -72,14 +63,39 @@ namespace BLITTEngine
             Platform.OnWinResized += OnScreenResized;
             
             Canvas.Init(Platform, props.CanvasWidth, props.CanvasHeight);
-            Keyboard.Init(Platform);
+            Control.Init(Platform);
             Content.Init("Assets");
+
+            initialized = true;
             
-            CurrentScene?.Init();
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+        }
+
+        public static void Run(Scene scene = null)
+        {
+            if (initialized)
+            {
+                if (Running)
+                {
+                    return;
+                }
+
+                CurrentScene = scene;
+
+                Running = true;
             
-            Platform.ShowScreen(true);
+                CurrentScene?.Init();
             
-            Tick();
+                Canvas.Begin();
+            
+                CurrentScene?.Draw();
+            
+                Canvas.End();
+            
+                Platform.ShowScreen(true);
+            
+                Tick();
+            }
         }
 
         public static void Quit()
@@ -122,57 +138,23 @@ namespace BLITTEngine
             GameClock.FrameRate = 60;
             GameClock.Start();
 
-            var graphics = Platform.Graphics;
-            
             while (Running)
             {
                 Platform.PollEvents();
 
-                if (!Focused)
-                {
-                    continue;
-                }
-                
                 GameClock.Tick();
+                Control.Update();
 
                 while (GameClock.TotalTime >= GameClock.FrameDuration)
                 {
-                    Keyboard.Update();
-
                     CurrentScene?.Update(GameClock.DeltaTime);
                     GameClock.TotalTime -= GameClock.FrameDuration;
-                    //Platform.SetWindowTitle(GameClock.FPS.ToString());
                 }
-
+                
                 Canvas.Begin();
                 
                 CurrentScene?.Draw();
-
-                
-
-                /*if (Screen.ScreenResized)
-                {
-                    Console.WriteLine("GAME SCREEN RESIZED");
-                    Platform.SetWindowSize(Screen.Width, Screen.Height);
-                    Screen.ScreenResized = false;
-                }
-                else if (Screen.ScreenToggledUpdate)
-                {
-                    Console.WriteLine("GAME SCREEN TOGGLED FS");
-
-                    if (!Platform.IsFullscreen && Screen.Fullscreen)
-                    {
-                        Platform.SetFullscreen(true);
-                    }
-                    else
-                    {
-                        Platform.SetFullscreen(false);
-
-                    }
-
-                    Screen.ScreenToggledUpdate = false;
-                }*/
-
+           
                 Canvas.End();
 
                 if(Canvas.SizeChanged)

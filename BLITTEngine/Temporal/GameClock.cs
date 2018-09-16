@@ -38,6 +38,8 @@ namespace BLITTEngine.Temporal
             DeltaTime = 0;
             Paused = false;
             timer = Stopwatch.StartNew();
+
+            bool b = Stopwatch.IsHighResolution;
         }
 
         internal static void Stop()
@@ -68,7 +70,7 @@ namespace BLITTEngine.Temporal
 
                 fps_timer += DeltaTime;
 
-                if (fps_timer > 0.5)
+                if (fps_timer > 0.2)
                 {
                     fps = (int)(1 / DeltaTime);
                     fps_timer = 0;

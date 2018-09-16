@@ -1,4 +1,4 @@
-﻿namespace BLITTEngine.Input
+﻿namespace BLITTEngine.Input.Keyboard
 {
     internal struct KeyboardState
     {

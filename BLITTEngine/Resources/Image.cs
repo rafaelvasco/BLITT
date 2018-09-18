@@ -4,21 +4,14 @@ using BLITTEngine.Numerics;
 
 namespace BLITTEngine.Resources
 {
-    public enum ImageWrapMode
-    {
-        None,
-        Repeat,
-        Mirrored
-    }
+    
 
-    public enum ImageFilterMode
-    {
-        Crisp,
-        Smooth
-    }
+   
 
     public class Image : Resource, BlitSource
     {
+
+
         private RectangleI bounding_rect;
         private ImageWrapMode wrap_mode;
         private ImageFilterMode filter_mode;
@@ -26,10 +19,37 @@ namespace BLITTEngine.Resources
         internal Texture Texture { get; }
         internal Pixmap Pixmap { get; }
 
-        internal bool Invalidated { get; set; }
+        internal bool DataChanged { get; set; }
+        internal bool ConfigChanged { get; set; }
 
         public int Width => Pixmap.Width;
         public int Height => Pixmap.Height;
+
+        public ImageWrapMode WrapMode
+        {
+            get => wrap_mode;
+            set
+            {
+                if (wrap_mode != value)
+                {
+                    wrap_mode = value;
+                    ConfigChanged = true;
+                }
+            }
+        }
+
+        public ImageFilterMode FilterMode
+        {
+            get => filter_mode;
+            set
+            {
+                if(filter_mode != value)
+                {
+                    filter_mode = value;
+                    ConfigChanged = true;
+                }
+            }
+        }
 
             
         public Image(Pixmap pixmap, Texture texture)
@@ -38,6 +58,8 @@ namespace BLITTEngine.Resources
             this.Pixmap = pixmap;
             
             bounding_rect = new RectangleI(0, 0, Width, Height);
+            wrap_mode = ImageWrapMode.None;
+            filter_mode = ImageFilterMode.Crisp;
         }
 
         public void Fill(Color color)
@@ -54,7 +76,7 @@ namespace BLITTEngine.Resources
                 pixel_data[i+3] = color.A;
             }
 
-            Invalidated = true;
+            DataChanged = true;
         }
 
         public void BlitImage(Image image, int x, int y)
@@ -89,7 +111,7 @@ namespace BLITTEngine.Resources
                 }
             }
 
-            Invalidated = true;
+            DataChanged = true;
         }
         
         public void SaveToFile(string file)

@@ -54,6 +54,7 @@ namespace BLITTEngine.Foundation
             GPU_UpdateImageBytes_f = FuncLoader.LoadFunction<GPU_UpdateImageBytes_d>(lib, nameof(GPU_UpdateImageBytes));
             GPU_UpdateImageBytes_f2 = FuncLoader.LoadFunction<GPU_UpdateImageBytes_d2>(lib, nameof(GPU_UpdateImageBytes));
             GPU_SetImageFilter_f = FuncLoader.LoadFunction<GPU_SetImageFilter_d>(lib, nameof(GPU_SetImageFilter));
+            GPU_SetWrapMode_f = FuncLoader.LoadFunction<GPU_SetWrapMode_d>(lib, nameof(GPU_SetWrapMode));
             GPU_Flip_f = FuncLoader.LoadFunction<GPU_Flip_d>(lib, nameof(GPU_Flip));
             GPU_Quit_f = FuncLoader.LoadFunction<GPU_Quit_d>(lib, nameof(GPU_Quit));
             GPU_Blit_f = FuncLoader.LoadFunction<GPU_Blit_d>(lib, nameof(GPU_Blit));
@@ -961,6 +962,11 @@ namespace BLITTEngine.Foundation
         private delegate void GPU_SetImageFilter_d(/*GPU_Image*/ IntPtr image, GPU_Filter filter);
         private static GPU_SetImageFilter_d GPU_SetImageFilter_f;
         public static void GPU_SetImageFilter(/*GPU_Image*/ IntPtr image, GPU_Filter filter) => GPU_SetImageFilter_f(image, filter);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void GPU_SetWrapMode_d(/*GPU_Image*/ IntPtr image, GPU_Wrap wrap_mode_x, GPU_Wrap wrap_mode_y);
+        private static GPU_SetWrapMode_d GPU_SetWrapMode_f;
+        public static void GPU_SetWrapMode(/*GPU_Image*/ IntPtr image, GPU_Wrap wrap_mode_x, GPU_Wrap wrap_mode_y) => GPU_SetWrapMode_f(image, wrap_mode_x, wrap_mode_y);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void GPU_UpdateImage_d(/*GPU_Image*/ IntPtr image, ref GPU_Rect image_rect, /*SDL_Surface*/ IntPtr surface, ref GPU_Rect surface_rect);

@@ -6,9 +6,10 @@ namespace BLITTEngine.Platform
 {
     internal interface GraphicsModule
     {
-        Texture CreateTexture(Pixmap pixmap, bool is_render_target);
-        Texture CreateTexture(int width, int height, bool is_render_target);
+        Texture CreateTexture(Pixmap pixmap, ImageWrapMode wrap_mode, ImageFilterMode filter_mode, bool is_render_target);
+        Texture CreateTexture(int width, int height, ImageWrapMode wrap_mode, ImageFilterMode filter_mode, bool is_render_target);
         void UpdateTexture(Texture texture, Pixmap pixmap);
+        void ConfigureTexture(Texture texture, ImageWrapMode wrap_mode, ImageFilterMode filter_mode);
         void DestroyTexture(Texture texture);
         void SetColor(ref Color color);
         void Begin(Texture target = null);

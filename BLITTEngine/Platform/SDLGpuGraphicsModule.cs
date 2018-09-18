@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using BLITTEngine.Foundation;
 using BLITTEngine.Graphics;
 using BLITTEngine.Numerics;
 using Color = BLITTEngine.Graphics.Color;
@@ -46,13 +45,9 @@ namespace BLITTEngine.Platform
             textures = new List<Texture>();
         }
 
-        public Texture CreateTexture(Pixmap pixmap, bool is_render_target)
+        public Texture CreateTexture(Pixmap pixmap, ImageWrapMode wrap_mode, ImageFilterMode filter_mode, bool is_render_target)
         {
             IntPtr gpu_image = GPU_CreateImage((ushort) pixmap.Width, (ushort) pixmap.Height, GPU_Format.FORMAT_RGBA);
-            
-            GPU_UpdateImageBytes(gpu_image, IntPtr.Zero, pixmap.PixelData, pixmap.Width*4);
-            GPU_SetImageFilter(gpu_image, GPU_Filter.FILTER_NEAREST);
-
             IntPtr render_target_handle = IntPtr.Zero;
             
             if (is_render_target)
@@ -61,6 +56,9 @@ namespace BLITTEngine.Platform
             }
             
             var tex = new Texture(gpu_image, render_target_handle, pixmap.Width, pixmap.Height);
+
+            UpdateTexture(tex, pixmap);
+            ConfigureTexture(tex, wrap_mode, filter_mode);
  
             textures.Add(tex);
 
@@ -69,11 +67,9 @@ namespace BLITTEngine.Platform
             return tex;
         }
 
-        public Texture CreateTexture(int width, int height, bool is_render_target)
+        public Texture CreateTexture(int width, int height, ImageWrapMode wrap_mode, ImageFilterMode filter_mode, bool is_render_target)
         {
             IntPtr gpu_image = GPU_CreateImage((ushort) width, (ushort) height, GPU_Format.FORMAT_RGBA);
-            GPU_SetImageFilter(gpu_image, GPU_Filter.FILTER_NEAREST);
-
             IntPtr render_target_handle = IntPtr.Zero;
             
             if (is_render_target)
@@ -82,12 +78,39 @@ namespace BLITTEngine.Platform
             }
 
             var tex = new Texture(gpu_image, render_target_handle, width, height);
+            ConfigureTexture(tex, wrap_mode, filter_mode);
 
             textures.Add(tex);
             
             Console.WriteLine($"Created Empty Texture W: {width}, H{height}");
             
             return tex;
+        }
+
+        public void ConfigureTexture(Texture texture, ImageWrapMode wrap_mode, ImageFilterMode filter_mode)
+        {
+            switch (filter_mode)
+            {
+                case ImageFilterMode.Crisp:
+                    GPU_SetImageFilter(texture.TextureHandle, GPU_Filter.FILTER_NEAREST);
+                    break;
+                case ImageFilterMode.Smooth:
+                    GPU_SetImageFilter(texture.TextureHandle, GPU_Filter.FILTER_LINEAR);
+                    break;
+            }
+
+            switch (wrap_mode)
+            {
+                case ImageWrapMode.None:
+                    GPU_SetWrapMode(texture.TextureHandle, GPU_Wrap.WRAP_NONE, GPU_Wrap.WRAP_NONE);
+                    break;
+                case ImageWrapMode.Repeat:
+                    GPU_SetWrapMode(texture.TextureHandle, GPU_Wrap.WRAP_REPEAT, GPU_Wrap.WRAP_REPEAT);
+                    break;
+                case ImageWrapMode.Mirrored:
+                    GPU_SetWrapMode(texture.TextureHandle, GPU_Wrap.WRAP_MIRRORED, GPU_Wrap.WRAP_MIRRORED);
+                    break;
+            }
         }
 
         public void UpdateTexture(Texture texture, Pixmap pixmap)
@@ -245,6 +268,6 @@ namespace BLITTEngine.Platform
             GPU_BlitRect(texture.TextureHandle, ref blit_rect, current_target, ref blit_dst_rect);
         }
 
-        
+
     }
 }

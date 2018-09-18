@@ -69,7 +69,11 @@ namespace BLITTEngine.Resources
                         
                         var pixmap = new Pixmap(bitmap.PixelData, bitmap.Width, bitmap.Height);
 
-                        var texture = Game.Platform.Graphics.CreateTexture(pixmap, is_render_target: false);
+                        var texture = Game.Platform.Graphics.CreateTexture(
+                            pixmap, 
+                            wrap_mode: ImageWrapMode.None, 
+                            filter_mode: ImageFilterMode.Crisp, 
+                            is_render_target: false);
                         
                         var image = (T)Activator.CreateInstance(type, pixmap, texture);
 
@@ -94,7 +98,12 @@ namespace BLITTEngine.Resources
         public static Image CreateImage(int width, int height, bool is_draw_target=false)
         {
             var pixmap = new Pixmap(width, height);
-            var texture = Game.Platform.Graphics.CreateTexture(width, height, is_draw_target);
+
+            var texture = Game.Platform.Graphics.CreateTexture(
+                width, height, 
+                wrap_mode: ImageWrapMode.None,
+                filter_mode: ImageFilterMode.Crisp, is_draw_target);
+
             var image = new Image(pixmap, texture);
             
             Register(image);

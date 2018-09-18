@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using BLITTEngine.Numerics;
 using BLITTEngine.Platform;
 using BLITTEngine.Resources;
@@ -14,13 +15,15 @@ namespace BLITTEngine.Graphics
 
     public static class Canvas
     {
+        private static int MAX_TRANSFORM_STACK = 32;
+
         private static Color default_bg_color = Color.Black;
 
         private static Color bg_color = Color.CornflowerBlue;
         
         private static GraphicsModule gfx;
 
-        private static readonly Vector2[] translate_stack;
+        private static Vector2[] translate_stack;
 
         private static int translate_stack_idx;
 
@@ -84,7 +87,14 @@ namespace BLITTEngine.Graphics
 
             fullscreen_mode = FullScreenMode.StretchLetterBox;
 
-            render_target = gfx.CreateTexture(width, height, is_render_target: true);
+            render_target = gfx.CreateTexture(
+                width, height, 
+                wrap_mode: ImageWrapMode.None, 
+                filter_mode: ImageFilterMode.Crisp, 
+                is_render_target: true);
+
+
+            translate_stack = new Vector2[MAX_TRANSFORM_STACK];
 
             Game.Platform.GetScreenSize(out int screen_w, out int screen_h);
 
@@ -93,14 +103,16 @@ namespace BLITTEngine.Graphics
         
         public static void BeginTarget(Image target)
         {
-            if (target.Invalidated)
+            if (!target.DataChanged && !target.ConfigChanged)
             {
-                gfx.UpdateTexture(target.Texture, target.Pixmap);
-                target.Invalidated = false;
+                gfx.Begin(target.Texture);
+                gfx.Clear(ref default_bg_color);
+            }
+            else
+            {
+                SyncImageGpuState(target);
             }
             
-            gfx.Begin(target.Texture);
-            gfx.Clear(ref default_bg_color);
         }
 
         public static void EndTarget()
@@ -159,58 +171,54 @@ namespace BLITTEngine.Graphics
 
         public static void Draw(Image image, float x, float y)
         {
-            if (!image.Invalidated)
+            if (!image.DataChanged && !image.ConfigChanged)
             {
                 ref Vector2 ct = ref current_translate;
                 gfx.DrawQuad(image.Texture, x + ct.X, y + ct.Y);
             }
             else
             {
-                gfx.UpdateTexture(image.Texture, image.Pixmap);
-                image.Invalidated = false;
+                SyncImageGpuState(image);
             }
             
         }
 
         public static void Draw(Image image, float x, float y, RectangleI srcRect)
         {
-            if (!image.Invalidated)
+            if (!image.DataChanged && !image.ConfigChanged)
             {
                 gfx.DrawQuad(image.Texture, x, y, ref srcRect);
             }
             else
             {
-                gfx.UpdateTexture(image.Texture, image.Pixmap);
-                image.Invalidated = false;
+                SyncImageGpuState(image);
             }
         }
 
         public static void Draw(Image image, Rectangle dstRect)
         {
-            if (!image.Invalidated)
+            if(!image.DataChanged && !image.ConfigChanged)
             {
                 gfx.DrawQuad(image.Texture, ref dstRect);
             }
             else
             {
-                gfx.UpdateTexture(image.Texture, image.Pixmap);
-                image.Invalidated = false;
+                SyncImageGpuState(image);
             }
            
         }
             
         public static void Draw(Image image, RectangleI srcRect, Rectangle dstRect)
         {
-            if (!image.Invalidated)
+            if (!image.DataChanged && !image.ConfigChanged)
             {
                 gfx.DrawQuad(image.Texture, ref srcRect, ref dstRect);
             }
             else
             {
-                gfx.UpdateTexture(image.Texture, image.Pixmap);
-                image.Invalidated = false;
+                SyncImageGpuState(image);
             }
-            
+
         }
 
         public static void Translate(float x, float y)
@@ -244,7 +252,11 @@ namespace BLITTEngine.Graphics
 
             gfx.DestroyTexture(render_target);
 
-            render_target = gfx.CreateTexture(width, height, is_render_target: true);
+            render_target = gfx.CreateTexture(
+                width, height,
+                wrap_mode: ImageWrapMode.None,
+                filter_mode: ImageFilterMode.Crisp,
+                is_render_target: true);
 
             SizeChanged = true;
         }
@@ -330,6 +342,24 @@ namespace BLITTEngine.Graphics
             }
             
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void SyncImageGpuState(Image image)
+        {
+
+            if (image.DataChanged)
+            {
+                gfx.UpdateTexture(image.Texture, image.Pixmap);
+                image.DataChanged = false;
+            }
+
+            if(image.ConfigChanged)
+            {
+                gfx.ConfigureTexture(image.Texture, image.WrapMode, image.FilterMode);
+                image.ConfigChanged = false;
+            }
+        }
+       
 
         internal static void OnScreenResized(int screen_w, int screen_h)
         {

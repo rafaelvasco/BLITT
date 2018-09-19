@@ -16,7 +16,7 @@ namespace BLITTDemo
 
             Game.Init(props);
 
-            Game.Run(new Demo2());
+            Game.Run(new Demo());
         }
     }
 }

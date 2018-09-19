@@ -108,6 +108,19 @@ namespace BLITTDemo
             {
                 Game.ToggleFullscreen();
             }
+
+            if (Control.KeyPressed(Key.Space))
+            {
+                if (target.FilterMode == ImageFilterMode.Crisp)
+                {
+                    target.FilterMode = ImageFilterMode.Smooth;    
+                }
+                else
+                {
+                    target.FilterMode = ImageFilterMode.Crisp;
+                }
+                
+            }
         }
 
         public override void Draw()

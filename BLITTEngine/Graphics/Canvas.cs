@@ -149,7 +149,14 @@ namespace BLITTEngine.Graphics
 
         public static void DrawRect(float x, float y, float w, float h)
         {
+            if(can_draw)
+            {
+                gfx.DrawRect(x, y, w, h);
+            }
+            
             gfx.DrawRect(x, y, w, h);
+            gfx.DrawRect(x, y, w, h);
+
         }
 
         public static void FillRect(float x, float y, float w, float h)

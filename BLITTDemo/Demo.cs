@@ -22,7 +22,7 @@ namespace BLITTDemo
 
         public override void Init()
         {
-            image = Content.Get<Image>("ball");
+            image = Content.Get<Image>("ship");
 
             target = Content.CreateImage(320, 240, is_draw_target: true);
 

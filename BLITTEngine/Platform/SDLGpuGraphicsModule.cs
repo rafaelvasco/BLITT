@@ -233,37 +233,37 @@ namespace BLITTEngine.Platform
             GPU_Blit(texture.TextureHandle, IntPtr.Zero, current_target, x, y);
         }
 
-        public void DrawQuad(Texture texture, float x, float y, ref RectangleI srcRect)
+        public void DrawQuad(Texture texture, float x, float y, ref RectangleI src_rect)
         {
-            blit_rect.x = srcRect.X;
-            blit_rect.y = srcRect.Y;
-            blit_rect.w = srcRect.W;
-            blit_rect.h = srcRect.H;
+            blit_rect.x = src_rect.X;
+            blit_rect.y = src_rect.Y;
+            blit_rect.w = src_rect.W;
+            blit_rect.h = src_rect.H;
             
             GPU_Blit(texture.TextureHandle, ref blit_rect, current_target, x, y);
         }
 
-        public void DrawQuad(Texture texture, ref Rectangle dstRect)
+        public void DrawQuad(Texture texture, ref Rectangle dst_rect)
         {
-            blit_dst_rect.x = dstRect.X;
-            blit_dst_rect.y = dstRect.Y;
-            blit_dst_rect.w = dstRect.W;
-            blit_dst_rect.h = dstRect.H;
+            blit_dst_rect.x = dst_rect.X;
+            blit_dst_rect.y = dst_rect.Y;
+            blit_dst_rect.w = dst_rect.W;
+            blit_dst_rect.h = dst_rect.H;
             
             GPU_BlitRect(texture.TextureHandle, IntPtr.Zero, current_target, ref blit_dst_rect);
         }
 
-        public void DrawQuad(Texture texture, ref RectangleI srcRect, ref Rectangle dstRect)
+        public void DrawQuad(Texture texture, ref RectangleI src_rect, ref Rectangle dst_rect)
         {
-            blit_rect.x = srcRect.X;
-            blit_rect.y = srcRect.Y;
-            blit_rect.w = srcRect.W;
-            blit_rect.h = srcRect.H;
+            blit_rect.x = src_rect.X;
+            blit_rect.y = src_rect.Y;
+            blit_rect.w = src_rect.W;
+            blit_rect.h = src_rect.H;
             
-            blit_dst_rect.x = dstRect.X;
-            blit_dst_rect.y = dstRect.Y;
-            blit_dst_rect.w = dstRect.W;
-            blit_dst_rect.h = dstRect.H;
+            blit_dst_rect.x = dst_rect.X;
+            blit_dst_rect.y = dst_rect.Y;
+            blit_dst_rect.w = dst_rect.W;
+            blit_dst_rect.h = dst_rect.H;
             
             GPU_BlitRect(texture.TextureHandle, ref blit_rect, current_target, ref blit_dst_rect);
         }

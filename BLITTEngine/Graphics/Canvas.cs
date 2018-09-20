@@ -178,53 +178,45 @@ namespace BLITTEngine.Graphics
 
         public static void Draw(Image image, float x, float y)
         {
-            if (!image.DataChanged && !image.ConfigChanged)
-            {
-                ref Vector2 ct = ref current_translate;
-                gfx.DrawQuad(image.Texture, x + ct.X, y + ct.Y);
-            }
-            else
+            if (image.DataChanged || image.ConfigChanged) 
             {
                 SyncImageGpuState(image);
             }
+            
+            ref Vector2 ct = ref current_translate;
+            gfx.DrawQuad(image.Texture, x + ct.X, y + ct.Y);
             
         }
 
         public static void Draw(Image image, float x, float y, RectangleI srcRect)
         {
-            if (!image.DataChanged && !image.ConfigChanged)
-            {
-                gfx.DrawQuad(image.Texture, x, y, ref srcRect);
-            }
-            else
+            if (image.DataChanged || image.ConfigChanged)
             {
                 SyncImageGpuState(image);
             }
+            
+            gfx.DrawQuad(image.Texture, x, y, ref srcRect);
         }
 
         public static void Draw(Image image, Rectangle dstRect)
         {
-            if(!image.DataChanged && !image.ConfigChanged)
-            {
-                gfx.DrawQuad(image.Texture, ref dstRect);
-            }
-            else
+            if (image.DataChanged || image.ConfigChanged)
             {
                 SyncImageGpuState(image);
             }
+            
+            gfx.DrawQuad(image.Texture, ref dstRect);
            
         }
             
-        public static void Draw(Image image, RectangleI srcRect, Rectangle dstRect)
+        public static void Draw(Image image, RectangleI src_rect, Rectangle dst_rect)
         {
-            if (!image.DataChanged && !image.ConfigChanged)
-            {
-                gfx.DrawQuad(image.Texture, ref srcRect, ref dstRect);
-            }
-            else
+            if (image.DataChanged || image.ConfigChanged)
             {
                 SyncImageGpuState(image);
             }
+            
+            gfx.DrawQuad(image.Texture, ref src_rect, ref dst_rect);
 
         }
 

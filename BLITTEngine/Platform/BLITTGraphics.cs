@@ -29,7 +29,8 @@ namespace BLITTEngine.Platform
     }
     
     internal interface BLITTGraphics
-    { 
+    {
+        void Init(int width, int height);
         Texture CreateTexture(Pixmap pixmap, bool repeat, bool smooth, bool is_render_target);
         Texture CreateTexture(int width, int height, bool repeat, bool smooth, bool is_render_target);
         void UpdateTexture(Texture texture, Pixmap pixmap);
@@ -37,7 +38,7 @@ namespace BLITTEngine.Platform
         void DestroyTexture(Texture texture);
         void Clear(ref Color color);
         void Clear();
-        void Resize(float x, float y, float w, float h);
+        void Resize(int w, int h);
         void SetTexture(Texture texture);
         void Submit();
     }

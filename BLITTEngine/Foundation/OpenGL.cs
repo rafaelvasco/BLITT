@@ -2045,6 +2045,13 @@ namespace BLITTEngine.Foundation
         private static glEnable_d glEnable_f;
         public static void Enable(EnableCap cap) => glEnable_f(cap);
 
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glDisable_t(EnableCap cap);
+        private static glDisable_t p_glDisable;
+        public static void Disable(EnableCap cap) => p_glDisable(cap);
+
+
         [UnmanagedFunctionPointer(CallConv)]
         private delegate void glGenTextures_d(int n, out uint textures);
 
@@ -2145,10 +2152,262 @@ namespace BLITTEngine.Foundation
         private static glEnd_d glEnd_f;
         public static void End() => glEnd_f();
 
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glGenVertexArrays_t(uint n, out uint arrays);
+        private static glGenVertexArrays_t p_glGenVertexArrays;
+        public static void GenVertexArrays(uint n, out uint arrays) => p_glGenVertexArrays(n, out arrays);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate uint glGetError_t();
+        private static glGetError_t p_glGetError;
+        public static uint GetError() => p_glGetError();
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glBindVertexArray_t(uint array);
+        private static glBindVertexArray_t p_glBindVertexArray;
+        public static void BindVertexArray(uint array) => p_glBindVertexArray(array);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glClearColor_t(float red, float green, float blue, float alpha);
+        private static glClearColor_t p_glClearColor;
+        public static void ClearColor(float red, float green, float blue, float alpha)
+            => p_glClearColor(red, green, blue, alpha);
+
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glClear_t(ClearBufferMask mask);
+        private static glClear_t p_glClear;
+        public static void Clear(ClearBufferMask mask) => p_glClear(mask);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glDrawElements_t(PrimitiveType mode, uint count, DrawElementsType type, IntPtr indices);
+        private static glDrawElements_t p_glDrawElements;
+        public static void DrawElements(PrimitiveType mode, uint count, DrawElementsType type, IntPtr indices)
+            => p_glDrawElements(mode, count, type, indices);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glDrawArrays_t(PrimitiveType mode, int first, uint count);
+        private static glDrawArrays_t p_glDrawArrays;
+        public static void DrawArrays(PrimitiveType mode, int first, uint count) => p_glDrawArrays(mode, first, count);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glGenBuffers_t(uint n, out uint buffers);
+        private static glGenBuffers_t p_glGenBuffers;
+        public static void GenBuffers(uint n, out uint buffers) => p_glGenBuffers(n, out buffers);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glDeleteBuffers_t(uint n, ref uint buffers);
+        private static glDeleteBuffers_t p_glDeleteBuffers;
+        public static void DeleteBuffers(uint n, ref uint buffers) => p_glDeleteBuffers(n, ref buffers);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glGenFramebuffers_t(uint n, out uint ids);
+        private static glGenFramebuffers_t p_glGenFramebuffers;
+        public static void GenFramebuffers(uint n, out uint ids) => p_glGenFramebuffers(n, out ids);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glActiveTexture_t(TextureUnit texture);
+        private static glActiveTexture_t p_glActiveTexture;
+        public static void ActiveTexture(TextureUnit texture) => p_glActiveTexture(texture);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glFramebufferTexture2D_t(
+            FramebufferTarget target,
+            GLFramebufferAttachment attachment,
+            TextureTarget textarget,
+            uint texture,
+            int level);
+        private static glFramebufferTexture2D_t p_glFramebufferTexture2D;
+        public static void FramebufferTexture2D(
+            FramebufferTarget target,
+            GLFramebufferAttachment attachment,
+            TextureTarget textarget,
+            uint texture,
+            int level) => p_glFramebufferTexture2D(target, attachment, textarget, texture, level);
+
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glBindFramebuffer_t(FramebufferTarget target, uint framebuffer);
+        private static glBindFramebuffer_t p_glBindFramebuffer;
+        public static void BindFramebuffer(FramebufferTarget target, uint framebuffer)
+            => p_glBindFramebuffer(target, framebuffer);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glDeleteFramebuffers_t(uint n, ref uint framebuffers);
+        private static glDeleteFramebuffers_t p_glDeleteFramebuffers;
+        public static void DeleteFramebuffers(uint n, ref uint framebuffers) => p_glDeleteFramebuffers(n, ref framebuffers);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glGenTextures_t(uint n, out uint textures);
+        private static glGenTextures_t p_glGenTextures;
+        public static void GenTextures(uint n, out uint textures) => p_glGenTextures(n, out textures);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glDeleteTextures_t(uint n, ref uint textures);
+        private static glDeleteTextures_t p_glDeleteTextures;
+        public static void DeleteTextures(uint n, ref uint textures) => p_glDeleteTextures(n, ref textures);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate FramebufferErrorCode glCheckFramebufferStatus_t(FramebufferTarget target);
+        private static glCheckFramebufferStatus_t p_glCheckFramebufferStatus;
+        public static FramebufferErrorCode CheckFramebufferStatus(FramebufferTarget target)
+            => p_glCheckFramebufferStatus(target);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glBindBuffer_t(BufferTarget target, uint buffer);
+        private static glBindBuffer_t p_glBindBuffer;
+        public static void BindBuffer(BufferTarget target, uint buffer) => p_glBindBuffer(target, buffer);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glBufferSubData_t(BufferTarget target, IntPtr offset, UIntPtr size, IntPtr data);
+        private static glBufferSubData_t p_glBufferSubData;
+        public static void BufferSubData(BufferTarget target, IntPtr offset, UIntPtr size, IntPtr data)
+            => p_glBufferSubData(target, offset, size, data);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glScissor_t(int x, int y, uint width, uint height);
+        private static glScissor_t p_glScissor;
+        public static void Scissor(int x, int y, uint width, uint height) => p_glScissor(x, y, width, height);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glPixelStorei_t(PixelStoreParameter pname, int param);
+        private static glPixelStorei_t p_glPixelStorei;
+        public static void PixelStorei(PixelStoreParameter pname, int param) => p_glPixelStorei(pname, param);
+
+        /*[UnmanagedFunctionPointer(CallConv)]
+        private delegate void glShaderSource_t(uint shader, uint count, byte** @string, int* length);
+        private static glShaderSource_t p_glShaderSource;
+        public static void glShaderSource(uint shader, uint count, byte** @string, int* length)
+            => p_glShaderSource(shader, count, @string, length);*/
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate uint glCreateShader_t(ShaderType shaderType);
+        private static glCreateShader_t p_glCreateShader;
+        public static uint CreateShader(ShaderType shaderType) => p_glCreateShader(shaderType);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glCompileShader_t(uint shader);
+        private static glCompileShader_t p_glCompileShader;
+        public static void CompileShader(uint shader) => p_glCompileShader(shader);
+
+        /*[UnmanagedFunctionPointer(CallConv)]
+        private delegate void glGetShaderiv_t(uint shader, ShaderParameter pname, int* @params);
+        private static glGetShaderiv_t p_glGetShaderiv;
+        public static void glGetShaderiv(uint shader, ShaderParameter pname, int* @params)
+            => p_glGetShaderiv(shader, pname, @params);*/
+
+        /*[UnmanagedFunctionPointer(CallConv)]
+        private delegate void glGetShaderInfoLog_t(uint shader, uint maxLength, uint* length, byte* infoLog);
+        private static glGetShaderInfoLog_t p_glGetShaderInfoLog;
+        public static void glGetShaderInfoLog(uint shader, uint maxLength, uint* length, byte* infoLog)
+            => p_glGetShaderInfoLog(shader, maxLength, length, infoLog);*/
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glDeleteShader_t(uint shader);
+        private static glDeleteShader_t p_glDeleteShader;
+        public static void DeleteShader(uint shader) => p_glDeleteShader(shader);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glBlendColor_t(float red, float green, float blue, float alpha);
+        private static glBlendColor_t p_glBlendColor;
+        public static void BlendColor(float red, float green, float blue, float alpha)
+            => p_glBlendColor(red, green, blue, alpha);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate uint glCreateProgram_t();
+        private static glCreateProgram_t p_glCreateProgram;
+        public static uint CreateProgram() => p_glCreateProgram();
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glAttachShader_t(uint program, uint shader);
+        private static glAttachShader_t p_glAttachShader;
+        public static void AttachShader(uint program, uint shader) => p_glAttachShader(program, shader);
+
+        /*[UnmanagedFunctionPointer(CallConv)]
+        private delegate void glBindAttribLocation_t(uint program, uint index, byte* name);
+        private static glBindAttribLocation_t p_glBindAttribLocation;
+        public static void BindAttribLocation(uint program, uint index, byte* name)
+            => p_glBindAttribLocation(program, index, name);*/
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glLinkProgram_t(uint program);
+        private static glLinkProgram_t p_glLinkProgram;
+        public static void LinkProgram(uint program) => p_glLinkProgram(program);
+
+        /*[UnmanagedFunctionPointer(CallConv)]
+        private delegate void glGetProgramiv_t(uint program, GetProgramParameterName pname, int* @params);
+        private static glGetProgramiv_t p_glGetProgramiv;
+        public static void GetProgramiv(uint program, GetProgramParameterName pname, int* @params)
+            => p_glGetProgramiv(program, pname, @params);*/
+
+        /*[UnmanagedFunctionPointer(CallConv)]
+        private delegate void glGetProgramInfoLog_t(uint program, uint maxLength, uint* length, byte* infoLog);
+        private static glGetProgramInfoLog_t p_glGetProgramInfoLog;
+        public static void glGetProgramInfoLog(uint program, uint maxLength, uint* length, byte* infoLog)
+            => p_glGetProgramInfoLog(program, maxLength, length, infoLog);*/
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glDeleteProgram_t(uint program);
+        private static glDeleteProgram_t p_glDeleteProgram;
+        public static void DeleteProgram(uint program) => p_glDeleteProgram(program);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glUniform1i_t(int location, int v0);
+        private static glUniform1i_t p_glUniform1i;
+        public static void Uniform1i(int location, int v0) => p_glUniform1i(location, v0);
+
+        /*[UnmanagedFunctionPointer(CallConv)]
+        private delegate int glGetUniformLocation_t(uint program, byte* name);
+        private static glGetUniformLocation_t p_glGetUniformLocation;
+        public static int GetUniformLocation(uint program, byte* name) => p_glGetUniformLocation(program, name);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate int glGetAttribLocation_t(uint program, byte* name);
+        private static glGetAttribLocation_t p_glGetAttribLocation;
+        public static int GetAttribLocation(uint program, byte* name) => p_glGetAttribLocation(program, name);*/
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glUseProgram_t(uint program);
+        private static glUseProgram_t p_glUseProgram;
+        public static void UseProgram(uint program) => p_glUseProgram(program);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glBufferData_t(BufferTarget target, UIntPtr size, IntPtr data, BufferUsageHint usage);
+        private static glBufferData_t p_glBufferData;
+        public static void BufferData(BufferTarget target, UIntPtr size, IntPtr data, BufferUsageHint usage)
+            => p_glBufferData(target, size, data, usage);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glEnableVertexAttribArray_t(uint index);
+        private static glEnableVertexAttribArray_t p_glEnableVertexAttribArray;
+        public static void EnableVertexAttribArray(uint index) => p_glEnableVertexAttribArray(index);
+
+        [UnmanagedFunctionPointer(CallConv)]
+        private delegate void glDisableVertexAttribArray_t(uint index);
+        private static glDisableVertexAttribArray_t p_glDisableVertexAttribArray;
+        public static void DisableVertexAttribArray(uint index) => p_glDisableVertexAttribArray(index);
+
+        /*[UnmanagedFunctionPointer(CallConv)]
+        private delegate void VertexAttribPointer_t(
+            uint index,
+            int size,
+            VertexAttribPointerType type,
+            GLboolean normalized,
+            uint stride,
+            IntPtr pointer);
+        private static glVertexAttribPointer_t p_glVertexAttribPointer;
+        public static void glVertexAttribPointer(
+            uint index,
+            int size,
+            VertexAttribPointerType type,
+            GLboolean normalized,
+            uint stride,
+            IntPtr pointer) => p_glVertexAttribPointer(index, size, type, normalized, stride, pointer);*/
 
         internal static void LoadFunctions()
         {
             LoadFunction("glEnable", out glEnable_f);
+            LoadFunction("glDisable", out p_glDisable);
             LoadFunction("glBegin", out glBegin_f);   
             LoadFunction("glGenTextures", out glGenTextures_f);
             LoadFunction("glBindTexture", out glBindTexture_f);
@@ -2164,6 +2423,41 @@ namespace BLITTEngine.Foundation
             LoadFunction("glVertex2i", out glVertex2i_f);
             LoadFunction("glVertex2f", out glVertex2f_f);
             LoadFunction("glEnd", out glEnd_f);
+            LoadFunction("glGenVertexArrays", out p_glGenVertexArrays);
+            LoadFunction("glGetError", out p_glGetError);
+            LoadFunction("glBindVertexArray", out p_glBindVertexArray);
+            LoadFunction("glClearColor", out p_glClearColor);
+            LoadFunction("glClear", out p_glClear);
+            LoadFunction("glDrawElements", out p_glDrawElements);
+            LoadFunction("glDrawArrays", out p_glDrawArrays);
+            LoadFunction("glGenBuffers", out p_glGenBuffers);
+            LoadFunction("glDeleteBuffers", out p_glDeleteBuffers);
+            LoadFunction("glGenFramebuffers", out p_glGenFramebuffers);
+            LoadFunction("glActiveTexture", out p_glActiveTexture);
+            LoadFunction("glFramebufferTexture2D", out p_glFramebufferTexture2D);
+            LoadFunction("glBindFramebuffer", out p_glBindFramebuffer);
+            LoadFunction("glDeleteFramebuffers", out p_glDeleteFramebuffers);
+            LoadFunction("glGenTextures", out p_glGenTextures);
+            LoadFunction("glDeleteTextures", out p_glDeleteTextures);
+            LoadFunction("glCheckFramebufferStatus", out p_glCheckFramebufferStatus);
+            LoadFunction("glBindBuffer", out p_glBindBuffer);
+            LoadFunction("glBufferSubData", out p_glBufferSubData);
+            LoadFunction("glPixelStorei", out p_glPixelStorei);
+            LoadFunction("glCreateShader", out p_glCreateShader);
+            LoadFunction("glCompileShader", out p_glCompileShader);
+            LoadFunction("glDeleteShader", out p_glDeleteShader);
+            LoadFunction("glBlendColor", out p_glBlendColor);
+            LoadFunction("glCreateProgram", out p_glCreateProgram);
+            LoadFunction("glAttachShader", out p_glAttachShader);
+            LoadFunction("glLinkProgram", out p_glLinkProgram);
+            LoadFunction("glDeleteProgram", out p_glDeleteProgram);
+            LoadFunction("glUniform1i", out p_glUniform1i);
+            LoadFunction("glUseProgram", out p_glUseProgram);
+            LoadFunction("glBufferData", out p_glBufferData);
+            LoadFunction("glEnableVertexAttribArray", out p_glEnableVertexAttribArray);
+            LoadFunction("glDisableVertexAttribArray", out p_glDisableVertexAttribArray);
+            LoadFunction("glScissor", out p_glScissor);
+
         }
 
         private static void LoadFunction<T>(string name, out T field)

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BLITTEngine.Platform
 {
-    internal partial class SDLGamePlatform
+    internal partial class SDL_BLITTCore
     {
 
     }

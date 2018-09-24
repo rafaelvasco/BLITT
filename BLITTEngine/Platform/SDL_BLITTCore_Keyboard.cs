@@ -5,12 +5,12 @@ using BLITTEngine.Input.Keyboard;
 
 namespace BLITTEngine.Platform
 {
-    internal partial class SDLGamePlatform
+    internal partial class SDL_BLITTCore
     {
         private Dictionary<int, Key> key_map;
         private KeyboardState last_kb_state;
 
-        private void InitializeKeyboard()
+        private void InitKeyboard()
         {
             key_map = new Dictionary<int, Key>();
             

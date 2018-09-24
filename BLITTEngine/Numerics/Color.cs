@@ -1,9 +1,8 @@
 using System;
 using System.Runtime.Serialization;
 using System.Text;
-using BLITTEngine.Numerics;
 
-namespace BLITTEngine.Graphics
+namespace BLITTEngine.Numerics
 {
     public struct Color : IEquatable<Color>
     {

@@ -11,12 +11,12 @@ namespace BLITTEngine.Graphics
         public byte[] PixelData => data;
         internal IntPtr PixelDataPtr => data_ptr;
         
-        private int width;
-        private int height;
+        private readonly int width;
+        private readonly int height;
 
-        private byte[] data;
-        private GCHandle gc_handle;
-        private IntPtr data_ptr;
+        private readonly byte[] data;
+        private readonly GCHandle gc_handle;
+        private readonly IntPtr data_ptr;
         
 
         internal Pixmap(byte[] src_data, int width, int height)
@@ -68,6 +68,7 @@ namespace BLITTEngine.Graphics
 
             return pixels;
         }
+        
 
         public void Dispose()
         {

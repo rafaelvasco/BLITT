@@ -5,7 +5,7 @@ using BLITTEngine.Input.Mouse;
 
 namespace BLITTEngine.Platform
 {
-    internal partial class SDLGamePlatform
+    internal partial class SDL_BLITTCore
     {
         private MouseState mouse_state;
 

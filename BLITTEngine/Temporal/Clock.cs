@@ -3,61 +3,63 @@ using System.Diagnostics;
 
 namespace BLITTEngine.Temporal
 {
-    public static class GameClock
+    public class Clock
     {
-        public static double FrameRate
+        public double FrameRate
         {
             get => 1 / FrameDuration;
             set => FrameDuration = 1 / value;
         }
 
-        public static int FPS => fps;
+        public int FPS => fps;
         
-        internal static double TotalTime;
+        internal double TotalTime;
 
-        internal static double FrameDuration;
+        internal double FrameDuration;
         
-        public static float DeltaTime { get; private set; }
+        public float DeltaTime { get; private set; }
         
-        public static bool Paused { get; internal set; }
+        public bool Paused { get; internal set; }
         
-        private static Stopwatch timer;
+        private Stopwatch timer;
 
-        private static TimeSpan delta_timespan;
+        private TimeSpan delta_timespan;
 
-        private static TimeSpan total_timespan;
+        private TimeSpan total_timespan;
 
-        private static int fps;
+        private int fps;
 
-        private static float fps_timer;
+        private float fps_timer;
 
-
-        internal static void Start()
+        internal Clock()
         {
             TotalTime = 0;
             DeltaTime = 0;
             Paused = false;
-            timer = Stopwatch.StartNew();
-
-            bool b = Stopwatch.IsHighResolution;
+            
         }
 
-        internal static void Stop()
+        internal void Start()
+        {
+            timer = Stopwatch.StartNew();
+        }
+
+        internal void Stop()
         {
             timer.Stop();
         }
 
-        internal static void Resume()
+        internal void Resume()
         {
             Paused = false;
         }
         
-        internal static void Pause()
+        internal void Pause()
         {
             Paused = true;
         }
         
-        internal static void Tick()
+        internal void Tick()
         {
             if (!Paused)
             {

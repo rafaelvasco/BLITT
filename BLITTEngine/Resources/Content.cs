@@ -7,21 +7,21 @@ using BLITTEngine.Graphics;
 
 namespace BLITTEngine.Resources
 {
-    public static class Content
+    public class Content
     {
         private static string content_path;
 
         private static Dictionary<string, Resource> loaded_assets;
         private static List<Resource> runtime_assets;
 
-        internal static void Init(string path)
+        internal Content(string root_path)
         {
-            content_path = path;
+            content_path = root_path;
             loaded_assets = new Dictionary<string, Resource>();
             runtime_assets = new List<Resource>();
         }
         
-        internal static void UnloadAll()
+        internal void UnloadAll()
         {
             Console.WriteLine($"Destroying {loaded_assets.Count} loaded assets.");
             
@@ -41,7 +41,7 @@ namespace BLITTEngine.Resources
             runtime_assets.Clear();
         }
         
-        public static T Get<T>(string asset_id) where T : Resource
+        public T Get<T>(string asset_id) where T : Resource
         {
             if (loaded_assets.TryGetValue(asset_id, out var asset))
             {
@@ -69,12 +69,6 @@ namespace BLITTEngine.Resources
                         
                         var pixmap = new Pixmap(bitmap.PixelData, bitmap.Width, bitmap.Height);
 
-                        var texture = Game.Platform.Graphics.CreateTexture(
-                            pixmap, 
-                            wrap_mode: ImageWrapMode.None, 
-                            filter_mode: ImageFilterMode.Crisp, 
-                            is_render_target: false);
-                        
                         var image = (T)Activator.CreateInstance(type, pixmap, texture);
 
                         var key = Path.GetFileNameWithoutExtension(path);
@@ -95,14 +89,11 @@ namespace BLITTEngine.Resources
             return null;
         }
 
-        public static Image CreateImage(int width, int height, bool is_draw_target=false)
+        public Image CreateImage(int width, int height, bool is_draw_target=false)
         {
             var pixmap = new Pixmap(width, height);
 
-            var texture = Game.Platform.Graphics.CreateTexture(
-                width, height, 
-                wrap_mode: ImageWrapMode.None,
-                filter_mode: ImageFilterMode.Crisp, is_draw_target);
+           
 
             var image = new Image(pixmap, texture);
             
@@ -111,7 +102,7 @@ namespace BLITTEngine.Resources
             return image;
         }
         
-        internal static void Register(Resource resource) 
+        internal void Register(Resource resource) 
         {
             runtime_assets.Add(resource);
         }

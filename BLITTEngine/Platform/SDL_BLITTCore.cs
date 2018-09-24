@@ -1,16 +1,14 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using BLITTEngine.Foundation;
 
 namespace BLITTEngine.Platform
 {
-    internal partial class SDLGamePlatform : GamePlatform
+    internal partial class SDL_BLITTCore : BLITTCore
     {
         private IntPtr window;
-        private uint window_id;
-        private IntPtr native_handle;
         private bool is_fullscreen;
-        private SDLGpuGraphicsModule sdl_gpu_graphics;
 
         private int prev_win_w;
         private int prev_win_h;
@@ -18,13 +16,10 @@ namespace BLITTEngine.Platform
         private int screen_h;
 
         public override bool IsFullscreen => is_fullscreen;
-        public override IntPtr NativeDisplayHandle => native_handle;
-        public override GraphicsModule Graphics => sdl_gpu_graphics;
 
-
-        public override void Init(string title, int width, int height, bool fullscreen, GraphicsBackend graphics_backend)
+        public override void Init(string title, int width, int height, bool fullscreen)
         {
-            Console.WriteLine($"GamePlatform Starting: Graphics Backend: {graphics_backend}, Base Screen W: {width}, Base Screen W: {height}");
+            Console.WriteLine($"BLITT CORE STARTING: RESOLUTION: {width}, {height}");
 
             prev_win_w = width;
             prev_win_h = height;
@@ -40,26 +35,15 @@ namespace BLITTEngine.Platform
             Console.WriteLine($"Init sdl took: {sw.Elapsed.TotalSeconds}");
 
             var windowFlags =
-                SDL.Window.State.Hidden;
-
-            switch (graphics_backend)
-            {
-                case GraphicsBackend.OpenGL:
-                    
-                    windowFlags |= SDL.Window.State.OpenGL;
-                    break;
-                case GraphicsBackend.Vulkan:
-                    throw new Exception("Vulkan Graphics Backend is not implemented yet.");
-                    break;
-                case GraphicsBackend.Direct3D:
-                    throw new Exception("Direct3D12 Graphics Backend is not implemented yet.");
-                    break;
-            }
+                SDL.Window.State.Hidden | SDL.Window.State.OpenGL;
 
             if (fullscreen)
             {
                 windowFlags |= SDL.Window.State.FullscreenDesktop;
             }
+
+            SDL.GL.SetAttribute(SDL.GL.Attribute.ContextMajorVersion, 3);
+            SDL.GL.SetAttribute(SDL.GL.Attribute.ContextMinorVersion, 3);
             
             window = SDL.Window.Create(
                 title, 
@@ -89,46 +73,17 @@ namespace BLITTEngine.Platform
             }
             
             Console.WriteLine($"Create window took: {sw.Elapsed.TotalSeconds}");
-
-
-            window_id = SDL.Window.GetWindowID(window);
-            native_handle = GetWindowNativeHandle();
-            
-            sdl_gpu_graphics = new SDLGpuGraphicsModule(window_id, screen_w, screen_h);
-
-            Console.WriteLine($"Graphics took: {sw.Elapsed.TotalSeconds}");
             
             sw.Stop();
-
-            InitializeKeyboard();
+            
+            InitGraphics(screen_w, screen_h);
+            
+            InitKeyboard();
 
         }
         
-        private IntPtr GetWindowNativeHandle()
-        {
-            SDL.Window.SDL_SysWMinfo wmInfo = new SDL.Window.SDL_SysWMinfo();
-
-            SDL.Window.GetWindowWMInfo(window, ref wmInfo);
-
-            if(wmInfo.subsystem == SDL.Window.SysWMType.Windows)
-            {
-                return wmInfo.info.win.window;
-            }
-            else if (wmInfo.subsystem == SDL.Window.SysWMType.X11)
-            {
-                return wmInfo.info.x11.window;
-            }
-            else if (wmInfo.subsystem == SDL.Window.SysWMType.Cocoa)
-            {
-                return wmInfo.info.cocoa.window;
-            }
-
-            return window;
-        }
-
         public override void Quit()
         {
-            sdl_gpu_graphics.Terminate();
             SDL.Quit();
         }
 
@@ -171,7 +126,6 @@ namespace BLITTEngine.Platform
                         {
                             case SDL.Window.EventId.Shown:
 
-                                Graphics.Resize(screen_w, screen_h);
                                 break;
 
                             case SDL.Window.EventId.Close:
@@ -184,20 +138,12 @@ namespace BLITTEngine.Platform
 
                                 if (screen_w != w || screen_h != h)
                                 {
-                                    Console.WriteLine($"GRAPHICS RESIZE: {w}, {h}");
-                                    Graphics.Resize(w, h);
                                 }
 
                                 screen_w = w;
                                 screen_h = h;
                                 
                                 OnWinResized?.Invoke(ev.Window.Data1, ev.Window.Data2);
-                                break;
-                            case SDL.Window.EventId.Minimized:
-                                OnWinMinimized?.Invoke();
-                                break;
-                            case SDL.Window.EventId.Restored:
-                                OnWinRestored?.Invoke();
                                 break;
                            
                         }

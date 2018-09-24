@@ -14,9 +14,10 @@ namespace BLITTDemo
                 Fullscreen = false,
             };
 
-            Game.Init(props);
-
-            Game.Run(new Demo2());
+            using (var game = new BLITTGame(props))
+            {
+                game.Start();
+            }
         }
     }
 }

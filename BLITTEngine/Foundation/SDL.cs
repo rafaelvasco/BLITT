@@ -559,7 +559,7 @@ namespace BLITTEngine.Foundation
                 ContextMinorVersion,
                 ContextEgl,
                 ContextFlags,
-                ContextProfileMAsl,
+                ContextProfileMask,
                 ShareWithCurrentContext,
                 FramebufferSRGBCapable,
                 ContextReleaseBehaviour,

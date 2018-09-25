@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using BLITTEngine.Foundation;
-using BLITTEngine.Graphics;
 using BLITTEngine.Numerics;
 
 namespace BLITTEngine.Platform
 {
     internal class GL_BLITTGraphics : BLITTGraphics
     {
-        //private uint vertex_array;
-        //private uint vbo;
+       
 
-        private readonly Dictionary<uint, Texture> textures;
+        private Dictionary<uint, Texture> textures;
 
-        internal GL_BLITTGraphics(int width, int height)
+        public void Init(int width, int height)
         {
             textures = new Dictionary<uint, Texture>();
 
@@ -21,13 +19,8 @@ namespace BLITTEngine.Platform
             GL.Viewport(0, 0, width, height);
             GL.ClearColor(255, 0, 0, 255);
             GL.Clear(ClearBufferMask.ColorBufferBit);
-
-            /*GL.GenVertexArrays(1, out vertex_array);
-            GL.GenBuffers(1, out vbo);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, )*/
         }
+
 
         public void Clear(ref Color color)
         {
@@ -114,6 +107,6 @@ namespace BLITTEngine.Platform
         {
         }
 
-       
+        
     }
 }

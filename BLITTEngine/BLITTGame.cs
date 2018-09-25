@@ -68,7 +68,7 @@ namespace BLITTEngine
             Core.OnWinResized += OnScreenResized;
             
             Control = new Control(Core);
-            Content = new Content("Assets");
+            Content = new Content(Core, "Assets");
             Clock = new Clock();
             
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;

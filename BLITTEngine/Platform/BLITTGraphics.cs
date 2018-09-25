@@ -8,11 +8,11 @@ namespace BLITTEngine.Platform
 {
     internal class Texture
     {
-        public IntPtr Handle;
-        public int Width { get; private set; }
-        public int Height { get; private set; }
+        public uint Handle;
+        public int Width { get; }
+        public int Height { get; }
 
-        public Texture(IntPtr handle, int width, int height)
+        public Texture(uint handle, int width, int height)
         {
             this.Handle = handle;
             this.Width = width;
@@ -30,12 +30,10 @@ namespace BLITTEngine.Platform
     
     internal interface BLITTGraphics
     {
-        void Init(int width, int height);
-        Texture CreateTexture(Pixmap pixmap, bool repeat, bool smooth, bool is_render_target);
-        Texture CreateTexture(int width, int height, bool repeat, bool smooth, bool is_render_target);
-        void UpdateTexture(Texture texture, Pixmap pixmap);
+        Texture AddTexture(IntPtr data_ptr, int width, int height, bool repeat, bool smooth, bool is_render_target);
+        Texture AddTexture(int width, int height, bool repeat, bool smooth, bool is_render_target);
+        void Cleanup();
         void ConfigureTexture(Texture texture, bool repeat, bool smooth);
-        void DestroyTexture(Texture texture);
         void Clear(ref Color color);
         void Clear();
         void Resize(int w, int h);

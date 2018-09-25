@@ -8,6 +8,7 @@ namespace BLITTEngine.Platform
     {
         private IntPtr window;
         private bool is_fullscreen;
+        private GL_BLITTGraphics gl_graphics;
 
         private int prev_win_w;
         private int prev_win_h;
@@ -15,6 +16,7 @@ namespace BLITTEngine.Platform
         private int screen_h;
 
         public override bool IsFullscreen => is_fullscreen;
+        public override BLITTGraphics Graphics => gl_graphics;
 
         public override void Init(string title, int width, int height, bool fullscreen)
         {
@@ -75,7 +77,7 @@ namespace BLITTEngine.Platform
             
             sw.Stop();
             
-            InitGraphics(screen_w, screen_h);
+            gl_graphics = new GL_BLITTGraphics(width, height);
             
             InitKeyboard();
 

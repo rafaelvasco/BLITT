@@ -13,6 +13,7 @@ namespace BLITTEngine.Platform
         public Action<int, int> OnWinResized;
 
         public abstract bool IsFullscreen { get; }
+        public abstract BLITTGraphics Graphics { get; }
 
         
         /* CORE */
@@ -29,12 +30,5 @@ namespace BLITTEngine.Platform
         /* INPUT */
         public abstract ref KeyboardState GetKeyboardState();
         public abstract ref MouseState GetMouseState();
-        
-        /* GRAPHICS */
-        
-        public abstract Pixmap RenderTarget { get; }
-        
-        public abstract void SubmitRender(ref DrawProps props);
-
     }
 }

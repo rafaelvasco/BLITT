@@ -3,19 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using BLITTEngine.Foundation;
-using BLITTEngine.Graphics;
+using BLITTEngine.Platform;
 
 namespace BLITTEngine.Resources
 {
     public class Content
     {
         private static string content_path;
+        private readonly BLITTCore core;
 
         private static Dictionary<string, Resource> loaded_assets;
         private static List<Resource> runtime_assets;
 
-        internal Content(string root_path)
+        internal Content(BLITTCore core, string root_path)
         {
+            this.core = core;
             content_path = root_path;
             loaded_assets = new Dictionary<string, Resource>();
             runtime_assets = new List<Resource>();
@@ -50,7 +52,7 @@ namespace BLITTEngine.Resources
 
             var type = typeof(T);
 
-            if (type == typeof(Image))
+            if (type == typeof(Pixmap))
             {
                 var id = new StringBuilder(asset_id);
                 
@@ -67,9 +69,9 @@ namespace BLITTEngine.Resources
                     {
                         var bitmap = ImageLoader.LoadFile(stream);
                         
-                        var pixmap = new Pixmap(bitmap.PixelData, bitmap.Width, bitmap.Height);
-
-                        var image = (T)Activator.CreateInstance(type, pixmap, texture);
+                        var texture = core.Graphics.AddTexture(bitmap.)
+                        
+                        var image = (T)Activator.CreateInstance(bitmap.PixelData, bitmap.Width, bitmap.Height);
 
                         var key = Path.GetFileNameWithoutExtension(path);
                         
@@ -89,13 +91,13 @@ namespace BLITTEngine.Resources
             return null;
         }
 
-        public Image CreateImage(int width, int height, bool is_draw_target=false)
+        public Pixmap CreateImage(int width, int height, bool is_draw_target=false)
         {
             var pixmap = new Pixmap(width, height);
 
            
 
-            var image = new Image(pixmap, texture);
+            var image = new Pixmap(pixmap, texture);
             
             Register(image);
             

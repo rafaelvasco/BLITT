@@ -28,16 +28,18 @@ namespace BLITTEngine.Platform
         public Vector2 Tex;
     }
 
-    internal class VertexBuffer : IDisposable
+    internal class DrawBuffer : IDisposable
     {
         public IntPtr BufferPtr => buffer_ptr;
         public Vertex2D[] Data => data;
 
+
         private IntPtr buffer_ptr;
         private GCHandle gc_handle;
         private Vertex2D[] data;
+        private short[] indices;
 
-        public VertexBuffer(int length)
+        public DrawBuffer(int length)
         {
             data = new Vertex2D[length];
             gc_handle = GCHandle.Alloc(data, GCHandleType.Pinned);
@@ -51,8 +53,6 @@ namespace BLITTEngine.Platform
         }
     }
 
-
-    
     internal interface BLITTGraphics
     {
         void Init(int width, int height);
@@ -64,7 +64,7 @@ namespace BLITTEngine.Platform
         void Clear();
         void Resize(int w, int h);
         void SetTexture(Texture texture);
-        void SubmitVertices(Buffer buffer,)
+        void SubmitBuffer(DrawBuffer buffer);
         void Present();
     }
 }

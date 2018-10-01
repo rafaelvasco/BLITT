@@ -156,7 +156,7 @@ namespace BLITTEngine
 
                 CurrentScene.Draw();
 
-                GraphicsDevice.Submit();
+                GraphicsDevice.End();
             }
             
 #if DEBUG

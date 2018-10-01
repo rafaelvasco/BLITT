@@ -43,16 +43,32 @@ namespace BLITTEngine.Core.Graphics
             this.shaders_catalog = new Dictionary<string, ShaderProgram>();
             
             Bgfx.SetPlatformData(new PlatformData() { WindowHandle = surface_handle});
-            Bgfx.Init(new InitSettings()
+
+            var init_settings = new InitSettings()
             {
                 Backend = RendererBackend.Default,
                 Adapter = Adapter.Default,
                 Debug = false,
-                Width = backbuffer_width, 
+                Width = backbuffer_width,
                 Height = backbuffer_height,
                 Profiling = false,
                 ResetFlags = ResetFlags.Vsync
-            });
+            };
+
+#if DEBUG
+            init_settings.Debug = true;
+            init_settings.Profiling = true;
+#endif
+
+            Bgfx.Init(init_settings);
+            Bgfx.Reset(backbuffer_width, backbuffer_height, ResetFlags.Vsync);
+            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
+            Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717FF);
+            Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
+            Bgfx.SetRenderState(
+
+                RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha)
+            );
 
             Info = new GraphicsInfo();
             
@@ -64,35 +80,32 @@ namespace BLITTEngine.Core.Graphics
             Console.WriteLine($"GRAPHICS DEVICE : {Info.RendererBackend}");
             
             LoadEmbededShaders();
-
-            InitializeState();
+            InitRenderMatrices();
+            InitializeRenderBuffers();
         }
 
-        private unsafe void InitializeState()
+        private unsafe void InitRenderMatrices()
         {
-            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
-            Bgfx.SetRenderState(
-                
-                RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha)
-            );
-            
             transform_matrix = Matrix4x4.Identity;
 
             projection_matrix = Matrix4x4.CreateOrthographicOffCenter(
-                
+
                 left: 0.0f,
                 right: backbuffer_width,
                 bottom: backbuffer_height,
                 top: 0.0f,
-                0.0f, 
+                0.0f,
                 1.0f
             );
-            
+
             var viewMatrix = transform_matrix;
             var projMatrix = projection_matrix;
-            
+
             Bgfx.SetViewTransform(0, &viewMatrix.M11, &projMatrix.M11);
-            
+        }
+
+        private unsafe void InitializeRenderBuffers()
+        {
             quad_vertices = new VertexPCT[MAX_QUADS*4];
             
             quad_indices = new ushort[MAX_QUADS*6];
@@ -178,7 +191,7 @@ namespace BLITTEngine.Core.Graphics
         {
             string shaders_path;
 
-            RendererBackend renderer_backend = Game.Instance.GraphicsDevice.Info.RendererBackend;
+            RendererBackend renderer_backend = Info.RendererBackend;
 
             switch (renderer_backend)
             {
@@ -213,8 +226,8 @@ namespace BLITTEngine.Core.Graphics
 
             unchecked
             {
-                vertex_idx += 1;
-                quad_count += 1;    
+                vertex_idx++;
+                quad_count++;
             }
         }
 
@@ -225,13 +238,19 @@ namespace BLITTEngine.Core.Graphics
 
         public void Begin()
         {
-           Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717ff);
+            
+            Bgfx.Touch(0);
+
+            Bgfx.DebugTextClear();
+
+            Bgfx.DebugTextWrite(2, 2, DebugColor.White, DebugColor.Cyan, "HELLO WORLD!");
         }
 
-        public unsafe void Submit()
+        public unsafe void End()
         {
             if (vertex_idx == 0)
             {
+                Bgfx.Frame();
                 return;
             }
             
@@ -249,6 +268,8 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.Submit(0, default_shader.Program);
 
+            Bgfx.Frame();
+
         }
 
         public void Dispose()
@@ -261,6 +282,8 @@ namespace BLITTEngine.Core.Graphics
             shaders_catalog.Clear();
 
             index_buffer.Dispose();
+
+            Bgfx.Shutdown();
             
         }
     }

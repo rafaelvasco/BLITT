@@ -1,5 +1,4 @@
 using System;
-using BLITTEngine.Graphics;
 
 namespace BLITTEngine.Numerics
 {

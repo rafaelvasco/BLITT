@@ -1,19 +1,17 @@
 using System;
-using BLITTEngine.Graphics;
-using BLITTEngine.Input;
+using BLITTEngine.Core.Graphics;
 using BLITTEngine.Input.Keyboard;
 using BLITTEngine.Input.Mouse;
 
-namespace BLITTEngine.Platform
+namespace BLITTEngine.Core.Platform
 {
-    internal abstract class BLITTCore
+    internal abstract class GamePlatform
     {
         public Action OnQuit;
         public Action<int> OnMouseScroll;
         public Action<int, int> OnWinResized;
 
         public abstract bool IsFullscreen { get; }
-        public abstract BLITTGraphics Graphics { get; }
 
         
         /* CORE */
@@ -26,6 +24,7 @@ namespace BLITTEngine.Platform
         public abstract void ShowCursor(bool show);
         public abstract void ShowScreen(bool show);
         public abstract void SetFullscreen(bool enabled);
+        public abstract IntPtr GetRenderSurfaceHandle();
         
         /* INPUT */
         public abstract ref KeyboardState GetKeyboardState();

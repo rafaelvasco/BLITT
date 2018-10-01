@@ -997,7 +997,7 @@ namespace BLITTEngine.Foundation
             }
             catch (Exception e)
             {
-               BLITTGame.Instance.ThrowError("Error saving Pixmap to file: {0}", e.Message);
+               Game.Instance.ThrowError("Error saving Pixmap to file: {0}", e.Message);
             }
         }
 

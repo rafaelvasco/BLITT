@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using BLITTEngine.Input;
 using BLITTEngine.Input.Keyboard;
 
-namespace BLITTEngine.Platform
+namespace BLITTEngine.Core.Platform
 {
-    internal partial class SDL_BLITTCore
+    internal partial class SDLGamePlatform
     {
         private Dictionary<int, Key> key_map;
         private KeyboardState last_kb_state;

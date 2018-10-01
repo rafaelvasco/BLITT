@@ -1,8 +1,9 @@
 ﻿using System;
+using BLITTEngine.Core;
+using BLITTEngine.Core.Platform;
 using BLITTEngine.Input.Keyboard;
 using BLITTEngine.Input.Mouse;
 using BLITTEngine.Numerics;
-using BLITTEngine.Platform;
 
 namespace BLITTEngine.Input
 {
@@ -10,7 +11,7 @@ namespace BLITTEngine.Input
     {
         public Action<int> OnMouseWheel;
 
-        private BLITTCore core;
+        private GamePlatform core;
 
         private KeyboardState kb_current_state;
         private KeyboardState kb_prev_state;
@@ -18,7 +19,7 @@ namespace BLITTEngine.Input
         private MouseState ms_current_state;
         private MouseState ms_prev_state;
 
-        internal Control(BLITTCore core)
+        internal Control(GamePlatform core)
         {
             this.core = core;
             core.OnMouseScroll += OnPlatformMouseScroll;

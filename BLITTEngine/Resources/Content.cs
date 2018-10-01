@@ -2,22 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using BLITTEngine.Core.Graphics;
 using BLITTEngine.Foundation;
-using BLITTEngine.Platform;
 
 namespace BLITTEngine.Resources
 {
     public class Content
     {
         private static string content_path;
-        private readonly BLITTCore core;
 
         private static Dictionary<string, Resource> loaded_assets;
         private static List<Resource> runtime_assets;
 
-        internal Content(BLITTCore core, string root_path)
+        internal Content(string root_path)
         {
-            this.core = core;
             content_path = root_path;
             loaded_assets = new Dictionary<string, Resource>();
             runtime_assets = new List<Resource>();
@@ -52,7 +50,7 @@ namespace BLITTEngine.Resources
 
             var type = typeof(T);
 
-            if (type == typeof(Pixmap))
+            if (type == typeof(Texture2D))
             {
                 var id = new StringBuilder(asset_id);
                 
@@ -69,15 +67,13 @@ namespace BLITTEngine.Resources
                     {
                         var bitmap = ImageLoader.LoadFile(stream);
                         
-                        var texture = core.Graphics.AddTexture(bitmap.)
-                        
-                        var image = (T)Activator.CreateInstance(bitmap.PixelData, bitmap.Width, bitmap.Height);
+                        var texture = (T)Activator.CreateInstance(type, bitmap.PixelData, bitmap.Width, bitmap.Height);
 
                         var key = Path.GetFileNameWithoutExtension(path);
                         
-                        loaded_assets.Add(key, image);
+                        loaded_assets.Add(key, texture);
 
-                        return image;
+                        return texture;
 
                     }
                 }
@@ -91,22 +87,11 @@ namespace BLITTEngine.Resources
             return null;
         }
 
-        public Pixmap CreateImage(int width, int height, bool is_draw_target=false)
-        {
-            var pixmap = new Pixmap(width, height);
-
-           
-
-            var image = new Pixmap(pixmap, texture);
-            
-            Register(image);
-            
-            return image;
-        }
-        
         internal void Register(Resource resource) 
         {
             runtime_assets.Add(resource);
         }
+
+        
     }
 }

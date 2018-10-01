@@ -1,11 +1,10 @@
 using System.Runtime.CompilerServices;
 using BLITTEngine.Foundation;
-using BLITTEngine.Input;
 using BLITTEngine.Input.Mouse;
 
-namespace BLITTEngine.Platform
+namespace BLITTEngine.Core.Platform
 {
-    internal partial class SDL_BLITTCore
+    internal partial class SDLGamePlatform
     {
         private MouseState mouse_state;
 

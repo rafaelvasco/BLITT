@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
@@ -19,9 +19,13 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <TargetPath>SDL2.dll</TargetPath>
         </ContentWithTargetPath>
-        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\libSDL2_gpu.dll">
+        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\bgfx.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <TargetPath>libSDL2_gpu.dll</TargetPath>
+            <TargetPath>bgfx.dll</TargetPath>
+        </ContentWithTargetPath>
+        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\bgfx_debug.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <TargetPath>bgfx_debug.dll</TargetPath>
         </ContentWithTargetPath>
     </ItemGroup>
     <ItemGroup Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">
@@ -30,13 +34,27 @@
             <TargetPath>libsdl2.dyllib</TargetPath>
         </ContentWithTargetPath>
     </ItemGroup>
+    <ItemGroup>
+      <None Remove="EngineResources\Shaders\bin\glsl\fs_base_2d.bin" />
+      <None Remove="EngineResources\Shaders\bin\glsl\vs_base_2d.bin" />
+      <None Remove="EngineResources\Shaders\bin\hlsl\fs_base_2d.bin" />
+      <None Remove="EngineResources\Shaders\bin\hlsl\vs_base_2d.bin" />
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Include="EngineResources\Shaders\bin\glsl\fs_base_2d.bin" />
+      <EmbeddedResource Include="EngineResources\Shaders\bin\glsl\vs_base_2d.bin" />
+      <EmbeddedResource Include="EngineResources\Shaders\bin\hlsl\fs_base_2d.bin" />
+      <EmbeddedResource Include="EngineResources\Shaders\bin\hlsl\vs_base_2d.bin" />
+    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+      <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.1" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Input\GamePad\" />
+      <Folder Include="Tools" />
     </ItemGroup>
 
 </Project>

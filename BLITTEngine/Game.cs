@@ -1,9 +1,10 @@
 using System;
 using System.Runtime;
-using BLITTEngine.Graphics;
+using BLITTEngine.Core;
+using BLITTEngine.Core.Graphics;
+using BLITTEngine.Core.Platform;
 using BLITTEngine.Input;
 using BLITTEngine.Numerics;
-using BLITTEngine.Platform;
 using BLITTEngine.Resources;
 using BLITTEngine.Temporal;
 
@@ -17,14 +18,17 @@ namespace BLITTEngine
         public bool Fullscreen;
     }
 
-    public class BLITTGame : IDisposable
+    public class Game : IDisposable
     {
-        internal readonly BLITTCore Core;
+        public static Game Instance { get; private set; }
         
-        public Control Control { get; }
-        public Content Content { get; } 
-        public Clock Clock { get; }
-        public static BLITTGame Instance { get; private set; }
+        internal readonly GamePlatform Platform;
+
+        public readonly Control Control;
+        public readonly Content Content;
+        public readonly Clock Clock; 
+        public readonly GraphicsDevice GraphicsDevice;
+        public Scene CurrentScene { get; private set; }
         
         public bool Running { get; internal set; }
 
@@ -36,7 +40,7 @@ namespace BLITTEngine
                 if (full_screen != value)
                 {
                     full_screen = value;
-                    Core.SetFullscreen(full_screen);
+                    Platform.SetFullscreen(full_screen);
                 }
             }
         }
@@ -47,7 +51,7 @@ namespace BLITTEngine
         
         /* ========================================================================================================== */
 
-        public BLITTGame(GameProps props = default)
+        public Game(GameProps props = default)
         {
             Instance = this;
             
@@ -60,15 +64,17 @@ namespace BLITTEngine
             
             Console.WriteLine("INITIALIZING CORE");
 
-            Core = new SDL_BLITTCore();
+            Platform = new SDLGamePlatform();
             
-            Core.Init(props.Title, props.CanvasWidth, props.CanvasHeight, fullscreen: props.Fullscreen);
+            Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, fullscreen: props.Fullscreen);
             
-            Core.OnQuit += OnPlatformQuit;
-            Core.OnWinResized += OnScreenResized;
+            GraphicsDevice = new GraphicsDevice(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight);
             
-            Control = new Control(Core);
-            Content = new Content(Core, "Assets");
+            Platform.OnQuit += OnPlatformQuit;
+            Platform.OnWinResized += OnScreenResized;
+            
+            Control = new Control(Platform);
+            Content = new Content("Assets");
             Clock = new Clock();
             
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
@@ -76,17 +82,23 @@ namespace BLITTEngine
         
         public void Dispose()
         {
+            Content.UnloadAll();
+            GraphicsDevice.Dispose();
+            Platform.Quit();
         }
 
-        public void Start()
+        public void Start(Scene scene = null)
         {
             if (Running)
             {
                 return;
             }
+
+            CurrentScene = scene ?? new EmptyScene();
+            CurrentScene.Init();
             
             Running = true;
-            Core.ShowScreen(true);
+            Platform.ShowScreen(true);
             
             Tick();
         }
@@ -98,7 +110,7 @@ namespace BLITTEngine
 
         public void ShowCursor(bool show)
         {
-            Core.ShowCursor(show);
+            Platform.ShowCursor(show);
         }
 
         public void ToggleFullscreen()
@@ -129,7 +141,7 @@ namespace BLITTEngine
 
             while (Running)
             {
-                Core.PollEvents();
+                Platform.PollEvents();
 
                 Clock.Tick();
                 Control.Update();
@@ -137,11 +149,15 @@ namespace BLITTEngine
                 while (Clock.TotalTime >= Clock.FrameDuration)
                 {
                     Clock.TotalTime -= Clock.FrameDuration;
+                    CurrentScene.Update(Clock.DeltaTime);
                 }
+                
+                GraphicsDevice.Begin();
+
+                CurrentScene.Draw();
+
+                GraphicsDevice.Submit();
             }
-            
-            Content.UnloadAll();
-            Core.Quit();
             
 #if DEBUG
             
@@ -154,8 +170,6 @@ namespace BLITTEngine
             );
 #endif
         }
-
-
         
     }
 }

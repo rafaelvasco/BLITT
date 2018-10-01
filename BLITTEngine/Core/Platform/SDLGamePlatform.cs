@@ -1,14 +1,14 @@
 using System;
 using System.Diagnostics;
+using BLITTEngine.Core.Graphics;
 using BLITTEngine.Foundation;
 
-namespace BLITTEngine.Platform
+namespace BLITTEngine.Core.Platform
 {
-    internal partial class SDL_BLITTCore : BLITTCore
+    internal partial class SDLGamePlatform : GamePlatform
     {
         private IntPtr window;
         private bool is_fullscreen;
-        private GL_BLITTGraphics gl_graphics;
 
         private int prev_win_w;
         private int prev_win_h;
@@ -16,7 +16,6 @@ namespace BLITTEngine.Platform
         private int screen_h;
 
         public override bool IsFullscreen => is_fullscreen;
-        public override BLITTGraphics Graphics => gl_graphics;
 
         public override void Init(string title, int width, int height, bool fullscreen)
         {
@@ -76,13 +75,33 @@ namespace BLITTEngine.Platform
             Console.WriteLine($"Create window took: {sw.Elapsed.TotalSeconds}");
             
             sw.Stop();
-            
-            gl_graphics = new GL_BLITTGraphics(width, height);
-            
+
             InitKeyboard();
 
         }
-        
+
+        public override IntPtr GetRenderSurfaceHandle()
+        {
+            var info = new SDL.Window.SDL_SysWMinfo();
+
+            SDL.Window.GetWindowWMInfo(window, ref info);
+
+            switch (CurrentPlatform.OS)
+            {
+                case OS.Windows:
+                    return info.info.win.window;
+                case OS.Linux:
+                    return info.info.x11.window;
+                case OS.MacOSX:
+                    return info.info.cocoa.window;
+            }
+            
+            throw new Exception(
+                "SDLGamePlatform [GetRenderSurfaceHandle]: " +
+                "Invalid OS, could not retrive native renderer surface handle.");
+            
+        }
+
         public override void Quit()
         {
             SDL.Quit();

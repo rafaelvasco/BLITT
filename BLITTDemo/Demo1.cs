@@ -21,7 +21,7 @@ namespace BLITTDemo
 
         public override void Draw(Canvas canvas)
         {
-            canvas.Draw(texture, 100, 100);
+            canvas.Draw(texture, 0, 0);
 
 
         }

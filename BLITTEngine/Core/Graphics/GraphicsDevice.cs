@@ -20,7 +20,7 @@ namespace BLITTEngine.Core.Graphics
 
         public GraphicsInfo Info { get; }
 
-        private const int MAX_QUADS = 4096;
+        private const int MAX_QUADS = 10;
 
         private ShaderProgram default_shader;
         private Dictionary<string, ShaderProgram> shaders_catalog;
@@ -64,9 +64,12 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
             Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717FF);
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
+            
             Bgfx.SetRenderState(
 
-                RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha)
+                RenderState.BlendNormal
+                | RenderState.CullClockwise
+                | RenderState.DepthTestLess
             );
 
             Info = new GraphicsInfo();
@@ -134,8 +137,6 @@ namespace BLITTEngine.Core.Graphics
 
             fixed (VertexPCT* vertex_ptr = quad_vertices)
             {
-
-
                 *(vertex_ptr+vidx++) = new VertexPCT(x, y, 0f, 0f, 0xffffffff);
                 *(vertex_ptr+vidx++) = new VertexPCT(x+w, y, 1f, 0f, 0xffffffff);
                 *(vertex_ptr+vidx++) = new VertexPCT(x+w, y+h, 1f, 1f, 0xffffffff);
@@ -190,6 +191,7 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetVertexBuffer(0, vertex_buffer, 0, vertex_idx);
             Bgfx.SetIndexBuffer(index_buffer, 0, quad_count*6);
+            
 
             Bgfx.Submit(0, default_shader.Program);
 

@@ -17,6 +17,7 @@ namespace BLITTEngine.Core.Graphics
         {
             data = new VertexPCT[length];
             gc_handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            buffer_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(data, 0);
         }
 
         public void Dispose()

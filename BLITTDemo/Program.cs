@@ -2,7 +2,7 @@
 
 namespace BLITTDemo
 {
-    static class Program
+    internal static class Program
     {
         private static void Main()
         {
@@ -16,7 +16,7 @@ namespace BLITTDemo
 
             using (var game = new Game(props))
             {
-                game.Start();
+                game.Start(new Demo1());
             }
         }
     }

@@ -1,9 +1,11 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
 
 namespace BLITTEngine.Numerics
 {
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Color : IEquatable<Color>
     {
         static Color()
@@ -158,10 +160,10 @@ namespace BLITTEngine.Numerics
             set => packed_value = value;
         }
 
-        public uint RGBA => ((uint) R << 24) | ((uint) G << 16) | ((uint) B << 8) | (A);
+        public uint RGBA => ((uint) R << 24) | ((uint) G << 16) | ((uint) B << 8) | A;
 
         public int RGBAI => (int)RGBA;
-        
+
         private uint packed_value;
 
         public Color(uint packedValue)
@@ -179,7 +181,7 @@ namespace BLITTEngine.Numerics
                 var clampedG = (uint) Calc.Clamp(g, 0, 255);
                 var clampedB = (uint) Calc.Clamp(b, 0, 255);
 
-                packed_value |= (clampedB << 16) | (clampedG << 8) | (clampedR);
+                packed_value |= (clampedB << 16) | (clampedG << 8) | clampedR;
             }
             else
             {
@@ -196,7 +198,7 @@ namespace BLITTEngine.Numerics
                 var clampedB = (uint) Calc.Clamp(b, 0, 255);
                 var clampedA = (uint) Calc.Clamp(alpha, 0, 255);
 
-                packed_value = (clampedA << 24) | (clampedB << 16) | (clampedG << 8) | (clampedR);
+                packed_value = (clampedA << 24) | (clampedB << 16) | (clampedG << 8) | clampedR;
             }
             else
             {
@@ -206,7 +208,7 @@ namespace BLITTEngine.Numerics
 
         public Color(byte r, byte g, byte b, byte alpha)
         {
-            packed_value = ((uint) alpha << 24) | ((uint) b << 16) | ((uint) g << 8) | (r);
+            packed_value = ((uint) alpha << 24) | ((uint) b << 16) | ((uint) g << 8) | r;
         }
 
         public Color(float r, float g, float b)
@@ -219,22 +221,18 @@ namespace BLITTEngine.Numerics
         {
         }
 
-        [DataMember]
         public byte B
         {
             get
             {
                 unchecked
                 {
-                    return (byte) (this.packed_value >> 16);
+                    return (byte) (packed_value >> 16);
                 }
             }
-            set => this.packed_value = (this.packed_value & 0xff00ffff) | ((uint) value << 16);
+            set => packed_value = (packed_value & 0xff00ffff) | ((uint) value << 16);
         }
 
-        /// <summary>
-        /// Gets or sets the green component.
-        /// </summary>
         [DataMember]
         public byte G
         {
@@ -242,31 +240,24 @@ namespace BLITTEngine.Numerics
             {
                 unchecked
                 {
-                    return (byte) (this.packed_value >> 8);
+                    return (byte) (packed_value >> 8);
                 }
             }
-            set => this.packed_value = (this.packed_value & 0xffff00ff) | ((uint) value << 8);
+            set => packed_value = (packed_value & 0xffff00ff) | ((uint) value << 8);
         }
 
-        /// <summary>
-        /// Gets or sets the red component.
-        /// </summary>
-        [DataMember]
         public byte R
         {
             get
             {
                 unchecked
                 {
-                    return (byte) this.packed_value;
+                    return (byte)packed_value;
                 }
             }
-            set => this.packed_value = (this.packed_value & 0xffffff00) | value;
+            set => packed_value = (packed_value & 0xffffff00) | value;
         }
 
-        /// <summary>
-        /// Gets or sets the alpha component.
-        /// </summary>
         [DataMember]
         public byte A
         {
@@ -274,35 +265,35 @@ namespace BLITTEngine.Numerics
             {
                 unchecked
                 {
-                    return (byte) (this.packed_value >> 24);
+                    return (byte) (packed_value >> 24);
                 }
             }
-            set => this.packed_value = (this.packed_value & 0x00ffffff) | ((uint) value << 24);
+            set => packed_value = (packed_value & 0x00ffffff) | ((uint) value << 24);
         }
 
         public static bool operator ==(Color a, Color b)
         {
-            return (a.packed_value == b.packed_value);
+            return a.packed_value == b.packed_value;
         }
 
         public static bool operator !=(Color a, Color b)
         {
-            return (a.packed_value != b.packed_value);
+            return a.packed_value != b.packed_value;
         }
 
         public bool Equals(Color other)
         {
-            return this.packed_value == other.packed_value;
+            return packed_value == other.packed_value;
         }
 
         public override bool Equals(object obj)
         {
-            return ((obj is Color color) && this.Equals(color));
+            return (obj is Color color) && this.Equals(color);
         }
 
         public override int GetHashCode()
         {
-            return this.packed_value.GetHashCode();
+            return packed_value.GetHashCode();
         }
 
         public static Color Lerp(Color value1, Color value2, float amount)
@@ -356,17 +347,17 @@ namespace BLITTEngine.Numerics
             b = B;
             a = A;
         }
-        
+
         public static implicit operator uint(Color val)
         {
             return val.packed_value;
         }
-        
+
         public static implicit operator int(Color val)
         {
             return (int) val.packed_value;
         }
-        
+
         public static implicit operator Color(uint val)
         {
             return new Color(

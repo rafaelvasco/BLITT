@@ -10,14 +10,14 @@ namespace BLITTEngine.Core.Graphics
         Vector,
         Matrix
     }
-    
+
     public class ShaderParameter
     {
         private Vector4 value_vector;
         private Matrix4x4 value_matrix;
 
         public ShaderParameterType Type { get; private set; }
-        
+
 
         public string Name { get; }
 
@@ -36,9 +36,9 @@ namespace BLITTEngine.Core.Graphics
                 case ShaderParameterType.Matrix:
                     value_matrix = Matrix4x4.Identity;
                     break;
-                    
+
             }
-                
+
             ChangeUniform(type);
         }
 
@@ -66,7 +66,7 @@ namespace BLITTEngine.Core.Graphics
 
         public void SetValue(float value)
         {
-            
+
             value_vector.X = value;
         }
 
@@ -103,7 +103,7 @@ namespace BLITTEngine.Core.Graphics
 
         public void SetValue(float value1, float value2, float value3, float value4)
         {
-         
+
             value_vector.X = value1;
             value_vector.Y = value2;
             value_vector.Z = value3;
@@ -134,15 +134,15 @@ namespace BLITTEngine.Core.Graphics
             }
         }
     }
-    
+
     public class ShaderProgram
     {
-        internal Program Program { get; private set; }
-        
-        private readonly Dictionary<string, int> shader_param_map; 
+        internal Program Program { get; }
+
+        private readonly Dictionary<string, int> shader_param_map;
         private readonly List<ShaderParameter> shader_params;
-        private readonly Dictionary<string, Uniform> texture_uniforms; 
-        
+        private readonly Dictionary<string, Uniform> texture_uniforms;
+
         internal ShaderProgram(Shader vertexShader, Shader fragShader)
         {
             shader_param_map = new Dictionary<string, int>();
@@ -150,10 +150,10 @@ namespace BLITTEngine.Core.Graphics
 
             texture_uniforms = new Dictionary<string, Uniform>();
 
-            Program = new Program(vertexShader, fragShader, true);
+            Program = new Program(vertexShader, fragShader, destroyShaders: true);
 
         }
-        
+
         public void AddTextureUniform(string name)
         {
             if (texture_uniforms.ContainsKey(name))
@@ -189,7 +189,7 @@ namespace BLITTEngine.Core.Graphics
                 shader_param_map.Add(name, shader_params.Count);
                 shader_params.Add(param);
             }
-            
+
         }
 
         public void SetParameter(string name, Vector2 value)
@@ -281,6 +281,7 @@ namespace BLITTEngine.Core.Graphics
                 textureUniform.Value.Dispose();
             }
 
+            Program.Dispose();
         }
 
     }

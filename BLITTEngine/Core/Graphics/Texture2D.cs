@@ -9,9 +9,9 @@ namespace BLITTEngine.Core.Graphics
         public int Width => InternalTexture.Width;
 
         public int Height => InternalTexture.Height;
-        
+
         internal readonly Texture InternalTexture;
-        
+
         internal TextureFlags Flags { get; private set; }
 
         public bool Tiled
@@ -22,7 +22,7 @@ namespace BLITTEngine.Core.Graphics
                 if (tiled != value)
                 {
                     tiled = value;
-                    
+
                     UpdateTextureFlags();
                 }
             }
@@ -36,24 +36,23 @@ namespace BLITTEngine.Core.Graphics
                 if (smooth != value)
                 {
                     smooth = value;
-                    
+
                     UpdateTextureFlags();
                 }
             }
         }
-        
+
         private bool tiled;
 
         private bool smooth;
 
 
-        internal Texture2D(byte[] pixel_data, int width, int height)
+        public Texture2D(byte[] pixel_data, int width, int height)
         {
-            this.Smooth = false;
-            this.Tiled = false;
-            
+            UpdateTextureFlags();
+
             MemoryBlock image_memory = MemoryBlock.FromArray(pixel_data);
-            
+
             InternalTexture = Texture.Create2D(
                width: width,
                 height: height,
@@ -63,7 +62,7 @@ namespace BLITTEngine.Core.Graphics
                 flags: Flags,
                 memory: image_memory
             );
-            
+
         }
 
         private void UpdateTextureFlags()
@@ -88,14 +87,14 @@ namespace BLITTEngine.Core.Graphics
 
             if (InternalTexture != null)
             {
-                InternalTexture.OverrideInternal(Width, Height, InternalTexture.MipLevels, InternalTexture.Format, Flags);    
+                InternalTexture.OverrideInternal(Width, Height, InternalTexture.MipLevels, InternalTexture.Format, Flags);
             }
         }
 
         internal override void Dispose()
         {
             InternalTexture?.Dispose();
-            
+
             GC.SuppressFinalize(this);
         }
     }

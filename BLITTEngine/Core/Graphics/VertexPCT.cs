@@ -20,7 +20,9 @@ namespace BLITTEngine.Core.Graphics
             this.V = v;
             this.Abgr = abgr;
         }
-        
+
+        public static int Stride => 20;
+
         public static readonly VertexLayout Layout = new VertexLayout()
             .Begin()
             .Add(VertexAttributeUsage.Position, 2, VertexAttributeType.Float)
@@ -28,5 +30,5 @@ namespace BLITTEngine.Core.Graphics
             .Add(VertexAttributeUsage.Color0, 4, VertexAttributeType.UInt8, true)
             .End();
     }
-    
+
 }

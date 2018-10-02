@@ -20,16 +20,16 @@ namespace BLITTEngine.Resources
             loaded_assets = new Dictionary<string, Resource>();
             runtime_assets = new List<Resource>();
         }
-        
+
         internal void UnloadAll()
         {
             Console.WriteLine($"Destroying {loaded_assets.Count} loaded assets.");
-            
+
             foreach (var asset in loaded_assets)
             {
                 asset.Value.Dispose();
             }
-            
+
             Console.WriteLine($"Destroying {runtime_assets.Count} runtime assets.");
 
             foreach (var asset in runtime_assets)
@@ -40,7 +40,7 @@ namespace BLITTEngine.Resources
             loaded_assets.Clear();
             runtime_assets.Clear();
         }
-        
+
         public T Get<T>(string asset_id) where T : Resource
         {
             if (loaded_assets.TryGetValue(asset_id, out var asset))
@@ -53,7 +53,7 @@ namespace BLITTEngine.Resources
             if (type == typeof(Texture2D))
             {
                 var id = new StringBuilder(asset_id);
-                
+
                 if (!asset_id.Contains(".png"))
                 {
                     id.Append(".png");
@@ -66,11 +66,12 @@ namespace BLITTEngine.Resources
                     using (var stream = File.OpenRead(path))
                     {
                         var bitmap = ImageLoader.LoadFile(stream);
-                        
+
                         var texture = (T)Activator.CreateInstance(type, bitmap.PixelData, bitmap.Width, bitmap.Height);
 
+
                         var key = Path.GetFileNameWithoutExtension(path);
-                        
+
                         loaded_assets.Add(key, texture);
 
                         return texture;
@@ -83,15 +84,14 @@ namespace BLITTEngine.Resources
                 }
 
             }
-            
+
             return null;
         }
 
-        internal void Register(Resource resource) 
+        internal void Register(Resource resource)
         {
             runtime_assets.Add(resource);
         }
 
-        
     }
 }

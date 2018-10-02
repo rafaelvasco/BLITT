@@ -1,8 +1,8 @@
 using System;
 using System.Runtime;
-using BLITTEngine.Core;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Platform;
+using BLITTEngine.Draw;
 using BLITTEngine.Input;
 using BLITTEngine.Numerics;
 using BLITTEngine.Resources;
@@ -21,15 +21,17 @@ namespace BLITTEngine
     public class Game : IDisposable
     {
         public static Game Instance { get; private set; }
-        
+
         internal readonly GamePlatform Platform;
+        internal readonly GraphicsDevice GraphicsDevice;
 
         public readonly Control Control;
         public readonly Content Content;
-        public readonly Clock Clock; 
-        public readonly GraphicsDevice GraphicsDevice;
+        public readonly Clock Clock;
+        public readonly Canvas Canvas;
+
         public Scene CurrentScene { get; private set; }
-        
+
         public bool Running { get; internal set; }
 
         public bool Fullscreen
@@ -44,42 +46,45 @@ namespace BLITTEngine
                 }
             }
         }
-        
+
         private bool error;
         private string error_msg;
         private bool full_screen;
-        
+
         /* ========================================================================================================== */
 
         public Game(GameProps props = default)
         {
             Instance = this;
-            
+
             props.Title = props.Title ?? "BLITT!";
             props.CanvasWidth = Calc.Max(64, props.CanvasWidth);
             props.CanvasHeight = Calc.Max(64, props.CanvasHeight);
             full_screen = props.Fullscreen;
 
             Console.WriteLine("BLITT IS STARTING");
-            
+
             Console.WriteLine("INITIALIZING CORE");
 
             Platform = new SDLGamePlatform();
-            
+
             Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, fullscreen: props.Fullscreen);
-            
+
             GraphicsDevice = new GraphicsDevice(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight);
-            
+
             Platform.OnQuit += OnPlatformQuit;
             Platform.OnWinResized += OnScreenResized;
-            
+
+            Canvas = new Canvas(GraphicsDevice);
             Control = new Control(Platform);
             Content = new Content("Assets");
             Clock = new Clock();
-            
+
+            Scene.Content = Content;
+
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         }
-        
+
         public void Dispose()
         {
             Content.UnloadAll();
@@ -96,10 +101,10 @@ namespace BLITTEngine
 
             CurrentScene = scene ?? new EmptyScene();
             CurrentScene.Init();
-            
+
             Running = true;
             Platform.ShowScreen(true);
-            
+
             Tick();
         }
 
@@ -128,7 +133,7 @@ namespace BLITTEngine
         private static void OnScreenResized(int w, int h)
         {
         }
-        
+
         private void OnPlatformQuit()
         {
             Quit();
@@ -151,25 +156,25 @@ namespace BLITTEngine
                     Clock.TotalTime -= Clock.FrameDuration;
                     CurrentScene.Update(Clock.DeltaTime);
                 }
-                
+
                 GraphicsDevice.Begin();
 
-                CurrentScene.Draw();
+                CurrentScene.Draw(Canvas);
 
                 GraphicsDevice.End();
             }
-            
+
 #if DEBUG
-            
+
             var gen0 = GC.CollectionCount(0);
             var gen1 = GC.CollectionCount(1);
             var gen2 = GC.CollectionCount(2);
-            
+
             Console.WriteLine(
                 $"Gen-0: {gen0} | Gen-1: {gen1} | Gen-2: {gen2}"
             );
 #endif
         }
-        
+
     }
 }

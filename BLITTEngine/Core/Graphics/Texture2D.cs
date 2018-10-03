@@ -47,7 +47,7 @@ namespace BLITTEngine.Core.Graphics
         private bool smooth;
 
 
-        public Texture2D(byte[] pixel_data, int width, int height)
+        internal Texture2D(byte[] pixel_data, int width, int height)
         {
             UpdateTextureFlags();
 
@@ -63,6 +63,28 @@ namespace BLITTEngine.Core.Graphics
                 memory: image_memory
             );
 
+        }
+
+        internal Texture2D(int width, int height)
+        {
+            UpdateTextureFlags();
+
+            InternalTexture = Texture.Create2D(
+               width: width,
+                height: height,
+                hasMips: false,
+                arrayLayers: 0,
+                format: TextureFormat.BGRA8,
+                flags: Flags,
+                memory: null
+            );
+        }
+
+        public void SetData(Pixmap pixmap)
+        {
+            var memory = MemoryBlock.MakeRef(pixmap.PixelDataPtr, pixmap.SizeBytes, IntPtr.Zero);
+
+            InternalTexture.Update2D(0, 0, 0, 0, pixmap.Width, pixmap.Height, memory, pixmap.Stride);
         }
 
         private void UpdateTextureFlags()

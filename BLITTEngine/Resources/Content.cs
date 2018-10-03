@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Foundation;
+using BLITTEngine.Numerics;
 
 namespace BLITTEngine.Resources
 {
@@ -41,51 +42,81 @@ namespace BLITTEngine.Resources
             runtime_assets.Clear();
         }
 
-        public T Get<T>(string asset_id) where T : Resource
+
+
+        public Texture2D GetTexture2D(string asset_name)
         {
-            if (loaded_assets.TryGetValue(asset_id, out var asset))
+            if (loaded_assets.TryGetValue(asset_name, out var asset))
             {
-                return (T) asset;
+                return (Texture2D) asset;
             }
 
-            var type = typeof(T);
+            var id = new StringBuilder(asset_name);
 
-            if (type == typeof(Texture2D))
+            if (!asset_name.Contains(".png"))
             {
-                var id = new StringBuilder(asset_id);
-
-                if (!asset_id.Contains(".png"))
-                {
-                    id.Append(".png");
-                }
-
-                string path = Path.Combine(content_path, id.ToString());
-
-                try
-                {
-                    using (var stream = File.OpenRead(path))
-                    {
-                        var bitmap = ImageLoader.LoadFile(stream);
-
-                        var texture = (T)Activator.CreateInstance(type, bitmap.PixelData, bitmap.Width, bitmap.Height);
-
-
-                        var key = Path.GetFileNameWithoutExtension(path);
-
-                        loaded_assets.Add(key, texture);
-
-                        return texture;
-
-                    }
-                }
-                catch (FileNotFoundException e)
-                {
-                    throw new Exception(e.Message);
-                }
-
+                id.Append(".png");
             }
 
-            return null;
+            string path = Path.Combine(content_path, id.ToString());
+
+            try
+            {
+                using (var stream = File.OpenRead(path))
+                {
+                    var bitmap = ImageLoader.LoadFile(stream);
+
+                    var texture = new Texture2D(bitmap.PixelData, bitmap.Width, bitmap.Height);
+
+                    var key = Path.GetFileNameWithoutExtension(path);
+
+                    loaded_assets.Add(key, texture);
+
+                    return texture;
+
+                }
+            }
+            catch (FileNotFoundException e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        public Pixmap CreatePixmap(int width, int height)
+        {
+            var pixmap = new Pixmap(width, height);
+
+            Register(pixmap);
+
+            return pixmap;
+        }
+
+        public Texture2D CreateTexture(Pixmap pixmap)
+        {
+            var texture = new Texture2D(pixmap.PixelData, pixmap.Width, pixmap.Height);
+
+            Register(texture);
+
+            return texture;
+        }
+
+
+
+        public Texture2D CreateTexture(int width, int height, Color color)
+        {
+            var texture = new Texture2D(width, height);
+
+            var pixmap = new Pixmap(width, height);
+
+            pixmap.Fill(color);
+
+            texture.SetData(pixmap);
+
+            pixmap.Dispose();
+
+            Register(texture);
+
+            return texture;
         }
 
         internal void Register(Resource resource)

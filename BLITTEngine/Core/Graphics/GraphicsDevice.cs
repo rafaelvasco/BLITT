@@ -64,7 +64,7 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
             Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717FF);
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
-            
+
             Bgfx.SetRenderState(
 
                 RenderState.BlendNormal
@@ -150,12 +150,17 @@ namespace BLITTEngine.Core.Graphics
             }
         }
 
-        public void Begin()
+        public unsafe void Begin()
         {
 
             Bgfx.Touch(0);
 
             Bgfx.DebugTextClear();
+
+            var viewMatrix = transform_matrix;
+            var projMatrix = projection_matrix;
+
+            Bgfx.SetViewTransform(0, &viewMatrix.M11, &projMatrix.M11);
 
             Bgfx.DebugTextWrite(2, 2, DebugColor.White, DebugColor.Cyan, "HELLO WORLD!");
         }
@@ -175,7 +180,7 @@ namespace BLITTEngine.Core.Graphics
 
             var vertex_buffer = new TransientVertexBuffer(vertex_idx, VertexPCT.Layout);
 
-            fixed (void* v = &quad_vertices[0])
+            fixed (void* v = quad_vertices)
             {
                 Unsafe.CopyBlock((void*) vertex_buffer.Data, v, (uint)vertex_idx*20);
             }
@@ -191,7 +196,7 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetVertexBuffer(0, vertex_buffer, 0, vertex_idx);
             Bgfx.SetIndexBuffer(index_buffer, 0, quad_count*6);
-            
+
 
             Bgfx.Submit(0, default_shader.Program);
 
@@ -218,7 +223,7 @@ namespace BLITTEngine.Core.Graphics
             var viewMatrix = transform_matrix;
             var projMatrix = projection_matrix;
 
-            Bgfx.SetViewTransform(0, &viewMatrix.M11, &projMatrix.M11);
+
         }
 
         private unsafe void InitializeRenderBuffers()
@@ -266,7 +271,7 @@ namespace BLITTEngine.Core.Graphics
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to load embed Vertex Shader {vs_shader_path} : {e.Message}");
+                throw new Exception($"Failed to load embeded Vertex Shader {vs_shader_path} : {e.Message}");
             }
 
             try
@@ -283,7 +288,7 @@ namespace BLITTEngine.Core.Graphics
             }
             catch (Exception e)
             {
-                throw new Exception($"Failed to load embed Fragment Shader {fs_shader_path} : {e.Message}");
+                throw new Exception($"Failed to load embeded Fragment Shader {fs_shader_path} : {e.Message}");
             }
 
             LoadShaderProgram(name, vs_file_buffer, fs_file_buffer);

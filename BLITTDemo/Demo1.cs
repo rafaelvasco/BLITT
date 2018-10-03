@@ -12,7 +12,7 @@ namespace BLITTDemo
 
         public override void Init()
         {
-            texture = Content.Get<Texture2D>("ship");
+            texture = Content.GetTexture2D("ship");
         }
 
         public override void Update(float dt)

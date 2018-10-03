@@ -1,0 +1,106 @@
+﻿using BLITTEngine.Numerics;
+using BLITTEngine.Resources;
+using System;
+using System.Runtime.InteropServices;
+
+namespace BLITTEngine.Core.Graphics
+{
+     public unsafe class Pixmap : Resource
+    {
+        public int Width => width;
+        public int Height => height;
+        public byte[] PixelData => data;
+        public int SizeBytes => size;
+        public int Stride => width * 4;
+        internal IntPtr PixelDataPtr => data_ptr;
+
+
+        private readonly int width;
+        private readonly int height;
+
+        private readonly byte[] data;
+        private readonly GCHandle gc_handle;
+        private readonly IntPtr data_ptr;
+        private int size;
+
+
+        internal Pixmap(byte[] src_data, int width, int height)
+        {
+            this.width = width;
+            this.height = height;
+            this.size = src_data.Length;
+
+            this.data = new byte[src_data.Length];
+            Buffer.BlockCopy(src_data, 0, this.data, 0, src_data.Length);
+
+            gc_handle = GCHandle.Alloc(this.data, GCHandleType.Pinned);
+            data_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(this.data, 0);
+        }
+
+        internal Pixmap(int width, int height)
+        {
+            this.width = width;
+            this.height = height;
+            this.size = width * height;
+
+            int length = width * height * 4;
+
+            data = new byte[length];
+            gc_handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            data_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(data, 0);
+        }
+
+        public void Fill(Color color)
+        {
+            var pd = data;
+            byte r = color.R;
+            byte g = color.G;
+            byte b = color.B;
+            byte a = color.A;
+
+            fixed (byte* p = pd)
+            {
+                var len = pd.Length-4;
+                for(int i=0; i < len; i+=4)
+                {
+                    *(p+i) = r;
+                    *(p+i+1) = g;
+                    *(p+i+2) = b;
+                    *(p+i+3) = a;
+                }
+            }
+
+        }
+
+        public byte[] GetRgbaBytes()
+        {
+            var pixels = new byte[this.PixelData.Length];
+
+            Buffer.BlockCopy(this.PixelData, 0, pixels, 0, this.PixelData.Length);
+
+            var pd = pixels;
+
+            // Return to RGBA Format
+            for (int i = 0; i < Width * Height; ++i)
+            {
+                var idx = i * 4;
+                byte b = pd[idx];
+                byte g = pd[idx + 1];
+                byte r = pd[idx + 2];
+                byte a = pd[idx + 3];
+
+                pd[idx] = r;
+                pd[idx + 1] = g;
+                pd[idx + 2] = b;
+                pd[idx + 3] = a;
+            }
+
+            return pixels;
+        }
+
+        internal override void Dispose()
+        {
+            gc_handle.Free();
+        }
+    }
+}

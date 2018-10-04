@@ -61,14 +61,14 @@ namespace BLITTEngine.Core.Graphics
 #endif
 
             Bgfx.Init(init_settings);
-            Bgfx.Reset(backbuffer_width, backbuffer_height, ResetFlags.Vsync);
+            //Bgfx.Reset(backbuffer_width, backbuffer_height, ResetFlags.Vsync);
             Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
             Bgfx.SetViewClear(0, ClearTargets.Color | ClearTargets.Depth, 0x171717FF);
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
 
             Bgfx.SetRenderState(
 
-                RenderState.BlendNormal |
+                RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha) |
                 RenderState.DepthTestLess |
                 RenderState.CullClockwise
 
@@ -212,7 +212,7 @@ namespace BLITTEngine.Core.Graphics
         {
             transform_matrix = Matrix4.Identity;
 
-            Matrix4.CreateOrthographicOffCenter(
+            /*Matrix4.CreateOrthographicOffCenter(
 
                 left: 0.0f,
                 right: backbuffer_width,
@@ -220,9 +220,9 @@ namespace BLITTEngine.Core.Graphics
                 top: 0.0f,
                 0.0f,
                 1.0f, out projection_matrix
-            );
+            );*/
 
-            //Matrix4.CreateOrthographic(backbuffer_width, backbuffer_height, 0f, 1f, out projection_matrix);
+            Matrix4.CreateOrthographic(backbuffer_width, backbuffer_height, 0f, 1f, out projection_matrix);
         }
 
         private unsafe void InitializeRenderBuffers()

@@ -43,6 +43,19 @@ namespace BLITTEngine.Numerics
             this.M44 = m44;
         }
 
+        public static void CreateOrthographic(float width, float height, float zNearPlane, float zFarPlane, out Matrix4 result)
+        {
+            result.M11 = 2f / width;
+		    result.M12 = result.M13 = result.M14 = 0f;
+		    result.M22 = 2f / height;
+		    result.M21 = result.M23 = result.M24 = 0f;
+		    result.M33 = 1f / (zNearPlane - zFarPlane);
+		    result.M31 = result.M32 = result.M34 = 0f;
+		    result.M41 = result.M42 = 0f;
+		    result.M43 = zNearPlane / (zNearPlane - zFarPlane);
+		    result.M44 = 1f;
+        }
+
         public static void CreateOrthographicOffCenter(float left, float right, float bottom, float top, float zNearPlane, float zFarPlane, out Matrix4 result)
         {
 			result.M11 = 2.0f / (right - left);

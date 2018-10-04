@@ -1,10 +1,10 @@
+using BLITTEngine.Foundation;
+using BLITTEngine.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using BLITTEngine.Foundation;
-using BLITTEngine.Numerics;
 
 namespace BLITTEngine.Core.Graphics
 {
@@ -31,8 +31,8 @@ namespace BLITTEngine.Core.Graphics
         private int vertex_idx;
         private int quad_count;
 
-        private Matrix4x4 projection_matrix;
-        private Matrix4x4 transform_matrix;
+        private Matrix4 projection_matrix;
+        private Matrix4 transform_matrix;
         private int backbuffer_width;
         private int backbuffer_height;
 
@@ -42,7 +42,7 @@ namespace BLITTEngine.Core.Graphics
             this.backbuffer_height = backbuffer_height;
             this.shaders_catalog = new Dictionary<string, ShaderProgram>();
 
-            Bgfx.SetPlatformData(new PlatformData() { WindowHandle = surface_handle});
+            Bgfx.SetPlatformData(new PlatformData() { WindowHandle = surface_handle });
 
             var init_settings = new InitSettings()
             {
@@ -56,20 +56,24 @@ namespace BLITTEngine.Core.Graphics
             };
 
 #if DEBUG
-            init_settings.Debug = true;
-            init_settings.Profiling = true;
+            //init_settings.Debug = true;
+            //init_settings.Profiling = true;
 #endif
 
             Bgfx.Init(init_settings);
+            Bgfx.Reset(backbuffer_width, backbuffer_height, ResetFlags.Vsync);
             Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
-            Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717FF);
+            Bgfx.SetViewClear(0, ClearTargets.Color | ClearTargets.Depth, 0x171717FF);
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
 
             Bgfx.SetRenderState(
 
-                RenderState.BlendNormal
-                | RenderState.CullClockwise
-                | RenderState.DepthTestLess
+                RenderState.BlendNormal |
+                RenderState.DepthTestLess |
+                RenderState.CullClockwise
+
+
+
             );
 
             Info = new GraphicsInfo();
@@ -88,7 +92,7 @@ namespace BLITTEngine.Core.Graphics
 
         public void Dispose()
         {
-            foreach(var shader in shaders_catalog)
+            foreach (var shader in shaders_catalog)
             {
                 shader.Value.Dispose();
             }
@@ -98,7 +102,6 @@ namespace BLITTEngine.Core.Graphics
             index_buffer.Dispose();
 
             Bgfx.Shutdown();
-
         }
 
         public void Clear(in Color color)
@@ -123,7 +126,7 @@ namespace BLITTEngine.Core.Graphics
 
         public unsafe void DrawTexture(Texture2D texture, float x, float y)
         {
-            if(current_texture != texture)
+            if (current_texture != texture)
             {
                 Flush();
 
@@ -137,10 +140,10 @@ namespace BLITTEngine.Core.Graphics
 
             fixed (VertexPCT* vertex_ptr = quad_vertices)
             {
-                *(vertex_ptr+vidx++) = new VertexPCT(x, y, 0f, 0f, 0xffffffff);
-                *(vertex_ptr+vidx++) = new VertexPCT(x+w, y, 1f, 0f, 0xffffffff);
-                *(vertex_ptr+vidx++) = new VertexPCT(x+w, y+h, 1f, 1f, 0xffffffff);
-                *(vertex_ptr+vidx++) = new VertexPCT(x, y+h, 0f, 1f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x, y, 0f, 0f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x + w, y, 1f, 0f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x + w, y + h, 1f, 1f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x, y + h, 0f, 1f, 0xffffffff);
             }
 
             unchecked
@@ -152,7 +155,6 @@ namespace BLITTEngine.Core.Graphics
 
         public unsafe void Begin()
         {
-
             Bgfx.Touch(0);
 
             Bgfx.DebugTextClear();
@@ -160,6 +162,7 @@ namespace BLITTEngine.Core.Graphics
             var viewMatrix = transform_matrix;
             var projMatrix = projection_matrix;
 
+            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
             Bgfx.SetViewTransform(0, &viewMatrix.M11, &projMatrix.M11);
 
             Bgfx.DebugTextWrite(2, 2, DebugColor.White, DebugColor.Cyan, "HELLO WORLD!");
@@ -182,7 +185,7 @@ namespace BLITTEngine.Core.Graphics
 
             fixed (void* v = quad_vertices)
             {
-                Unsafe.CopyBlock((void*) vertex_buffer.Data, v, (uint)vertex_idx*20);
+                Unsafe.CopyBlock((void*)vertex_buffer.Data, v, (uint)vertex_idx * 20);
             }
 
             /*var vertexPointer = (VertexPCT*)vertex_buffer.Data;
@@ -195,8 +198,7 @@ namespace BLITTEngine.Core.Graphics
             default_shader.SetTexture(current_texture, "texture_2d");
 
             Bgfx.SetVertexBuffer(0, vertex_buffer, 0, vertex_idx);
-            Bgfx.SetIndexBuffer(index_buffer, 0, quad_count*6);
-
+            Bgfx.SetIndexBuffer(index_buffer, 0, quad_count * 6);
 
             Bgfx.Submit(0, default_shader.Program);
 
@@ -208,29 +210,26 @@ namespace BLITTEngine.Core.Graphics
 
         private unsafe void InitRenderMatrices()
         {
-            transform_matrix = Matrix4x4.Identity;
+            transform_matrix = Matrix4.Identity;
 
-            projection_matrix = Matrix4x4.CreateOrthographicOffCenter(
+            Matrix4.CreateOrthographicOffCenter(
 
                 left: 0.0f,
                 right: backbuffer_width,
                 bottom: backbuffer_height,
                 top: 0.0f,
-                -1.0f,
-                1.0f
+                0.0f,
+                1.0f, out projection_matrix
             );
 
-            var viewMatrix = transform_matrix;
-            var projMatrix = projection_matrix;
-
-
+            //Matrix4.CreateOrthographic(backbuffer_width, backbuffer_height, 0f, 1f, out projection_matrix);
         }
 
         private unsafe void InitializeRenderBuffers()
         {
-            quad_vertices = new VertexPCT[MAX_QUADS*4];
+            quad_vertices = new VertexPCT[MAX_QUADS * 4];
 
-            quad_indices = new ushort[MAX_QUADS*6];
+            quad_indices = new ushort[MAX_QUADS * 6];
 
             ushort indice_i = 0;
 
@@ -242,17 +241,15 @@ namespace BLITTEngine.Core.Graphics
                 quad_indices[i + 3] = (ushort)(indice_i + 0);
                 quad_indices[i + 4] = (ushort)(indice_i + 2);
                 quad_indices[i + 5] = (ushort)(indice_i + 3);
-
             }
 
             index_buffer = new IndexBuffer(MemoryBlock.FromArray(quad_indices));
-
         }
 
         private void LoadEmbededShaderProgram(string root_path, string name)
         {
-            byte[] vs_file_buffer={ };
-            byte[] fs_file_buffer={ };
+            byte[] vs_file_buffer = { };
+            byte[] fs_file_buffer = { };
 
             var vs_shader_path = root_path + "vs_" + name + ".bin";
             var fs_shader_path = root_path + "fs_" + name + ".bin";
@@ -320,9 +317,6 @@ namespace BLITTEngine.Core.Graphics
             default_shader = shaders_catalog["base_2d"];
 
             default_shader.AddTextureUniform("texture_2d");
-
         }
-
-
     }
 }

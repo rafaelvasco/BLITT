@@ -3,13 +3,22 @@ using BLITTEngine.Foundation;
 
 namespace BLITTEngine.Core.Graphics
 {
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Explicit)]
     internal struct VertexPCT
     {
+        [FieldOffset(0)]
         public float X;
+
+        [FieldOffset(4)]
         public float Y;
+
+        [FieldOffset(8)]
         public float U;
+
+        [FieldOffset(12)]
         public float V;
+
+        [FieldOffset(16)]
         public uint Abgr;
 
         public VertexPCT(float x, float y, float u, float v, uint abgr)

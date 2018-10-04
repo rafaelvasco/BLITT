@@ -63,9 +63,9 @@ namespace BLITTEngine.Core.Graphics
                 var len = pd.Length-4;
                 for(int i=0; i < len; i+=4)
                 {
-                    *(p+i) = r;
+                    *(p+i) = b;
                     *(p+i+1) = g;
-                    *(p+i+2) = b;
+                    *(p+i+2) = r;
                     *(p+i+3) = a;
                 }
             }

@@ -74,6 +74,7 @@ namespace BLITTEngine.Core.Graphics
                 height: height,
                 hasMips: false,
                 arrayLayers: 0,
+
                 format: TextureFormat.BGRA8,
                 flags: Flags,
                 memory: null

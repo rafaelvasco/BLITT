@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using BLITTEngine.Foundation;
 using BLITTEngine.Resources;
 
@@ -47,15 +48,16 @@ namespace BLITTEngine.Core.Graphics
         private bool smooth;
 
 
-        internal Texture2D(byte[] pixel_data, int width, int height)
+        internal Texture2D(Pixmap pixmap)
         {
             UpdateTextureFlags();
 
-            MemoryBlock image_memory = MemoryBlock.FromArray(pixel_data);
+            MemoryBlock image_memory = MemoryBlock.FromArray(pixmap.PixelData);
 
+          
             InternalTexture = Texture.Create2D(
-               width: width,
-                height: height,
+               width: pixmap.Width,
+                height: pixmap.Height,
                 hasMips: false,
                 arrayLayers: 0,
                 format: TextureFormat.BGRA8,

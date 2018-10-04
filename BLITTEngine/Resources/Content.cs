@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Foundation;
+using BLITTEngine.Foundation.STB;
 using BLITTEngine.Numerics;
 
 namespace BLITTEngine.Resources
@@ -14,12 +14,14 @@ namespace BLITTEngine.Resources
 
         private static Dictionary<string, Resource> loaded_assets;
         private static List<Resource> runtime_assets;
+        private static ImageReader image_reader;
 
         internal Content(string root_path)
         {
             content_path = root_path;
             loaded_assets = new Dictionary<string, Resource>();
             runtime_assets = new List<Resource>();
+            image_reader = new ImageReader();
         }
 
         internal void UnloadAll()
@@ -42,8 +44,6 @@ namespace BLITTEngine.Resources
             runtime_assets.Clear();
         }
 
-
-
         public Texture2D GetTexture2D(string asset_name)
         {
             if (loaded_assets.TryGetValue(asset_name, out var asset))
@@ -64,9 +64,13 @@ namespace BLITTEngine.Resources
             {
                 using (var stream = File.OpenRead(path))
                 {
-                    var bitmap = ImageLoader.LoadFile(stream);
+                    var loaded_image = image_reader.Read(stream);
 
-                    var texture = new Texture2D(bitmap.PixelData, bitmap.Width, bitmap.Height);
+                    var pixmap = new Pixmap(loaded_image.Data, loaded_image.Width, loaded_image.Height);
+
+                    var texture = new Texture2D(pixmap);
+
+                    pixmap.Dispose();
 
                     var key = Path.GetFileNameWithoutExtension(path);
 
@@ -82,6 +86,15 @@ namespace BLITTEngine.Resources
             }
         }
 
+        public Pixmap CreatePixmap(byte[] data, int width, int height)
+        {
+            var pixmap = new Pixmap(data, width, height);
+
+            Register(pixmap);
+
+            return pixmap;
+        }
+
         public Pixmap CreatePixmap(int width, int height)
         {
             var pixmap = new Pixmap(width, height);
@@ -93,7 +106,7 @@ namespace BLITTEngine.Resources
 
         public Texture2D CreateTexture(Pixmap pixmap)
         {
-            var texture = new Texture2D(pixmap.PixelData, pixmap.Width, pixmap.Height);
+            var texture = new Texture2D(pixmap);
 
             Register(texture);
 

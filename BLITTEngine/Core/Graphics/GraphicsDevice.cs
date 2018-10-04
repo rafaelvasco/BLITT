@@ -2,7 +2,6 @@ using BLITTEngine.Foundation;
 using BLITTEngine.Numerics;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -61,21 +60,11 @@ namespace BLITTEngine.Core.Graphics
 #endif
 
             Bgfx.Init(init_settings);
-            //Bgfx.Reset(backbuffer_width, backbuffer_height, ResetFlags.Vsync);
+
             Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
-            Bgfx.SetViewClear(0, ClearTargets.Color | ClearTargets.Depth, 0x171717FF);
+           
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
-
-            Bgfx.SetRenderState(
-
-                RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha) |
-                RenderState.DepthTestLess |
-                RenderState.CullClockwise
-
-
-
-            );
-
+            
             Info = new GraphicsInfo();
 
             Capabilities caps = Bgfx.GetCaps();
@@ -140,10 +129,10 @@ namespace BLITTEngine.Core.Graphics
 
             fixed (VertexPCT* vertex_ptr = quad_vertices)
             {
-                *(vertex_ptr + vidx++) = new VertexPCT(x, y, 0f, 0f, 0xffffffff);
-                *(vertex_ptr + vidx++) = new VertexPCT(x + w, y, 1f, 0f, 0xffffffff);
-                *(vertex_ptr + vidx++) = new VertexPCT(x + w, y + h, 1f, 1f, 0xffffffff);
-                *(vertex_ptr + vidx++) = new VertexPCT(x, y + h, 0f, 1f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x, y, 0f, 1f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x+w, y, 1f, 1f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x+w, y+h, 1f, 0f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x, y+h, 0f, 0f, 0xffffffff);
             }
 
             unchecked
@@ -162,8 +151,13 @@ namespace BLITTEngine.Core.Graphics
             var viewMatrix = transform_matrix;
             var projMatrix = projection_matrix;
 
-            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
+            Bgfx.SetRenderState(RenderState.Default);
+
             Bgfx.SetViewTransform(0, &viewMatrix.M11, &projMatrix.M11);
+
+
+            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
+            Bgfx.SetViewClear(0, ClearTargets.Color | ClearTargets.Depth, 0x171717FF);
 
             Bgfx.DebugTextWrite(2, 2, DebugColor.White, DebugColor.Cyan, "HELLO WORLD!");
         }
@@ -199,7 +193,7 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetVertexBuffer(0, vertex_buffer, 0, vertex_idx);
             Bgfx.SetIndexBuffer(index_buffer, 0, quad_count * 6);
-
+            
             Bgfx.Submit(0, default_shader.Program);
 
             Bgfx.Frame();
@@ -212,7 +206,7 @@ namespace BLITTEngine.Core.Graphics
         {
             transform_matrix = Matrix4.Identity;
 
-            /*Matrix4.CreateOrthographicOffCenter(
+            Matrix4.CreateOrthographicOffCenter(
 
                 left: 0.0f,
                 right: backbuffer_width,
@@ -220,9 +214,9 @@ namespace BLITTEngine.Core.Graphics
                 top: 0.0f,
                 0.0f,
                 1.0f, out projection_matrix
-            );*/
+            );
 
-            Matrix4.CreateOrthographic(backbuffer_width, backbuffer_height, 0f, 1f, out projection_matrix);
+            
         }
 
         private unsafe void InitializeRenderBuffers()

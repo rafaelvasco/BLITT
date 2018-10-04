@@ -33,9 +33,13 @@ namespace BLITTEngine.Core.Graphics
             this.data = new byte[src_data.Length];
             Buffer.BlockCopy(src_data, 0, this.data, 0, src_data.Length);
 
+            SwizzleToBGRA();
+
             gc_handle = GCHandle.Alloc(this.data, GCHandleType.Pinned);
             data_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(this.data, 0);
         }
+
+
 
         internal Pixmap(int width, int height)
         {
@@ -72,6 +76,30 @@ namespace BLITTEngine.Core.Graphics
 
         }
 
+        private void SwizzleToBGRA()
+        {
+            var pd = data;
+
+            fixed (byte* p = pd)
+            {
+                var len = pd.Length - 4;
+                for (int i = 0; i < len; i += 4)
+                {
+
+                    byte r = pd[i];
+                    byte g = pd[i + 1];
+                    byte b = pd[i + 2];
+                    byte a = pd[i + 3];
+
+                    *(p + i) = b;
+                    *(p + i + 1) = g;
+                    *(p + i + 2) = r;
+                    *(p + i + 3) = a;
+                }
+            }
+
+        }
+
         public byte[] GetRgbaBytes()
         {
             var pixels = new byte[this.PixelData.Length];
@@ -80,20 +108,25 @@ namespace BLITTEngine.Core.Graphics
 
             var pd = pixels;
 
-            // Return to RGBA Format
-            for (int i = 0; i < Width * Height; ++i)
+            fixed (byte* p = pd)
             {
-                var idx = i * 4;
-                byte b = pd[idx];
-                byte g = pd[idx + 1];
-                byte r = pd[idx + 2];
-                byte a = pd[idx + 3];
+                var len = pd.Length - 4;
+                for (int i = 0; i < len; i += 4)
+                {
 
-                pd[idx] = r;
-                pd[idx + 1] = g;
-                pd[idx + 2] = b;
-                pd[idx + 3] = a;
+                    byte b = pd[i];
+                    byte g = pd[i + 1];
+                    byte r = pd[i + 2];
+                    byte a = pd[i + 3];
+
+                    *(p + i) = r;
+                    *(p + i + 1) = g;
+                    *(p + i + 2) = b;
+                    *(p + i + 3) = a;
+                }
             }
+
+            
 
             return pixels;
         }

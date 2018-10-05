@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Runtime;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Platform;
@@ -62,25 +63,30 @@ namespace BLITTEngine
             props.CanvasHeight = Calc.Max(64, props.CanvasHeight);
             full_screen = props.Fullscreen;
 
-            Console.WriteLine("BLITT IS STARTING");
+            Console.WriteLine(":: Blit Engine Start ::");
 
-            Console.WriteLine("INITIALIZING CORE");
+            var timer = Stopwatch.StartNew();
 
             Platform = new SDLGamePlatform();
 
             Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, fullscreen: props.Fullscreen);
 
+            Console.WriteLine($" > Platform Init took: {timer.Elapsed.TotalSeconds}");
+
             GraphicsDevice = new GraphicsDevice(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight);
+
+            Console.WriteLine($" > Graphics Init took: {timer.Elapsed.TotalSeconds}");
 
             Platform.OnQuit += OnPlatformQuit;
             Platform.OnWinResized += OnScreenResized;
 
-            Canvas = new Canvas(GraphicsDevice);
+            Canvas = new Canvas(GraphicsDevice, props.CanvasWidth, props.CanvasHeight);
             Control = new Control(Platform);
             Content = new Content("Assets");
             Clock = new Clock();
 
             Scene.Content = Content;
+            Scene.Canvas = Canvas;
 
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         }

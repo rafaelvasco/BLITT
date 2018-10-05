@@ -26,14 +26,14 @@ namespace BLITTEngine.Resources
 
         internal void UnloadAll()
         {
-            Console.WriteLine($"Destroying {loaded_assets.Count} loaded assets.");
+            Console.WriteLine($" > Diposing {loaded_assets.Count} loaded assets.");
 
             foreach (var asset in loaded_assets)
             {
                 asset.Value.Dispose();
             }
 
-            Console.WriteLine($"Destroying {runtime_assets.Count} runtime assets.");
+            Console.WriteLine($" > Disposing {runtime_assets.Count} runtime assets.");
 
             foreach (var asset in runtime_assets)
             {

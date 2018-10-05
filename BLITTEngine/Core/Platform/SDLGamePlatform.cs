@@ -19,8 +19,6 @@ namespace BLITTEngine.Core.Platform
 
         public override void Init(string title, int width, int height, bool fullscreen)
         {
-            Console.WriteLine($"BLITT CORE STARTING: RESOLUTION: {width}, {height}");
-
             prev_win_w = width;
             prev_win_h = height;
             is_fullscreen = fullscreen;
@@ -33,8 +31,6 @@ namespace BLITTEngine.Core.Platform
             var sw = Stopwatch.StartNew();
 
             SDL.Init((int) initFlags);
-
-            Console.WriteLine($"Init sdl took: {sw.Elapsed.TotalSeconds}");
 
             var windowFlags =
                 SDL.Window.State.Hidden | SDL.Window.State.OpenGL;
@@ -65,16 +61,12 @@ namespace BLITTEngine.Core.Platform
 
                 screen_w = dm.Width;
                 screen_h = dm.Height;
-
-                Console.WriteLine($"FULLSCREEN RES: {screen_w},{screen_h}");
             }
             else
             {
                 screen_w = prev_win_w;
                 screen_h = prev_win_h;
             }
-
-            Console.WriteLine($"Create window took: {sw.Elapsed.TotalSeconds}");
 
             sw.Stop();
 

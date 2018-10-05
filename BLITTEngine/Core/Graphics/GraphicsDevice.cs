@@ -32,39 +32,16 @@ namespace BLITTEngine.Core.Graphics
 
         private Matrix4 projection_matrix;
         private Matrix4 transform_matrix;
-        private int backbuffer_width;
-        private int backbuffer_height;
+        
 
         public GraphicsDevice(IntPtr surface_handle, int backbuffer_width, int backbuffer_height)
         {
-            this.backbuffer_width = backbuffer_width;
-            this.backbuffer_height = backbuffer_height;
+           
             this.shaders_catalog = new Dictionary<string, ShaderProgram>();
 
             Bgfx.SetPlatformData(new PlatformData() { WindowHandle = surface_handle });
 
-            /*var init_settings = new InitSettings()
-            {
-                Backend = RendererBackend.Default,
-                Adapter = Adapter.Default,
-                Debug = false,
-                Width = backbuffer_width,
-                Height = backbuffer_height,
-                Profiling = false,
-                ResetFlags = ResetFlags.Vsync
-            };*/
-
-#if DEBUG
-            //init_settings.Debug = true;
-            //init_settings.Profiling = true;
-#endif
-
             Bgfx.Init();
-
-            Bgfx.Reset(backbuffer_width, backbuffer_height, ResetFlags.Vsync);
-            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
-
-            Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
 
             Info = new GraphicsInfo();
 
@@ -73,17 +50,28 @@ namespace BLITTEngine.Core.Graphics
             Info.RendererBackend = caps.Backend;
             Info.MaxTextureSize = caps.MaxTextureSize;
 
-            Console.WriteLine($"GRAPHICS DEVICE : {Info.RendererBackend}");
-
             LoadEmbededShaders();
-            InitRenderMatrices();
+
+            Console.WriteLine($"Graphics Backend : {Info.RendererBackend}");
+
+            Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717FF);
+
+            Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
+
+
+            UpdateViewport(backbuffer_width, backbuffer_height);
+
             InitializeRenderBuffers();
         }
 
         public void Dispose()
         {
+            Console.WriteLine(" > Disposing Graphics Device");
+
             foreach (var shader in shaders_catalog)
             {
+                Console.WriteLine($" >> Disposing Shader: {shader.Key}");
+
                 shader.Value.Dispose();
             }
 
@@ -96,7 +84,7 @@ namespace BLITTEngine.Core.Graphics
 
         public void Clear(in Color color)
         {
-            Bgfx.SetViewClear(0, ClearTargets.Color, color);
+            Bgfx.SetViewClear(0, ClearTargets.Color, color.RGBAI);
         }
 
         public void LoadShaderProgram(string name, byte[] vertex_shader_src, byte[] frag_shader_src)
@@ -159,16 +147,32 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetViewTransform(0, &viewMatrix.M11, &projMatrix.M11);
 
-
-            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
-            Bgfx.SetViewClear(0, ClearTargets.Color | ClearTargets.Depth, 0x171717FF);
-
             Bgfx.DebugTextWrite(2, 2, DebugColor.White, DebugColor.Cyan, "HELLO WORLD!");
         }
 
         public void End()
         {
             Flush();
+        }
+
+        public unsafe void UpdateViewport(int width, int height)
+        {
+            Bgfx.Reset(width, height, ResetFlags.Vsync);
+            Bgfx.SetViewRect(0, 0, 0, width, height);
+
+            transform_matrix = Matrix4.Identity;
+
+            Matrix4.CreateOrthographicOffCenter(
+
+                left: 0.0f,
+                right: width,
+                bottom: height,
+                top: 0.0f,
+                0.0f,
+                1.0f, out projection_matrix
+            );
+
+
         }
 
         private unsafe void Flush()
@@ -186,13 +190,6 @@ namespace BLITTEngine.Core.Graphics
                 Unsafe.CopyBlock((void*)vertex_buffer.Data, v, (uint)vertex_idx * 20);
             }
 
-            /*var vertexPointer = (VertexPCT*)vertex_buffer.Data;
-
-            for (int i = 0; i < vertex_idx; ++i)
-            {
-                *(vertexPointer + i) = quad_vertices[i];
-            }*/
-
             default_shader.SetTexture(current_texture, "texture_2d");
 
             Bgfx.SetVertexBuffer(vertex_buffer, 0, vertex_idx);
@@ -206,22 +203,7 @@ namespace BLITTEngine.Core.Graphics
             quad_count = 0;
         }
 
-        private unsafe void InitRenderMatrices()
-        {
-            transform_matrix = Matrix4.Identity;
-
-            Matrix4.CreateOrthographicOffCenter(
-
-                left: 0.0f,
-                right: backbuffer_width,
-                bottom: backbuffer_height,
-                top: 0.0f,
-                0.0f,
-                1.0f, out projection_matrix
-            );
-
-
-        }
+       
 
         private unsafe void InitializeRenderBuffers()
         {

@@ -7,9 +7,16 @@ namespace BLITTEngine.Draw
     {
         private GraphicsDevice gfx;
 
-        public Canvas(GraphicsDevice graphics_device)
+        public int Width { get; private set; }
+
+        public int Height { get; private set; }
+
+        public Canvas(GraphicsDevice graphics_device, int width, int height)
         {
             gfx = graphics_device;
+
+            this.Width = width;
+            this.Height = height;
         }
 
         public void Clear(Color color)

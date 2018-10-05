@@ -24,14 +24,16 @@ namespace BLITTEngine.Core.Platform
             prev_win_w = width;
             prev_win_h = height;
             is_fullscreen = fullscreen;
-            
+
             var initFlags = SDL.InitFlags.Video
                             | SDL.InitFlags.Joystick;
-            
+
+            SDL.SetHint("SDL_WINDOWS_DISABLE_THREAD_NAMING", "1");
+
             var sw = Stopwatch.StartNew();
-            
+
             SDL.Init((int) initFlags);
-            
+
             Console.WriteLine($"Init sdl took: {sw.Elapsed.TotalSeconds}");
 
             var windowFlags =
@@ -44,26 +46,26 @@ namespace BLITTEngine.Core.Platform
 
             SDL.GL.SetAttribute(SDL.GL.Attribute.ContextMajorVersion, 3);
             SDL.GL.SetAttribute(SDL.GL.Attribute.ContextMinorVersion, 3);
-            
+
             window = SDL.Window.Create(
-                title, 
+                title,
                 SDL.Window.PosCentered,
                 SDL.Window.PosCentered,
                 width, height, windowFlags);
-            
+
             if (window == IntPtr.Zero)
             {
                 SDL.Quit();
                 throw new Exception(SDL.GetError());
             }
-            
+
             if (fullscreen)
             {
                 SDL.Display.GetDisplayMode(0, 0, out SDL.Display.Mode dm);
-                
+
                 screen_w = dm.Width;
                 screen_h = dm.Height;
-            
+
                 Console.WriteLine($"FULLSCREEN RES: {screen_w},{screen_h}");
             }
             else
@@ -71,9 +73,9 @@ namespace BLITTEngine.Core.Platform
                 screen_w = prev_win_w;
                 screen_h = prev_win_h;
             }
-            
+
             Console.WriteLine($"Create window took: {sw.Elapsed.TotalSeconds}");
-            
+
             sw.Stop();
 
             InitKeyboard();
@@ -95,11 +97,11 @@ namespace BLITTEngine.Core.Platform
                 case OS.MacOSX:
                     return info.info.cocoa.window;
             }
-            
+
             throw new Exception(
                 "SDLGamePlatform [GetRenderSurfaceHandle]: " +
                 "Invalid OS, could not retrive native renderer surface handle.");
-            
+
         }
 
         public override void Quit()
@@ -152,7 +154,7 @@ namespace BLITTEngine.Core.Platform
                                 OnQuit?.Invoke();
                                 break;
                             case SDL.Window.EventId.SizeChanged:
-                                
+
                                 int w = ev.Window.Data1;
                                 int h = ev.Window.Data2;
 
@@ -162,13 +164,13 @@ namespace BLITTEngine.Core.Platform
 
                                 screen_w = w;
                                 screen_h = h;
-                                
+
                                 OnWinResized?.Invoke(ev.Window.Data1, ev.Window.Data2);
                                 break;
-                           
+
                         }
                         break;
-                   
+
                 }
             }
         }
@@ -212,14 +214,14 @@ namespace BLITTEngine.Core.Platform
         {
             if (is_fullscreen != enabled)
             {
-                
+
                 SDL.Window.SetFullscreen(window, enabled ? SDL.Window.State.FullscreenDesktop :  0);
 
                 is_fullscreen = enabled;
 
                 if (!is_fullscreen)
                 {
-                    SetScreenSize(prev_win_w, prev_win_h);                    
+                    SetScreenSize(prev_win_w, prev_win_h);
                 }
             }
         }

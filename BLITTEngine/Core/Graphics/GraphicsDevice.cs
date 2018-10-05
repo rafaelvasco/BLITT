@@ -62,9 +62,9 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.Init(init_settings);
 
             Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
-           
+
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
-            
+
             Info = new GraphicsInfo();
 
             Capabilities caps = Bgfx.GetCaps();
@@ -151,7 +151,7 @@ namespace BLITTEngine.Core.Graphics
             var viewMatrix = transform_matrix;
             var projMatrix = projection_matrix;
 
-            Bgfx.SetRenderState(RenderState.Default);
+            Bgfx.SetRenderState(RenderState.BlendNormal);
 
             Bgfx.SetViewTransform(0, &viewMatrix.M11, &projMatrix.M11);
 
@@ -193,7 +193,7 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetVertexBuffer(0, vertex_buffer, 0, vertex_idx);
             Bgfx.SetIndexBuffer(index_buffer, 0, quad_count * 6);
-            
+
             Bgfx.Submit(0, default_shader.Program);
 
             Bgfx.Frame();
@@ -216,7 +216,7 @@ namespace BLITTEngine.Core.Graphics
                 1.0f, out projection_matrix
             );
 
-            
+
         }
 
         private unsafe void InitializeRenderBuffers()

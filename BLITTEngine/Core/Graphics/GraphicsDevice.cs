@@ -43,7 +43,7 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetPlatformData(new PlatformData() { WindowHandle = surface_handle });
 
-            var init_settings = new InitSettings()
+            /*var init_settings = new InitSettings()
             {
                 Backend = RendererBackend.Default,
                 Adapter = Adapter.Default,
@@ -52,15 +52,16 @@ namespace BLITTEngine.Core.Graphics
                 Height = backbuffer_height,
                 Profiling = false,
                 ResetFlags = ResetFlags.Vsync
-            };
+            };*/
 
 #if DEBUG
             //init_settings.Debug = true;
             //init_settings.Profiling = true;
 #endif
 
-            Bgfx.Init(init_settings);
+            Bgfx.Init();
 
+            Bgfx.Reset(backbuffer_width, backbuffer_height, ResetFlags.Vsync);
             Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
 
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
@@ -129,10 +130,10 @@ namespace BLITTEngine.Core.Graphics
 
             fixed (VertexPCT* vertex_ptr = quad_vertices)
             {
-                *(vertex_ptr + vidx++) = new VertexPCT(x, y, 0f, 1f, 0xffffffff);
-                *(vertex_ptr + vidx++) = new VertexPCT(x+w, y, 1f, 1f, 0xffffffff);
-                *(vertex_ptr + vidx++) = new VertexPCT(x+w, y+h, 1f, 0f, 0xffffffff);
-                *(vertex_ptr + vidx++) = new VertexPCT(x, y+h, 0f, 0f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x, y, 0f, 0f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x+w, y, 1f, 0f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x+w, y+h, 1f, 1f, 0xffffffff);
+                *(vertex_ptr + vidx++) = new VertexPCT(x, y+h, 0f, 1f, 0xffffffff);
             }
 
             unchecked
@@ -151,7 +152,10 @@ namespace BLITTEngine.Core.Graphics
             var viewMatrix = transform_matrix;
             var projMatrix = projection_matrix;
 
-            Bgfx.SetRenderState(RenderState.BlendNormal);
+            Bgfx.SetRenderState(
+                RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha) |
+                RenderState.ColorWrite |
+                RenderState.AlphaWrite);
 
             Bgfx.SetViewTransform(0, &viewMatrix.M11, &projMatrix.M11);
 
@@ -191,7 +195,7 @@ namespace BLITTEngine.Core.Graphics
 
             default_shader.SetTexture(current_texture, "texture_2d");
 
-            Bgfx.SetVertexBuffer(0, vertex_buffer, 0, vertex_idx);
+            Bgfx.SetVertexBuffer(vertex_buffer, 0, vertex_idx);
             Bgfx.SetIndexBuffer(index_buffer, 0, quad_count * 6);
 
             Bgfx.Submit(0, default_shader.Program);

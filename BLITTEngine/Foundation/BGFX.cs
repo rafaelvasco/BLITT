@@ -1,15 +1,15 @@
-// Copyright (c) 2015-2018 Michael Popoloski
-// 
+// Copyright (c) 2015-2016 Michael Popoloski
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,7 +21,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -37,8 +36,6 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// Called when an error occurs in the library.
         /// </summary>
-        /// <param name="fileName">The name of the source file in which the message originated.</param>
-        /// <param name="line">The line number in which the message originated.</param>
         /// <param name="errorType">The type of error that occurred.</param>
         /// <param name="message">Message string detailing what went wrong.</param>
         /// <remarks>
@@ -47,7 +44,7 @@ namespace BLITTEngine.Foundation
         ///
         /// This method can be called from any thread.
         /// </remarks>
-        void ReportError(string fileName, int line, ErrorType errorType, string message);
+        void ReportError(ErrorType errorType, string message);
 
         /// <summary>
         /// Called to print debug messages.
@@ -58,20 +55,6 @@ namespace BLITTEngine.Foundation
         /// <param name="args">A pointer to format arguments.</param>
         /// <remarks>This method can be called from any thread.</remarks>
         void ReportDebug(string fileName, int line, string format, IntPtr args);
-
-        /// <summary>
-        /// Called when a profiling region is entered.
-        /// </summary>
-        /// <param name="name">The name of the region.</param>
-        /// <param name="color">The color of the region.</param>
-        /// <param name="filePath">The path of the source file containing the region.</param>
-        /// <param name="line">The line number on which the region was started.</param>
-        void ProfilerBegin(string name, int color, string filePath, int line);
-
-        /// <summary>
-        /// Called when a profiling region is ended.
-        /// </summary>
-        void ProfilerEnd();
 
         /// <summary>
         /// Queries the size of a cache item.
@@ -137,6 +120,18 @@ namespace BLITTEngine.Foundation
     /// </summary>
     public unsafe static class Bgfx
     {
+        /// <summary>
+        /// Checks for available space to allocate transient index and vertex buffers.
+        /// </summary>
+        /// <param name="vertexCount">The number of vertices to allocate.</param>
+        /// <param name="layout">The layout of each vertex.</param>
+        /// <param name="indexCount">The number of indices to allocate.</param>
+        /// <returns><c>true</c> if there is sufficient space for both vertex and index buffers.</returns>
+        public static bool CheckAvailableTransientBufferSpace(int vertexCount, VertexLayout layout, int indexCount)
+        {
+            return NativeMethods.bgfx_check_avail_transient_buffers(vertexCount, ref layout.data, indexCount);
+        }
+
         /// <summary>
         /// Attempts to allocate both a transient vertex buffer and index buffer.
         /// </summary>
@@ -217,33 +212,33 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// Swizzles an RGBA8 image to BGRA8.
         /// </summary>
-        /// <param name="destination">The destination image data.</param>
         /// <param name="width">The width of the image.</param>
         /// <param name="height">The height of the image.</param>
         /// <param name="pitch">The pitch of the image (in bytes).</param>
         /// <param name="source">The source image data.</param>
+        /// <param name="destination">The destination image data.</param>
         /// <remarks>
         /// This method can operate in-place on the image (i.e. src == dst).
         /// </remarks>
-        public static void ImageSwizzleBgra8(IntPtr destination, int width, int height, int pitch, IntPtr source)
+        public static void ImageSwizzleBgra8(int width, int height, int pitch, IntPtr source, IntPtr destination)
         {
-            NativeMethods.bgfx_image_swizzle_bgra8(destination, width, height, pitch, source);
+            NativeMethods.bgfx_image_swizzle_bgra8(width, height, pitch, source, destination);
         }
 
         /// <summary>
         /// Downsamples an RGBA8 image with a 2x2 pixel average filter.
         /// </summary>
-        /// <param name="destination">The destination image data.</param>
         /// <param name="width">The width of the image.</param>
         /// <param name="height">The height of the image.</param>
         /// <param name="pitch">The pitch of the image (in bytes).</param>
         /// <param name="source">The source image data.</param>
+        /// <param name="destination">The destination image data.</param>
         /// <remarks>
         /// This method can operate in-place on the image (i.e. src == dst).
         /// </remarks>
-        public static void ImageRgba8Downsample2x2(IntPtr destination, int width, int height, int pitch, IntPtr source)
+        public static void ImageRgba8Downsample2x2(int width, int height, int pitch, IntPtr source, IntPtr destination)
         {
-            NativeMethods.bgfx_image_rgba8_downsample_2x2(destination, width, height, pitch, source);
+            NativeMethods.bgfx_image_rgba8_downsample_2x2(width, height, pitch, source, destination);
         }
 
         /// <summary>
@@ -277,20 +272,15 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// Manually renders a frame. Use this to control the Bgfx render loop.
         /// </summary>
-        /// <param name="timeoutMs">
-        /// The amount of time to wait, in milliseconds, for the next frame to be rendered.
-        /// If the timeout is exceeded, the call
-        /// returns.
-        /// </param>
         /// <returns>The result of the render call.</returns>
         /// <remarks>
         /// Use this function if you don't want Bgfx to create and maintain a
         /// separate render thread. Call this once before <see cref="Bgfx.Init(RendererBackend, Adapter, ICallbackHandler)"/>
         /// to avoid having the thread created internally.
         /// </remarks>
-        public static RenderFrameResult ManuallyRenderFrame(int timeoutMs = -1)
+        public static RenderFrameResult ManuallyRenderFrame()
         {
-            return NativeMethods.bgfx_render_frame(timeoutMs);
+            return NativeMethods.bgfx_render_frame();
         }
 
         /// <summary>
@@ -329,7 +319,6 @@ namespace BLITTEngine.Foundation
             return new PerfStats(NativeMethods.bgfx_get_stats());
         }
 
-
         /// <summary>
         /// Resets graphics settings and surfaces.
         /// </summary>
@@ -338,60 +327,38 @@ namespace BLITTEngine.Foundation
         /// <param name="flags">Flags used to configure rendering output.</param>
         public static void Reset(int width, int height, ResetFlags flags = ResetFlags.None)
         {
-            Reset(width, height, flags, (TextureFormat)TextureFormatCount);
-        }
-
-        /// <summary>
-        /// Resets graphics settings and surfaces.
-        /// </summary>
-        /// <param name="width">The width of the main window.</param>
-        /// <param name="height">The height of the main window.</param>
-        /// <param name="flags">Flags used to configure rendering output.</param>
-        /// <param name="format">The format of the backbuffer.</param>
-        public static void Reset(int width, int height, ResetFlags flags, TextureFormat format)
-        {
-            NativeMethods.bgfx_reset(width, height, flags, format);
+            NativeMethods.bgfx_reset(width, height, flags);
         }
 
         /// <summary>
         /// Advances to the next frame.
         /// </summary>
-        /// <param name="capture">If <c>true</c> the frame is captured for debugging.</param>
         /// <returns>The current frame number.</returns>
         /// <remarks>
         /// When using a multithreaded renderer, this call
         /// just swaps internal buffers, kicks render thread, and returns. In a
         /// singlethreaded renderer this call does frame rendering.
         /// </remarks>
-        public static int Frame(bool capture = false)
+        public static int Frame()
         {
-            return NativeMethods.bgfx_frame(capture);
+            return NativeMethods.bgfx_frame();
         }
 
         /// <summary>
         /// Initializes the graphics library on the specified adapter.
         /// </summary>
-        /// <param name="settings">Settings that control initialization, or <c>null</c> to use sane defaults.</param>
-        /// <returns><c>true</c> if initialization succeeds; otherwise, <c>false</c>.</returns>
-        public static bool Init(InitSettings settings = null)
+        /// <param name="backend">The backend API to use for rendering.</param>
+        /// <param name="adapter">The adapter on which to create the device.</param>
+        /// <param name="callbackHandler">A set of handlers for various library callbacks.</param>
+        public static void Init(RendererBackend backend = RendererBackend.Default, Adapter adapter = default(Adapter), ICallbackHandler callbackHandler = null)
         {
-            InitSettings.Native native;
-            NativeMethods.bgfx_init_ctor(&native);
-
-            settings = settings ?? new InitSettings();
-            native.Backend = settings.Backend;
-            native.VendorId = (ushort)settings.Adapter.Vendor;
-            native.DeviceId = (ushort)settings.Adapter.DeviceId;
-            native.Debug = (byte)(settings.Debug ? 1 : 0);
-            native.Profiling = (byte)(settings.Profiling ? 1 : 0);
-            native.Format = settings.Format;
-            native.Width = (uint)settings.Width;
-            native.Height = (uint)settings.Height;
-            native.Flags = (uint)settings.ResetFlags;
-            native.MaxFrameLatency = (byte)settings.MaxFrameLatency;
-            native.Callbacks = CallbackShim.CreateShim(settings.CallbackHandler ?? new DefaultCallbackHandler());
-
-            return NativeMethods.bgfx_init(&native);
+            NativeMethods.bgfx_init(
+                backend,
+                (ushort)adapter.Vendor,
+                (ushort)adapter.DeviceId,
+                CallbackShim.CreateShim(callbackHandler),
+                IntPtr.Zero
+            );
         }
 
         /// <summary>
@@ -401,7 +368,7 @@ namespace BLITTEngine.Foundation
         public static RendererBackend[] GetSupportedBackends()
         {
             var types = new RendererBackend[(int)RendererBackend.Default];
-            var count = NativeMethods.bgfx_get_supported_renderers((byte)types.Length, types);
+            var count = NativeMethods.bgfx_get_supported_renderers(types);
 
             return types.Take(count).ToArray();
         }
@@ -413,7 +380,7 @@ namespace BLITTEngine.Foundation
         /// <returns>The friendly name of the specified backend.</returns>
         public static string GetBackendName(RendererBackend backend)
         {
-            return Marshal.PtrToStringAnsi(new IntPtr(NativeMethods.bgfx_get_renderer_name(backend)));
+            return new string(NativeMethods.bgfx_get_renderer_name(backend));
         }
 
         /// <summary>
@@ -439,7 +406,7 @@ namespace BLITTEngine.Foundation
         /// </summary>
         /// <param name="color">The color with which to clear the background.</param>
         /// <param name="smallText"><c>true</c> to use a small font for debug output; <c>false</c> to use normal sized text.</param>
-        public static void DebugTextClear(DebugColor color = DebugColor.Black, bool smallText = false)
+        public static void DebugTextClear(DebugColor color = DebugColor.Transparent, bool smallText = false)
         {
             var attr = (byte)((byte)color << 4);
             NativeMethods.bgfx_dbg_text_clear(attr, smallText);
@@ -450,8 +417,7 @@ namespace BLITTEngine.Foundation
         /// </summary>
         /// <param name="x">The X position, in cells.</param>
         /// <param name="y">The Y position, in cells.</param>
-        /// <param name="foreColor">The foreground color of the text.</param>
-        /// <param name="backColor">The background color of the text.</param>
+        /// <param name="color">The color of the text.</param>
         /// <param name="format">The format of the message.</param>
         /// <param name="args">The arguments with which to format the message.</param>
         public static void DebugTextWrite(int x, int y, DebugColor foreColor, DebugColor backColor, string format, params object[] args)
@@ -464,8 +430,7 @@ namespace BLITTEngine.Foundation
         /// </summary>
         /// <param name="x">The X position, in cells.</param>
         /// <param name="y">The Y position, in cells.</param>
-        /// <param name="foreColor">The foreground color of the text.</param>
-        /// <param name="backColor">The background color of the text.</param>
+        /// <param name="color">The color of the text.</param>
         /// <param name="message">The message to write.</param>
         public static void DebugTextWrite(int x, int y, DebugColor foreColor, DebugColor backColor, string message)
         {
@@ -478,8 +443,7 @@ namespace BLITTEngine.Foundation
         /// </summary>
         /// <param name="x">The X position, in cells.</param>
         /// <param name="y">The Y position, in cells.</param>
-        /// <param name="foreColor">The foreground color of the text.</param>
-        /// <param name="backColor">The background color of the text.</param>
+        /// <param name="color">The color of the text.</param>
         /// <param name="message">The message to write.</param>
         public static void DebugTextWrite(int x, int y, DebugColor foreColor, DebugColor backColor, IntPtr message)
         {
@@ -506,26 +470,11 @@ namespace BLITTEngine.Foundation
         }
 
         /// <summary>
-        /// Draws data directly into the debug text buffer.
-        /// </summary>
-        /// <param name="x">The X position, in cells.</param>
-        /// <param name="y">The Y position, in cells.</param>
-        /// <param name="width">The width of the image to draw.</param>
-        /// <param name="height">The height of the image to draw.</param>
-        /// <param name="data">The image data bytes.</param>
-        /// <param name="pitch">The pitch of each line in the image data.</param>
-        public static void DebugTextImage(int x, int y, int width, int height, byte[] data, int pitch)
-        {
-            fixed (byte* ptr = data)
-                NativeMethods.bgfx_dbg_text_image((ushort)x, (ushort)y, (ushort)width, (ushort)height, new IntPtr(ptr), (ushort)pitch);
-        }
-
-        /// <summary>
         /// Sets the name of a rendering view, for debugging purposes.
         /// </summary>
         /// <param name="id">The index of the view.</param>
         /// <param name="name">The name of the view.</param>
-        public static void SetViewName(ushort id, string name)
+        public static void SetViewName(byte id, string name)
         {
             NativeMethods.bgfx_set_view_name(id, name);
         }
@@ -538,7 +487,7 @@ namespace BLITTEngine.Foundation
         /// <param name="y">The Y coordinate of the viewport.</param>
         /// <param name="width">The width of the viewport, in pixels.</param>
         /// <param name="height">The height of the viewport, in pixels.</param>
-        public static void SetViewRect(ushort id, int x, int y, int width, int height)
+        public static void SetViewRect(byte id, int x, int y, int width, int height)
         {
             NativeMethods.bgfx_set_view_rect(id, (ushort)x, (ushort)y, (ushort)width, (ushort)height);
         }
@@ -550,7 +499,7 @@ namespace BLITTEngine.Foundation
         /// <param name="x">The X coordinate of the viewport.</param>
         /// <param name="y">The Y coordinate of the viewport.</param>
         /// <param name="ratio">The ratio with which to automatically size the viewport.</param>
-        public static void SetViewRect(ushort id, int x, int y, BackbufferRatio ratio)
+        public static void SetViewRect(byte id, int x, int y, BackbufferRatio ratio)
         {
             NativeMethods.bgfx_set_view_rect_auto(id, (ushort)x, (ushort)y, ratio);
         }
@@ -566,7 +515,7 @@ namespace BLITTEngine.Foundation
         /// <remarks>
         /// Set all values to zero to disable the scissor test.
         /// </remarks>
-        public static void SetViewScissor(ushort id, int x, int y, int width, int height)
+        public static void SetViewScissor(byte id, int x, int y, int width, int height)
         {
             NativeMethods.bgfx_set_view_scissor(id, (ushort)x, (ushort)y, (ushort)width, (ushort)height);
         }
@@ -579,7 +528,7 @@ namespace BLITTEngine.Foundation
         /// <param name="colorRgba">The clear color.</param>
         /// <param name="depth">The value to fill the depth buffer.</param>
         /// <param name="stencil">The value to fill the stencil buffer.</param>
-        public static void SetViewClear(ushort id, ClearTargets targets, int colorRgba, float depth = 1.0f, byte stencil = 0)
+        public static void SetViewClear(byte id, ClearTargets targets, int colorRgba, float depth = 1.0f, byte stencil = 0)
         {
             NativeMethods.bgfx_set_view_clear(id, targets, colorRgba, depth, stencil);
         }
@@ -600,7 +549,7 @@ namespace BLITTEngine.Foundation
         /// <param name="rt6">The color palette index for render target 6.</param>
         /// <param name="rt7">The color palette index for render target 7.</param>
         public static void SetViewClear(
-            ushort id,
+            byte id,
             ClearTargets targets,
             float depth,
             byte stencil,
@@ -645,13 +594,13 @@ namespace BLITTEngine.Foundation
         }
 
         /// <summary>
-        /// Sets the sorting mode to use for the given view.
+        /// Enables or disables sequential mode for a view. Sequential mode issues draw calls in the order they are received.
         /// </summary>
         /// <param name="id">The index of the view.</param>
-        /// <param name="mode">The sorting mode to use.</param>
-        public static void SetViewMode(ushort id, ViewMode mode)
+        /// <param name="enabled"><c>true</c> to enable sequential mode; otherwise, <c>false</c>.</param>
+        public static void SetViewSequential(byte id, bool enabled)
         {
-            NativeMethods.bgfx_set_view_mode(id, mode);
+            NativeMethods.bgfx_set_view_seq(id, enabled);
         }
 
         /// <summary>
@@ -660,7 +609,7 @@ namespace BLITTEngine.Foundation
         /// <param name="id">The index of the view.</param>
         /// <param name="view">The 4x4 view transform matrix.</param>
         /// <param name="projection">The 4x4 projection transform matrix.</param>
-        public static void SetViewTransform(ushort id, float* view, float* projection)
+        public static void SetViewTransform(byte id, float* view, float* projection)
         {
             NativeMethods.bgfx_set_view_transform(id, view, projection);
         }
@@ -670,7 +619,7 @@ namespace BLITTEngine.Foundation
         /// </summary>
         /// <param name="id">The index of the view.</param>
         /// <param name="frameBuffer">The frame buffer to set.</param>
-        public static void SetViewFrameBuffer(ushort id, FrameBuffer frameBuffer)
+        public static void SetViewFrameBuffer(byte id, FrameBuffer frameBuffer)
         {
             NativeMethods.bgfx_set_view_frame_buffer(id, frameBuffer.handle);
         }
@@ -724,18 +673,9 @@ namespace BLITTEngine.Foundation
         /// Sets the index buffer to use for drawing primitives.
         /// </summary>
         /// <param name="indexBuffer">The index buffer to set.</param>
-        public static void SetIndexBuffer(IndexBuffer indexBuffer)
-        {
-            NativeMethods.bgfx_set_index_buffer(indexBuffer.handle, 0, -1);
-        }
-
-        /// <summary>
-        /// Sets the index buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="indexBuffer">The index buffer to set.</param>
         /// <param name="firstIndex">The first index in the buffer to use.</param>
         /// <param name="count">The number of indices to pull from the buffer.</param>
-        public static void SetIndexBuffer(IndexBuffer indexBuffer, int firstIndex, int count)
+        public static void SetIndexBuffer(IndexBuffer indexBuffer, int firstIndex = 0, int count = -1)
         {
             NativeMethods.bgfx_set_index_buffer(indexBuffer.handle, firstIndex, count);
         }
@@ -743,32 +683,12 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// Sets the vertex buffer to use for drawing primitives.
         /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
-        /// <param name="vertexBuffer">The vertex buffer to set.</param>
-        public static void SetVertexBuffer(int stream, VertexBuffer vertexBuffer)
-        {
-            NativeMethods.bgfx_set_vertex_buffer((byte)stream, vertexBuffer.handle, 0, -1);
-        }
-
-        /// <summary>
-        /// Sets the vertex buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
         /// <param name="vertexBuffer">The vertex buffer to set.</param>
         /// <param name="firstVertex">The index of the first vertex to use.</param>
         /// <param name="count">The number of vertices to pull from the buffer.</param>
-        public static void SetVertexBuffer(int stream, VertexBuffer vertexBuffer, int firstVertex, int count)
+        public static void SetVertexBuffer(VertexBuffer vertexBuffer, int firstVertex = 0, int count = -1)
         {
-            NativeMethods.bgfx_set_vertex_buffer((byte)stream, vertexBuffer.handle, firstVertex, count);
-        }
-
-        /// <summary>
-        /// Sets the index buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="indexBuffer">The index buffer to set.</param>
-        public static void SetIndexBuffer(DynamicIndexBuffer indexBuffer)
-        {
-            NativeMethods.bgfx_set_dynamic_index_buffer(indexBuffer.handle, 0, -1);
+            NativeMethods.bgfx_set_vertex_buffer(vertexBuffer.handle, firstVertex, count);
         }
 
         /// <summary>
@@ -777,7 +697,7 @@ namespace BLITTEngine.Foundation
         /// <param name="indexBuffer">The index buffer to set.</param>
         /// <param name="firstIndex">The first index in the buffer to use.</param>
         /// <param name="count">The number of indices to pull from the buffer.</param>
-        public static void SetIndexBuffer(DynamicIndexBuffer indexBuffer, int firstIndex, int count)
+        public static void SetIndexBuffer(DynamicIndexBuffer indexBuffer, int firstIndex = 0, int count = -1)
         {
             NativeMethods.bgfx_set_dynamic_index_buffer(indexBuffer.handle, firstIndex, count);
         }
@@ -785,32 +705,11 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// Sets the vertex buffer to use for drawing primitives.
         /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
         /// <param name="vertexBuffer">The vertex buffer to set.</param>
-        public static void SetVertexBuffer(int stream, DynamicVertexBuffer vertexBuffer)
-        {
-            NativeMethods.bgfx_set_dynamic_vertex_buffer((byte)stream, vertexBuffer.handle, 0, -1);
-        }
-
-        /// <summary>
-        /// Sets the vertex buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
-        /// <param name="vertexBuffer">The vertex buffer to set.</param>
-        /// <param name="startVertex">The index of the first vertex to use.</param>
         /// <param name="count">The number of vertices to pull from the buffer.</param>
-        public static void SetVertexBuffer(int stream, DynamicVertexBuffer vertexBuffer, int startVertex, int count)
+        public static void SetVertexBuffer(DynamicVertexBuffer vertexBuffer, int count = -1)
         {
-            NativeMethods.bgfx_set_dynamic_vertex_buffer((byte)stream, vertexBuffer.handle, startVertex, count);
-        }
-
-        /// <summary>
-        /// Sets the index buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="indexBuffer">The index buffer to set.</param>
-        public static void SetIndexBuffer(TransientIndexBuffer indexBuffer)
-        {
-            NativeMethods.bgfx_set_transient_index_buffer(ref indexBuffer, 0, -1);
+            NativeMethods.bgfx_set_dynamic_vertex_buffer(vertexBuffer.handle, count);
         }
 
         /// <summary>
@@ -819,7 +718,7 @@ namespace BLITTEngine.Foundation
         /// <param name="indexBuffer">The index buffer to set.</param>
         /// <param name="firstIndex">The first index in the buffer to use.</param>
         /// <param name="count">The number of indices to pull from the buffer.</param>
-        public static void SetIndexBuffer(TransientIndexBuffer indexBuffer, int firstIndex, int count)
+        public static void SetIndexBuffer(TransientIndexBuffer indexBuffer, int firstIndex = 0, int count = -1)
         {
             NativeMethods.bgfx_set_transient_index_buffer(ref indexBuffer, firstIndex, count);
         }
@@ -827,52 +726,22 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// Sets the vertex buffer to use for drawing primitives.
         /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
-        /// <param name="vertexBuffer">The vertex buffer to set.</param>
-        public static void SetVertexBuffer(int stream, TransientVertexBuffer vertexBuffer)
-        {
-            NativeMethods.bgfx_set_transient_vertex_buffer((byte)stream, ref vertexBuffer, 0, -1);
-        }
-
-        /// <summary>
-        /// Sets the vertex buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
         /// <param name="vertexBuffer">The vertex buffer to set.</param>
         /// <param name="firstVertex">The index of the first vertex to use.</param>
         /// <param name="count">The number of vertices to pull from the buffer.</param>
-        public static void SetVertexBuffer(int stream, TransientVertexBuffer vertexBuffer, int firstVertex, int count)
+        public static void SetVertexBuffer(TransientVertexBuffer vertexBuffer, int firstVertex = 0, int count = -1)
         {
-            NativeMethods.bgfx_set_transient_vertex_buffer((byte)stream, ref vertexBuffer, firstVertex, count);
-        }
-
-        /// <summary>
-        /// Sets the number of auto-generated vertices for use with gl_VertexID.
-        /// </summary>
-        /// <param name="count">The number of auto-generated vertices.</param>
-        public static void SetVertexCount(int count)
-        {
-            NativeMethods.bgfx_set_vertex_count(count);
-        }
-
-        /// <summary>
-        /// Sets the number of auto-generated indices for use with gl_InstanceID.
-        /// </summary>
-        /// <param name="count">The number of auto-generated instances.</param>
-        public static void SetInstanceCount(int count)
-        {
-            NativeMethods.bgfx_set_instance_count(count);
+            NativeMethods.bgfx_set_transient_vertex_buffer(ref vertexBuffer, firstVertex, count);
         }
 
         /// <summary>
         /// Sets instance data to use for drawing primitives.
         /// </summary>
         /// <param name="instanceData">The instance data.</param>
-        /// <param name="start">The starting offset in the buffer.</param>
         /// <param name="count">The number of entries to pull from the buffer.</param>
-        public static void SetInstanceDataBuffer(ref InstanceDataBuffer instanceData, int start = 0, int count = -1)
+        public static void SetInstanceDataBuffer(InstanceDataBuffer instanceData, int count = -1)
         {
-            NativeMethods.bgfx_set_instance_data_buffer(ref instanceData.data, (uint)start, (uint)count);
+            NativeMethods.bgfx_set_instance_data_buffer(instanceData.ptr, (ushort)count);
         }
 
         /// <summary>
@@ -954,16 +823,56 @@ namespace BLITTEngine.Foundation
         }
 
         /// <summary>
+        /// Sets a texture to use for drawing primitives.
+        /// </summary>
+        /// <param name="textureUnit">The texture unit to set.</param>
+        /// <param name="sampler">The sampler uniform.</param>
+        /// <param name="frameBuffer">The frame buffer.</param>
+        /// <param name="attachment">The index of the frame buffer attachment to set as a texture.</param>
+        public static void SetTexture(byte textureUnit, Uniform sampler, FrameBuffer frameBuffer, byte attachment = 0)
+        {
+            NativeMethods.bgfx_set_texture_from_frame_buffer(textureUnit, sampler.handle, frameBuffer.handle, attachment, uint.MaxValue);
+        }
+
+        /// <summary>
+        /// Sets a texture to use for drawing primitives.
+        /// </summary>
+        /// <param name="textureUnit">The texture unit to set.</param>
+        /// <param name="sampler">The sampler uniform.</param>
+        /// <param name="frameBuffer">The frame buffer.</param>
+        /// <param name="attachment">The index of the attachment to set.</param>
+        /// <param name="flags">Sampling flags that override the default flags in the texture itself.</param>
+        public static void SetTexture(byte textureUnit, Uniform sampler, FrameBuffer frameBuffer, byte attachment, TextureFlags flags)
+        {
+            NativeMethods.bgfx_set_texture_from_frame_buffer(textureUnit, sampler.handle, frameBuffer.handle, attachment, (uint)flags);
+        }
+
+        /// <summary>
         /// Sets a texture mip as a compute image.
         /// </summary>
         /// <param name="stage">The buffer stage to set.</param>
+        /// <param name="sampler">The sampler uniform.</param>
         /// <param name="texture">The texture to set.</param>
         /// <param name="mip">The index of the mip level within the texture to set.</param>
         /// <param name="format">The format of the buffer data.</param>
         /// <param name="access">Access control flags.</param>
-        public static void SetComputeImage(byte stage, Texture texture, byte mip, ComputeBufferAccess access, TextureFormat format = TextureFormat.Unknown)
+        public static void SetComputeImage(byte stage, Uniform sampler, Texture texture, byte mip, ComputeBufferAccess access, TextureFormat format = TextureFormat.Unknown)
         {
-            NativeMethods.bgfx_set_image(stage, texture.handle, mip, format, access);
+            NativeMethods.bgfx_set_image(stage, sampler.handle, texture.handle, mip, format, access);
+        }
+
+        /// <summary>
+        /// Sets a frame buffer attachment as a compute image.
+        /// </summary>
+        /// <param name="stage">The buffer stage to set.</param>
+        /// <param name="sampler">The sampler uniform.</param>
+        /// <param name="frameBuffer">The frame buffer.</param>
+        /// <param name="attachment">The attachment index.</param>
+        /// <param name="format">The format of the buffer data.</param>
+        /// <param name="access">Access control flags.</param>
+        public static void SetComputeImage(byte stage, Uniform sampler, FrameBuffer frameBuffer, byte attachment, ComputeBufferAccess access, TextureFormat format = TextureFormat.Unknown)
+        {
+            NativeMethods.bgfx_set_image_from_frame_buffer(stage, sampler.handle, frameBuffer.handle, attachment, format, access);
         }
 
         /// <summary>
@@ -1026,7 +935,7 @@ namespace BLITTEngine.Foundation
         /// </summary>
         /// <param name="id">The index of the view to touch.</param>
         /// <returns>The number of draw calls.</returns>
-        public static int Touch(ushort id)
+        public static int Touch(byte id)
         {
             return NativeMethods.bgfx_touch(id);
         }
@@ -1035,7 +944,7 @@ namespace BLITTEngine.Foundation
         /// Resets all view settings to default.
         /// </summary>
         /// <param name="id">The index of the view to reset.</param>
-        public static void ResetView(ushort id)
+        public static void ResetView(byte id)
         {
             NativeMethods.bgfx_reset_view(id);
         }
@@ -1046,11 +955,10 @@ namespace BLITTEngine.Foundation
         /// <param name="id">The index of the view to submit.</param>
         /// <param name="program">The program with which to render.</param>
         /// <param name="depth">A depth value to use for sorting the batch.</param>
-        /// <param name="preserveState"><c>true</c> to preserve internal draw state after the call.</param>
         /// <returns>The number of draw calls.</returns>
-        public static int Submit(ushort id, Program program, int depth = 0, bool preserveState = false)
+        public static int Submit(byte id, Program program, int depth = 0)
         {
-            return NativeMethods.bgfx_submit(id, program.handle, depth, preserveState);
+            return NativeMethods.bgfx_submit(id, program.handle, depth);
         }
 
         /// <summary>
@@ -1060,11 +968,10 @@ namespace BLITTEngine.Foundation
         /// <param name="program">The program with which to render.</param>
         /// <param name="query">An occlusion query to use as a predicate during rendering.</param>
         /// <param name="depth">A depth value to use for sorting the batch.</param>
-        /// <param name="preserveState"><c>true</c> to preserve internal draw state after the call.</param>
         /// <returns>The number of draw calls.</returns>
-        public static int Submit(ushort id, Program program, OcclusionQuery query, int depth = 0, bool preserveState = false)
+        public static int Submit(byte id, Program program, OcclusionQuery query, int depth = 0)
         {
-            return NativeMethods.bgfx_submit_occlusion_query(id, program.handle, query.handle, depth, preserveState);
+            return NativeMethods.bgfx_submit_occlusion_query(id, program.handle, query.handle, depth);
         }
 
         /// <summary>
@@ -1076,11 +983,10 @@ namespace BLITTEngine.Foundation
         /// <param name="startIndex">The index of the first command to process.</param>
         /// <param name="count">The number of commands to process from the buffer.</param>
         /// <param name="depth">A depth value to use for sorting the batch.</param>
-        /// <param name="preserveState"><c>true</c> to preserve internal draw state after the call.</param>
         /// <returns>The number of draw calls.</returns>
-        public static int Submit(ushort id, Program program, IndirectBuffer indirectBuffer, int startIndex = 0, int count = 1, int depth = 0, bool preserveState = false)
+        public static int Submit(byte id, Program program, IndirectBuffer indirectBuffer, int startIndex = 0, int count = 1, int depth = 0)
         {
-            return NativeMethods.bgfx_submit_indirect(id, program.handle, indirectBuffer.handle, (ushort)startIndex, (ushort)count, depth, preserveState);
+            return NativeMethods.bgfx_submit_indirect(id, program.handle, indirectBuffer.handle, (ushort)startIndex, (ushort)count, depth);
         }
 
         /// <summary>
@@ -1099,11 +1005,11 @@ namespace BLITTEngine.Foundation
         /// <param name="xCount">The size of the job in the first dimension.</param>
         /// <param name="yCount">The size of the job in the second dimension.</param>
         /// <param name="zCount">The size of the job in the third dimension.</param>
-        public static void Dispatch(ushort id, Program program, int xCount = 1, int yCount = 1, int zCount = 1)
+        public static void Dispatch(byte id, Program program, int xCount = 1, int yCount = 1, int zCount = 1)
         {
             // TODO: unused
             byte unused = 0;
-            NativeMethods.bgfx_dispatch(id, program.handle, (uint)xCount, (uint)yCount, (uint)zCount, unused);
+            NativeMethods.bgfx_dispatch(id, program.handle, (ushort)xCount, (ushort)yCount, (ushort)zCount, unused);
         }
 
         /// <summary>
@@ -1114,7 +1020,7 @@ namespace BLITTEngine.Foundation
         /// <param name="indirectBuffer">The buffer containing drawing commands.</param>
         /// <param name="startIndex">The index of the first command to process.</param>
         /// <param name="count">The number of commands to process from the buffer.</param>
-        public static void Dispatch(ushort id, Program program, IndirectBuffer indirectBuffer, int startIndex = 0, int count = 1)
+        public static void Dispatch(byte id, Program program, IndirectBuffer indirectBuffer, int startIndex = 0, int count = 1)
         {
             // TODO: unused
             byte unused = 0;
@@ -1125,19 +1031,9 @@ namespace BLITTEngine.Foundation
         /// Requests that a screenshot be saved. The ScreenshotTaken event will be fired to save the result.
         /// </summary>
         /// <param name="filePath">The file path that will be passed to the callback event.</param>
-        public static void RequestScreenShot(string filePath)
+        public static void SaveScreenShot(string filePath)
         {
-            NativeMethods.bgfx_request_screen_shot(ushort.MaxValue, filePath);
-        }
-
-        /// <summary>
-        /// Requests that a screenshot be saved. The ScreenshotTaken event will be fired to save the result.
-        /// </summary>
-        /// <param name="frameBuffer">The frame buffer to save.</param>
-        /// <param name="filePath">The file path that will be passed to the callback event.</param>
-        public static void RequestScreenShot(FrameBuffer frameBuffer, string filePath)
-        {
-            NativeMethods.bgfx_request_screen_shot(frameBuffer.handle, filePath);
+            NativeMethods.bgfx_save_screen_shot(filePath);
         }
 
         /// <summary>
@@ -1177,158 +1073,6 @@ namespace BLITTEngine.Foundation
         {
             NativeMethods.bgfx_set_stencil((uint)frontFace, (uint)backFace);
         }
-
-        /// <summary>
-        /// Begins submission of commands via an encoder on this thread.
-        /// </summary>
-        /// <returns>An encoder instance that can be used to submit commands.</returns>
-        public static Encoder Begin()
-        {
-            return new Encoder(NativeMethods.bgfx_begin());
-        }
-
-        static readonly int TextureFormatCount = Enum.GetValues(typeof(TextureFormat)).Length;
-
-        class DefaultCallbackHandler : ICallbackHandler
-        {
-            public void ProfilerBegin(string name, int color, string filePath, int line) { }
-            public void ProfilerEnd() { }
-            public void CaptureStarted(int width, int height, int pitch, TextureFormat format, bool flipVertical) { }
-            public void CaptureFrame(IntPtr data, int size) { }
-            public void CaptureFinished() { }
-            public int GetCachedSize(long id) { return 0; }
-            public bool GetCacheEntry(long id, IntPtr data, int size) { return false; }
-            public void SetCacheEntry(long id, IntPtr data, int size) { }
-            public void SaveScreenShot(string path, int width, int height, int pitch, IntPtr data, int size, bool flipVertical) { }
-
-            public void ReportDebug(string fileName, int line, string format, IntPtr args)
-            {
-                sbyte* buffer = stackalloc sbyte[1024];
-                NativeMethods.bgfx_vsnprintf(buffer, new IntPtr(1024), format, args);
-                Debug.Write(Marshal.PtrToStringAnsi(new IntPtr(buffer)));
-            }
-
-            public void ReportError(string fileName, int line, ErrorType errorType, string message)
-            {
-                if (errorType == ErrorType.DebugCheck)
-                    Debug.Write(message);
-                else
-                {
-                    Debug.Write(string.Format("{0}: {1}", errorType, message));
-                    Debugger.Break();
-                    Environment.Exit(1);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Contains various settings used to initialize the library.
-    /// </summary>
-    public class InitSettings
-    {
-        /// <summary>
-        /// The backend API to use for rendering.
-        /// </summary>
-        public RendererBackend Backend { get; set; }
-
-        /// <summary>
-        /// The adapter on which to create the device.
-        /// </summary>
-        public Adapter Adapter { get; set; }
-
-        /// <summary>
-        /// Enable debugging with the device.
-        /// </summary>
-        public bool Debug { get; set; }
-
-        /// <summary>
-        /// Enable profling with the device.
-        /// </summary>
-        public bool Profiling { get; set; }
-
-        /// <summary>
-        /// The initial texture format of the screen.
-        /// </summary>
-        public TextureFormat Format { get; set; }
-
-        /// <summary>
-        /// The initial width of the screen.
-        /// </summary>
-        public int Width { get; set; }
-
-        /// <summary>
-        /// The initial height of the screen.
-        /// </summary>
-        public int Height { get; set; }
-
-        /// <summary>
-        /// Various flags that control creation of the device.
-        /// </summary>
-        public ResetFlags ResetFlags { get; set; }
-
-        /// <summary>
-        /// The maximum allowed frame latency, or zero if you don't care.
-        /// </summary>
-        public int MaxFrameLatency { get; set; }
-
-        /// <summary>
-        /// A set of handlers for various library callbacks.
-        /// </summary>
-        public ICallbackHandler CallbackHandler { get; set; }
-
-        /// <summary>
-        /// Initializes a new intance of the <see cref="InitSettings"/> class.
-        /// </summary>
-        unsafe public InitSettings()
-        {
-            Native native;
-            NativeMethods.bgfx_init_ctor(&native);
-
-            Backend = native.Backend;
-            Adapter = new Adapter((Vendor)native.VendorId, native.DeviceId);
-            Debug = native.Debug != 0;
-            Profiling = native.Profiling != 0;
-            Format = native.Format;
-            Width = (int)native.Width;
-            Height = (int)native.Height;
-            ResetFlags = (ResetFlags)native.Flags;
-            MaxFrameLatency = native.MaxFrameLatency;
-        }
-
-        /// <summary>
-        /// Initializes a new intance of the <see cref="InitSettings"/> class.
-        /// </summary>
-        /// <param name="width">The initial width of the screen.</param>
-        /// <param name="height">The initial height of the screen.</param>
-        /// <param name="resetFlags">Various flags that control creation of the device.</param>
-        public InitSettings(int width, int height, ResetFlags resetFlags = ResetFlags.None)
-            : this()
-        {
-
-            Width = width;
-            Height = height;
-            ResetFlags = resetFlags;
-        }
-
-        internal struct Native
-        {
-            public RendererBackend Backend;
-            public ushort VendorId;
-            public ushort DeviceId;
-            public byte Debug;
-            public byte Profiling;
-            public TextureFormat Format;
-            public uint Width;
-            public uint Height;
-            public uint Flags;
-            public byte MaxFrameLatency;
-            public ushort MaxEncoders;
-            public uint TransientVbSize;
-            public uint TransientIbSize;
-            public IntPtr Callbacks;
-            public IntPtr Allocator;
-        }
     }
 
     /// <summary>
@@ -1359,11 +1103,6 @@ namespace BLITTEngine.Foundation
         public bool IsCubeMap { get; private set; }
 
         /// <summary>
-        /// The number of texture array layers (for 2D or cube textures).
-        /// </summary>
-        public int ArrayLayers { get; private set; }
-
-        /// <summary>
         /// The number of mip levels in the texture.
         /// </summary>
         public int MipLevels { get; private set; }
@@ -1383,14 +1122,13 @@ namespace BLITTEngine.Foundation
         /// </summary>
         public TextureFormat Format { get; private set; }
 
-        internal Texture(ushort handle, ref TextureInfo info)
+        Texture(ushort handle, ref TextureInfo info)
         {
             this.handle = handle;
 
             Width = info.Width;
             Height = info.Height;
             Depth = info.Depth;
-            ArrayLayers = info.Layers;
             MipLevels = info.MipCount;
             BitsPerPixel = info.BitsPerPixel;
             SizeInBytes = info.StorageSize;
@@ -1424,20 +1162,19 @@ namespace BLITTEngine.Foundation
         /// </summary>
         /// <param name="width">The width of the texture.</param>
         /// <param name="height">The height of the texture.</param>
-        /// <param name="hasMips">Indicates that texture contains full mip-map chain.</param>
-        /// <param name="arrayLayers">Number of layers in texture array. Must be 1 if Texture2DArray caps flag not set.</param>
+        /// <param name="mipCount">The number of mip levels.</param>
         /// <param name="format">The format of the texture data.</param>
         /// <param name="flags">Flags that control texture behavior.</param>
         /// <param name="memory">If not <c>null</c>, contains the texture's image data.</param>
         /// <returns>
         /// The newly created texture handle.
         /// </returns>
-        public static Texture Create2D(int width, int height, bool hasMips, int arrayLayers, TextureFormat format, TextureFlags flags = TextureFlags.None, MemoryBlock? memory = null)
+        public static Texture Create2D(int width, int height, int mipCount, TextureFormat format, TextureFlags flags = TextureFlags.None, MemoryBlock? memory = null)
         {
             var info = new TextureInfo();
-            NativeMethods.bgfx_calc_texture_size(ref info, (ushort)width, (ushort)height, 1, false, hasMips, (ushort)arrayLayers, format);
+            NativeMethods.bgfx_calc_texture_size(ref info, (ushort)width, (ushort)height, 1, false, (byte)mipCount, format);
 
-            var handle = NativeMethods.bgfx_create_texture_2d(info.Width, info.Height, hasMips, (ushort)arrayLayers, format, flags, memory == null ? null : memory.Value.ptr);
+            var handle = NativeMethods.bgfx_create_texture_2d(info.Width, info.Height, info.MipCount, format, flags, memory == null ? null : memory.Value.ptr);
             return new Texture(handle, ref info);
         }
 
@@ -1445,22 +1182,21 @@ namespace BLITTEngine.Foundation
         /// Creates a new 2D texture that scales with backbuffer size.
         /// </summary>
         /// <param name="ratio">The amount to scale when the backbuffer resizes.</param>
-        /// <param name="hasMips">Indicates that texture contains full mip-map chain.</param>
-        /// <param name="arrayLayers">Number of layers in texture array. Must be 1 if Texture2DArray caps flag not set.</param>
+        /// <param name="mipCount">The number of mip levels.</param>
         /// <param name="format">The format of the texture data.</param>
         /// <param name="flags">Flags that control texture behavior.</param>
         /// <returns>
         /// The newly created texture handle.
         /// </returns>
-        public static Texture Create2D(BackbufferRatio ratio, bool hasMips, int arrayLayers, TextureFormat format, TextureFlags flags = TextureFlags.None)
+        public static Texture Create2D(BackbufferRatio ratio, int mipCount, TextureFormat format, TextureFlags flags = TextureFlags.None)
         {
             var info = new TextureInfo
             {
                 Format = format,
-                Layers = (ushort)arrayLayers
+                MipCount = (byte)mipCount
             };
 
-            var handle = NativeMethods.bgfx_create_texture_2d_scaled(ratio, hasMips, (ushort)arrayLayers, format, flags);
+            var handle = NativeMethods.bgfx_create_texture_2d_scaled(ratio, info.MipCount, format, flags);
             return new Texture(handle, ref info);
         }
 
@@ -1470,17 +1206,17 @@ namespace BLITTEngine.Foundation
         /// <param name="width">The width of the texture.</param>
         /// <param name="height">The height of the texture.</param>
         /// <param name="depth">The depth of the texture.</param>
-        /// <param name="hasMips">Indicates that texture contains full mip-map chain.</param>
+        /// <param name="mipCount">The number of mip levels.</param>
         /// <param name="format">The format of the texture data.</param>
         /// <param name="flags">Flags that control texture behavior.</param>
         /// <param name="memory">If not <c>null</c>, contains the texture's image data.</param>
         /// <returns>The newly created texture handle.</returns>
-        public static Texture Create3D(int width, int height, int depth, bool hasMips, TextureFormat format, TextureFlags flags = TextureFlags.None, MemoryBlock? memory = null)
+        public static Texture Create3D(int width, int height, int depth, int mipCount, TextureFormat format, TextureFlags flags = TextureFlags.None, MemoryBlock? memory = null)
         {
             var info = new TextureInfo();
-            NativeMethods.bgfx_calc_texture_size(ref info, (ushort)width, (ushort)height, (ushort)depth, false, hasMips, 1, format);
+            NativeMethods.bgfx_calc_texture_size(ref info, (ushort)width, (ushort)height, (ushort)depth, false, (byte)mipCount, format);
 
-            var handle = NativeMethods.bgfx_create_texture_3d(info.Width, info.Height, info.Depth, hasMips, format, flags, memory == null ? null : memory.Value.ptr);
+            var handle = NativeMethods.bgfx_create_texture_3d(info.Width, info.Height, info.Depth, info.MipCount, format, flags, memory == null ? null : memory.Value.ptr);
             return new Texture(handle, ref info);
         }
 
@@ -1488,35 +1224,20 @@ namespace BLITTEngine.Foundation
         /// Creates a new cube texture.
         /// </summary>
         /// <param name="size">The size of each cube face.</param>
-        /// <param name="hasMips">Indicates that texture contains full mip-map chain.</param>
-        /// <param name="arrayLayers">Number of layers in texture array. Must be 1 if Texture2DArray caps flag not set.</param>
+        /// <param name="mipCount">The number of mip levels.</param>
         /// <param name="format">The format of the texture data.</param>
         /// <param name="flags">Flags that control texture behavior.</param>
         /// <param name="memory">If not <c>null</c>, contains the texture's image data.</param>
         /// <returns>
         /// The newly created texture handle.
         /// </returns>
-        public static Texture CreateCube(int size, bool hasMips, int arrayLayers, TextureFormat format, TextureFlags flags = TextureFlags.None, MemoryBlock? memory = null)
+        public static Texture CreateCube(int size, int mipCount, TextureFormat format, TextureFlags flags = TextureFlags.None, MemoryBlock? memory = null)
         {
             var info = new TextureInfo();
-            NativeMethods.bgfx_calc_texture_size(ref info, (ushort)size, (ushort)size, 1, true, hasMips, (ushort)arrayLayers, format);
+            NativeMethods.bgfx_calc_texture_size(ref info, (ushort)size, (ushort)size, 1, true, (byte)mipCount, format);
 
-            var handle = NativeMethods.bgfx_create_texture_cube(info.Width, hasMips, (ushort)arrayLayers, format, flags, memory == null ? null : memory.Value.ptr);
+            var handle = NativeMethods.bgfx_create_texture_cube(info.Width, info.MipCount, format, flags, memory == null ? null : memory.Value.ptr);
             return new Texture(handle, ref info);
-        }
-
-        /// <summary>
-        /// Checks whether a texture with the given parameters would be considered valid.
-        /// </summary>
-        /// <param name="depth">The depth of the texture.</param>
-        /// <param name="isCube"><c>true</c> if the texture contains a cubemap.</param>
-        /// <param name="arrayLayers">Number of layers in texture array.</param>
-        /// <param name="format">The format of the texture data.</param>
-        /// <param name="flags">Flags that control texture behavior.</param>
-        /// <returns></returns>
-        public static bool IsValid(int depth, bool isCube, int arrayLayers, TextureFormat format, TextureFlags flags = TextureFlags.None)
-        {
-            return NativeMethods.bgfx_is_texture_valid((ushort)depth, isCube, (ushort)arrayLayers, format, flags);
         }
 
         /// <summary>
@@ -1528,18 +1249,8 @@ namespace BLITTEngine.Foundation
         }
 
         /// <summary>
-        /// Sets the name of the texture, for debug display purposes.
-        /// </summary>
-        /// <param name="name">The name of the texture.</param>
-        public void SetName(string name)
-        {
-            NativeMethods.bgfx_set_texture_name(handle, name, int.MaxValue);
-        }
-
-        /// <summary>
         /// Updates the data in a 2D texture.
         /// </summary>
-        /// <param name="arrayLayer">The layer in a texture array to update.</param>
         /// <param name="mipLevel">The mip level.</param>
         /// <param name="x">The X coordinate of the rectangle to update.</param>
         /// <param name="y">The Y coordinate of the rectangle to update.</param>
@@ -1547,9 +1258,9 @@ namespace BLITTEngine.Foundation
         /// <param name="height">The height of the rectangle to update.</param>
         /// <param name="memory">The new image data.</param>
         /// <param name="pitch">The pitch of the image data.</param>
-        public void Update2D(int arrayLayer, int mipLevel, int x, int y, int width, int height, MemoryBlock memory, int pitch)
+        public void Update2D(int mipLevel, int x, int y, int width, int height, MemoryBlock memory, int pitch)
         {
-            NativeMethods.bgfx_update_texture_2d(handle, (ushort)arrayLayer, (byte)mipLevel, (ushort)x, (ushort)y, (ushort)width, (ushort)height, memory.ptr, (ushort)pitch);
+            NativeMethods.bgfx_update_texture_2d(handle, (byte)mipLevel, (ushort)x, (ushort)y, (ushort)width, (ushort)height, memory.ptr, (ushort)pitch);
         }
 
         /// <summary>
@@ -1572,7 +1283,6 @@ namespace BLITTEngine.Foundation
         /// Updates the data in a cube texture.
         /// </summary>
         /// <param name="face">The cube map face to update.</param>
-        /// <param name="arrayLayer">The layer in a texture array to update.</param>
         /// <param name="mipLevel">The mip level.</param>
         /// <param name="x">The X coordinate of the rectangle to update.</param>
         /// <param name="y">The Y coordinate of the rectangle to update.</param>
@@ -1580,9 +1290,9 @@ namespace BLITTEngine.Foundation
         /// <param name="height">The height of the rectangle to update.</param>
         /// <param name="memory">The new image data.</param>
         /// <param name="pitch">The pitch of the image data.</param>
-        public void UpdateCube(CubeMapFace face, int arrayLayer, int mipLevel, int x, int y, int width, int height, MemoryBlock memory, int pitch)
+        public void UpdateCube(CubeMapFace face, int mipLevel, int x, int y, int width, int height, MemoryBlock memory, int pitch)
         {
-            NativeMethods.bgfx_update_texture_cube(handle, face, (ushort)arrayLayer, (byte)mipLevel, (ushort)x, (ushort)y, (ushort)width, (ushort)height, memory.ptr, (ushort)pitch);
+            NativeMethods.bgfx_update_texture_cube(handle, face, (byte)mipLevel, (ushort)x, (ushort)y, (ushort)width, (ushort)height, memory.ptr, (ushort)pitch);
         }
 
         /// <summary>
@@ -1597,7 +1307,7 @@ namespace BLITTEngine.Foundation
         /// <param name="width">The width of the region to blit.</param>
         /// <param name="height">The height of the region to blit.</param>
         /// <remarks>The destination texture must be created with the <see cref="TextureFlags.BlitDestination"/> flag.</remarks>
-        public void BlitTo(ushort viewId, Texture dest, int destX, int destY, int sourceX = 0, int sourceY = 0,
+        public void BlitTo(byte viewId, Texture dest, int destX, int destY, int sourceX = 0, int sourceY = 0,
                             int width = ushort.MaxValue, int height = ushort.MaxValue)
         {
             BlitTo(viewId, dest, 0, destX, destY, 0, 0, sourceX, sourceY, 0, width, height, 0);
@@ -1620,7 +1330,7 @@ namespace BLITTEngine.Foundation
         /// <param name="height">The height of the region to blit.</param>
         /// <param name="depth">The depth of the region to blit.</param>
         /// <remarks>The destination texture must be created with the <see cref="TextureFlags.BlitDestination"/> flag.</remarks>
-        public void BlitTo(ushort viewId, Texture dest, int destMip, int destX, int destY, int destZ,
+        public void BlitTo(byte viewId, Texture dest, int destMip, int destX, int destY, int destZ,
                             int sourceMip = 0, int sourceX = 0, int sourceY = 0, int sourceZ = 0,
                             int width = ushort.MaxValue, int height = ushort.MaxValue, int depth = ushort.MaxValue)
         {
@@ -1629,60 +1339,13 @@ namespace BLITTEngine.Foundation
         }
 
         /// <summary>
-        /// Blits the contents of the texture to another texture.
-        /// </summary>
-        /// <param name="encoder">The encoder used for threaded command submission.</param>
-        /// <param name="viewId">The view in which the blit will be ordered.</param>
-        /// <param name="dest">The destination texture.</param>
-        /// <param name="destX">The destination X position.</param>
-        /// <param name="destY">The destination Y position.</param>
-        /// <param name="sourceX">The source X position.</param>
-        /// <param name="sourceY">The source Y position.</param>
-        /// <param name="width">The width of the region to blit.</param>
-        /// <param name="height">The height of the region to blit.</param>
-        /// <remarks>The destination texture must be created with the <see cref="TextureFlags.BlitDestination"/> flag.</remarks>
-        public void BlitTo(Encoder encoder, ushort viewId, Texture dest, int destX, int destY, int sourceX = 0, int sourceY = 0,
-                            int width = ushort.MaxValue, int height = ushort.MaxValue)
-        {
-            BlitTo(encoder, viewId, dest, 0, destX, destY, 0, 0, sourceX, sourceY, 0, width, height, 0);
-        }
-
-        /// <summary>
-        /// Blits the contents of the texture to another texture.
-        /// </summary>
-        /// <param name="encoder">The encoder used for threaded command submission.</param>
-        /// <param name="viewId">The view in which the blit will be ordered.</param>
-        /// <param name="dest">The destination texture.</param>
-        /// <param name="destMip">The destination mip level.</param>
-        /// <param name="destX">The destination X position.</param>
-        /// <param name="destY">The destination Y position.</param>
-        /// <param name="destZ">The destination Z position.</param>
-        /// <param name="sourceMip">The source mip level.</param>
-        /// <param name="sourceX">The source X position.</param>
-        /// <param name="sourceY">The source Y position.</param>
-        /// <param name="sourceZ">The source Z position.</param>
-        /// <param name="width">The width of the region to blit.</param>
-        /// <param name="height">The height of the region to blit.</param>
-        /// <param name="depth">The depth of the region to blit.</param>
-        /// <remarks>The destination texture must be created with the <see cref="TextureFlags.BlitDestination"/> flag.</remarks>
-        public void BlitTo(Encoder encoder, ushort viewId, Texture dest, int destMip, int destX, int destY, int destZ,
-                            int sourceMip = 0, int sourceX = 0, int sourceY = 0, int sourceZ = 0,
-                            int width = ushort.MaxValue, int height = ushort.MaxValue, int depth = ushort.MaxValue)
-        {
-            NativeMethods.bgfx_encoder_blit(encoder.ptr, viewId, dest.handle, (byte)destMip, (ushort)destX, (ushort)destY, (ushort)destZ,
-                handle, (byte)sourceMip, (ushort)sourceX, (ushort)sourceY, (ushort)sourceZ, (ushort)width, (ushort)height, (ushort)depth);
-        }
-
-        /// <summary>
         /// Reads the contents of the texture and stores them in memory pointed to by <paramref name="data"/>.
         /// </summary>
         /// <param name="data">The destination for the read image data.</param>
-        /// <param name="mip">The mip level to read.</param>
-        /// <returns>The frame number on which the result will be available.</returns>
         /// <remarks>The texture must have been created with the <see cref="TextureFlags.ReadBack"/> flag.</remarks>
-        public int Read(IntPtr data, int mip)
+        public void Read(IntPtr data)
         {
-            return (int)NativeMethods.bgfx_read_texture(handle, data, (byte)mip);
+            NativeMethods.bgfx_read_texture(handle, data);
         }
 
         /// <summary>
@@ -1717,18 +1380,6 @@ namespace BLITTEngine.Foundation
             MipLevels = mipCount;
             Format = format;
             return NativeMethods.bgfx_override_internal_texture(handle, (ushort)width, (ushort)height, (byte)mipCount, format, flags);
-        }
-
-        /// <summary>
-        /// Returns a direct pointer to the texture memory.
-        /// </summary>
-        /// <returns>
-        /// A pointer to the texture's memory. If result is <see cref="IntPtr.Zero"/> direct access is
-        /// not supported. If the result is -1, the texture is pending creation.
-        /// </returns>
-        public IntPtr GetDirectAccess()
-        {
-            return NativeMethods.bgfx_get_direct_access_ptr(handle);
         }
 
         /// <summary>
@@ -1817,7 +1468,6 @@ namespace BLITTEngine.Foundation
             public ushort Width;
             public ushort Height;
             public ushort Depth;
-            public ushort Layers;
             public byte MipCount;
             public byte BitsPerPixel;
             public bool IsCubeMap;
@@ -1844,7 +1494,7 @@ namespace BLITTEngine.Foundation
         /// </summary>
         /// <param name="backend">The rendering backend with which to associate the attributes.</param>
         /// <returns>This instance, for use in a fluent API.</returns>
-        public VertexLayout Begin(RendererBackend backend = RendererBackend.Noop)
+        public VertexLayout Begin(RendererBackend backend = RendererBackend.Null)
         {
             NativeMethods.bgfx_vertex_decl_begin(ref data, backend);
             return this;
@@ -1907,12 +1557,12 @@ namespace BLITTEngine.Foundation
         public unsafe bool HasAttribute(VertexAttributeUsage attribute)
         {
             fixed (Data* ptr = &data)
-                return ptr->Attributes[(int)attribute] != ushort.MaxValue;
+                return ptr->Attributes[(int)attribute] != 0xff;
         }
 
         internal unsafe struct Data
         {
-            const int MaxAttribCount = 18;
+            const int MaxAttribCount = 16;
 
             public uint Hash;
             public ushort Stride;
@@ -1965,27 +1615,6 @@ namespace BLITTEngine.Foundation
     }
 
     /// <summary>
-    /// Represents a framebuffer attachment.
-    /// </summary>
-    public struct Attachment
-    {
-        /// <summary>
-        /// The attachment texture handle.
-        /// </summary>
-        public Texture Texture;
-
-        /// <summary>
-        /// The texture mip level.
-        /// </summary>
-        public int Mip;
-
-        /// <summary>
-        /// Cube map face or depth layer/slice.
-        /// </summary>
-        public int Layer;
-    }
-
-    /// <summary>
     /// Contains information about the capabilities of the rendering device.
     /// </summary>
     public unsafe struct Capabilities
@@ -2009,35 +1638,11 @@ namespace BLITTEngine.Foundation
         }
 
         /// <summary>
-        /// The maximum number of draw calls in a single frame.
-        /// </summary>
-        public int MaxDrawCalls
-        {
-            get { return (int)data->MaxDrawCalls; }
-        }
-
-        /// <summary>
-        /// The maximum number of texture blits in a single frame.
-        /// </summary>
-        public int MaxBlits
-        {
-            get { return (int)data->MaxBlits; }
-        }
-
-        /// <summary>
         /// The maximum size of a texture, in pixels.
         /// </summary>
         public int MaxTextureSize
         {
-            get { return (int)data->MaxTextureSize; }
-        }
-
-        /// <summary>
-        /// The maximum layers in a texture.
-        /// </summary>
-        public int MaxTextureLayers
-        {
-            get { return (int)data->MaxTextureLayers; }
+            get { return data->MaxTextureSize; }
         }
 
         /// <summary>
@@ -2045,15 +1650,15 @@ namespace BLITTEngine.Foundation
         /// </summary>
         public int MaxViews
         {
-            get { return (int)data->MaxViews; }
+            get { return data->MaxViews; }
         }
 
         /// <summary>
-        /// The maximum number of frame buffers that can be allocated.
+        /// The maximum number of draw calls in a single frame.
         /// </summary>
-        public int MaxFramebuffers
+        public int MaxDrawCalls
         {
-            get { return (int)data->MaxFramebuffers; }
+            get { return data->MaxDrawCalls; }
         }
 
         /// <summary>
@@ -2061,151 +1666,7 @@ namespace BLITTEngine.Foundation
         /// </summary>
         public int MaxFramebufferAttachments
         {
-            get { return (int)data->MaxFramebufferAttachements; }
-        }
-
-        /// <summary>
-        /// The maximum number of programs that can be allocated.
-        /// </summary>
-        public int MaxPrograms
-        {
-            get { return (int)data->MaxPrograms; }
-        }
-
-        /// <summary>
-        /// The maximum number of shaders that can be allocated.
-        /// </summary>
-        public int MaxShaders
-        {
-            get { return (int)data->MaxShaders; }
-        }
-
-        /// <summary>
-        /// The maximum number of textures that can be allocated.
-        /// </summary>
-        public int MaxTextures
-        {
-            get { return (int)data->MaxTextures; }
-        }
-
-        /// <summary>
-        /// The maximum number of texture samplers that can be allocated.
-        /// </summary>
-        public int MaxTextureSamplers
-        {
-            get { return (int)data->MaxTextureSamplers; }
-        }
-
-        /// <summary>
-        /// The maximum number of compute bindings that can be allocated.
-        /// </summary>
-        public int MaxComputeBindings
-        {
-            get { return (int)data->MaxComputeBindings; }
-        }
-
-        /// <summary>
-        /// The maximum number of vertex declarations that can be allocated.
-        /// </summary>
-        public int MaxVertexDecls
-        {
-            get { return (int)data->MaxVertexDecls; }
-        }
-
-        /// <summary>
-        /// The maximum number of vertex streams that can be used.
-        /// </summary>
-        public int MaxVertexStreams
-        {
-            get { return (int)data->MaxVertexStreams; }
-        }
-
-        /// <summary>
-        /// The maximum number of index buffers that can be allocated.
-        /// </summary>
-        public int MaxIndexBuffers
-        {
-            get { return (int)data->MaxIndexBuffers; }
-        }
-
-        /// <summary>
-        /// The maximum number of vertex buffers that can be allocated.
-        /// </summary>
-        public int MaxVertexBuffers
-        {
-            get { return (int)data->MaxVertexBuffers; }
-        }
-
-        /// <summary>
-        /// The maximum number of dynamic index buffers that can be allocated.
-        /// </summary>
-        public int MaxDynamicIndexBuffers
-        {
-            get { return (int)data->MaxDynamicIndexBuffers; }
-        }
-
-        /// <summary>
-        /// The maximum number of dynamic vertex buffers that can be allocated.
-        /// </summary>
-        public int MaxDynamicVertexBuffers
-        {
-            get { return (int)data->MaxDynamicVertexBuffers; }
-        }
-
-        /// <summary>
-        /// The maximum number of uniforms that can be used.
-        /// </summary>
-        public int MaxUniforms
-        {
-            get { return (int)data->MaxUniforms; }
-        }
-
-        /// <summary>
-        /// The maximum number of occlusion queries that can be used.
-        /// </summary>
-        public int MaxOcclusionQueries
-        {
-            get { return (int)data->MaxOcclusionQueries; }
-        }
-
-        /// <summary>
-        /// The maximum number of encoder threads.
-        /// </summary>
-        public int MaxEncoders
-        {
-            get { return (int)data->MaxEncoders; }
-        }
-
-        /// <summary>
-        /// The amount of transient vertex buffer space reserved.
-        /// </summary>
-        public int TransientVertexBufferSize
-        {
-            get { return (int)data->TransientVbSize; }
-        }
-
-        /// <summary>
-        /// The amount of transient index buffer space reserved.
-        /// </summary>
-        public int TransientIndexBufferSize
-        {
-            get { return (int)data->TransientIbSize; }
-        }
-
-        /// <summary>
-        /// Indicates whether depth coordinates in NDC range from -1 to 1 (true) or 0 to 1 (false).
-        /// </summary>
-        public bool HomogeneousDepth
-        {
-            get { return data->HomogeneousDepth != 0; }
-        }
-
-        /// <summary>
-        /// Indicates whether the coordinate system origin is at the bottom left or top left.
-        /// </summary>
-        public bool OriginBottomLeft
-        {
-            get { return data->OriginBottomLeft != 0; }
+            get { return data->MaxFramebufferAttachements; }
         }
 
         /// <summary>
@@ -2222,11 +1683,6 @@ namespace BLITTEngine.Foundation
         public AdapterCollection Adapters
         {
             get { return new AdapterCollection(data->GPUs, data->GPUCount); }
-        }
-
-        static Capabilities()
-        {
-            Debug.Assert(Caps.TextureFormatCount == Enum.GetValues(typeof(TextureFormat)).Length);
         }
 
         internal Capabilities(Caps* data)
@@ -2356,43 +1812,20 @@ namespace BLITTEngine.Foundation
 #pragma warning disable 649
         internal unsafe struct Caps
         {
-            public const int TextureFormatCount = 85;
+            const int TextureFormatCount = 48;
 
             public RendererBackend Backend;
             public DeviceFeatures Supported;
+            public ushort MaxTextureSize;
+            public ushort MaxViews;
+            public ushort MaxDrawCalls;
+            public byte MaxFramebufferAttachements;
+            public byte GPUCount;
             public ushort VendorId;
             public ushort DeviceId;
-            public byte HomogeneousDepth;
-            public byte OriginBottomLeft;
-            public byte GPUCount;
 
             public fixed ushort GPUs[8];
-
-            public uint MaxDrawCalls;
-            public uint MaxBlits;
-            public uint MaxTextureSize;
-            public uint MaxTextureLayers;
-            public uint MaxViews;
-            public uint MaxFramebuffers;
-            public uint MaxFramebufferAttachements;
-            public uint MaxPrograms;
-            public uint MaxShaders;
-            public uint MaxTextures;
-            public uint MaxTextureSamplers;
-            public uint MaxComputeBindings;
-            public uint MaxVertexDecls;
-            public uint MaxVertexStreams;
-            public uint MaxIndexBuffers;
-            public uint MaxVertexBuffers;
-            public uint MaxDynamicIndexBuffers;
-            public uint MaxDynamicVertexBuffers;
-            public uint MaxUniforms;
-            public uint MaxOcclusionQueries;
-            public uint MaxEncoders;
-            public uint TransientVbSize;
-            public uint TransientIbSize;
-
-            public fixed ushort Formats[TextureFormatCount];
+            public fixed byte Formats[TextureFormatCount];
         }
 #pragma warning restore 649
     }
@@ -2650,577 +2083,6 @@ namespace BLITTEngine.Foundation
     }
 
     /// <summary>
-    /// An interface for encoding a list of commands from multiple threads.
-    /// Dispose of the encoder to finish submitting calls from the current thread.
-    /// </summary>
-    public unsafe struct Encoder : IDisposable, IEquatable<Encoder>
-    {
-        internal readonly IntPtr ptr;
-
-        internal Encoder(IntPtr ptr)
-        {
-            this.ptr = ptr;
-        }
-
-        /// <summary>
-        /// Sets a marker that can be used for debugging purposes.
-        /// </summary>
-        /// <param name="marker">The user-defined name of the marker.</param>
-        public void SetDebugMarker(string marker)
-        {
-            NativeMethods.bgfx_encoder_set_marker(ptr, marker);
-        }
-
-        /// <summary>
-        /// Set rendering states used to draw primitives.
-        /// </summary>
-        /// <param name="state">The set of states to set.</param>
-        public void SetRenderState(RenderState state)
-        {
-            NativeMethods.bgfx_encoder_set_state(ptr, (ulong)state, 0);
-        }
-
-        /// <summary>
-        /// Set rendering states used to draw primitives.
-        /// </summary>
-        /// <param name="state">The set of states to set.</param>
-        /// <param name="colorRgba">The color used for "factor" blending modes.</param>
-        public void SetRenderState(RenderState state, int colorRgba)
-        {
-            NativeMethods.bgfx_encoder_set_state(ptr, (ulong)state, colorRgba);
-        }
-
-        /// <summary>
-        /// Sets stencil test state.
-        /// </summary>
-        /// <param name="frontFace">The stencil state to use for front faces.</param>
-        public void SetStencil(StencilFlags frontFace)
-        {
-            SetStencil(frontFace, StencilFlags.None);
-        }
-
-        /// <summary>
-        /// Sets stencil test state.
-        /// </summary>
-        /// <param name="frontFace">The stencil state to use for front faces.</param>
-        /// <param name="backFace">The stencil state to use for back faces.</param>
-        public void SetStencil(StencilFlags frontFace, StencilFlags backFace)
-        {
-            NativeMethods.bgfx_encoder_set_stencil(ptr, (uint)frontFace, (uint)backFace);
-        }
-
-        /// <summary>
-        /// Sets the scissor rectangle to use for clipping primitives.
-        /// </summary>
-        /// <param name="x">The X coordinate of the scissor rectangle.</param>
-        /// <param name="y">The Y coordinate of the scissor rectangle.</param>
-        /// <param name="width">The width of the rectangle.</param>
-        /// <param name="height">The height of the rectangle.</param>
-        /// <returns>
-        /// An index into the scissor cache to allow reusing the rectangle in other calls.
-        /// </returns>
-        public int SetScissor(int x, int y, int width, int height)
-        {
-            return NativeMethods.bgfx_encoder_set_scissor(ptr, (ushort)x, (ushort)y, (ushort)width, (ushort)height);
-        }
-
-        /// <summary>
-        /// Sets a scissor rectangle from the cache.
-        /// </summary>
-        /// <param name="cacheIndex">The index of the cached scissor rectangle, or -1 to unset.</param>
-        public void SetScissor(int cacheIndex = -1)
-        {
-            NativeMethods.bgfx_encoder_set_scissor_cached(ptr, (ushort)cacheIndex);
-        }
-
-        /// <summary>
-        /// Sets the model transform to use for drawing primitives.
-        /// </summary>
-        /// <param name="matrix">A pointer to one or more matrices to set.</param>
-        /// <param name="count">The number of matrices in the array.</param>
-        /// <returns>An index into the matrix cache to allow reusing the matrix in other calls.</returns>
-        public int SetTransform(float* matrix, int count = 1)
-        {
-            return NativeMethods.bgfx_encoder_set_transform(ptr, matrix, (ushort)count);
-        }
-
-        /// <summary>
-        /// Sets a model transform from the cache.
-        /// </summary>
-        /// <param name="cacheIndex">The index of the cached matrix.</param>
-        /// <param name="count">The number of matrices to set from the cache.</param>
-        public void SetTransform(int cacheIndex, int count = 1)
-        {
-            NativeMethods.bgfx_encoder_set_transform_cached(ptr, cacheIndex, (ushort)count);
-        }
-
-        /// <summary>
-        /// Sets the value of a uniform parameter.
-        /// </summary>
-        /// <param name="uniform">The uniform to set.</param>
-        /// <param name="value">A pointer to the uniform's data.</param>
-        /// <param name="arraySize">The size of the data array, if the uniform is an array.</param>
-        public void SetUniform(Uniform uniform, float value, int arraySize = 1)
-        {
-            NativeMethods.bgfx_encoder_set_uniform(ptr, uniform.handle, &value, (ushort)arraySize);
-        }
-
-        /// <summary>
-        /// Sets the value of a uniform parameter.
-        /// </summary>
-        /// <param name="uniform">The uniform to set.</param>
-        /// <param name="value">A pointer to the uniform's data.</param>
-        /// <param name="arraySize">The size of the data array, if the uniform is an array.</param>
-        public void SetUniform(Uniform uniform, void* value, int arraySize = 1)
-        {
-            NativeMethods.bgfx_encoder_set_uniform(ptr, uniform.handle, value, (ushort)arraySize);
-        }
-
-        /// <summary>
-        /// Sets the value of a uniform parameter.
-        /// </summary>
-        /// <param name="uniform">The uniform to set.</param>
-        /// <param name="value">A pointer to the uniform's data.</param>
-        /// <param name="arraySize">The size of the data array, if the uniform is an array.</param>
-        public void SetUniform(Uniform uniform, IntPtr value, int arraySize = 1)
-        {
-            NativeMethods.bgfx_encoder_set_uniform(ptr, uniform.handle, value.ToPointer(), (ushort)arraySize);
-        }
-
-        /// <summary>
-        /// Sets a texture to use for drawing primitives.
-        /// </summary>
-        /// <param name="textureUnit">The texture unit to set.</param>
-        /// <param name="sampler">The sampler uniform.</param>
-        /// <param name="texture">The texture to set.</param>
-        public void SetTexture(byte textureUnit, Uniform sampler, Texture texture)
-        {
-            NativeMethods.bgfx_encoder_set_texture(ptr, textureUnit, sampler.handle, texture.handle, uint.MaxValue);
-        }
-
-        /// <summary>
-        /// Sets a texture to use for drawing primitives.
-        /// </summary>
-        /// <param name="textureUnit">The texture unit to set.</param>
-        /// <param name="sampler">The sampler uniform.</param>
-        /// <param name="texture">The texture to set.</param>
-        /// <param name="flags">Sampling flags that override the default flags in the texture itself.</param>
-        public void SetTexture(byte textureUnit, Uniform sampler, Texture texture, TextureFlags flags)
-        {
-            NativeMethods.bgfx_encoder_set_texture(ptr, textureUnit, sampler.handle, texture.handle, (uint)flags);
-        }
-
-        /// <summary>
-        /// Sets the index buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="indexBuffer">The index buffer to set.</param>
-        public void SetIndexBuffer(IndexBuffer indexBuffer)
-        {
-            NativeMethods.bgfx_encoder_set_index_buffer(ptr, indexBuffer.handle, 0, -1);
-        }
-
-        /// <summary>
-        /// Sets the index buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="indexBuffer">The index buffer to set.</param>
-        /// <param name="firstIndex">The first index in the buffer to use.</param>
-        /// <param name="count">The number of indices to pull from the buffer.</param>
-        public void SetIndexBuffer(IndexBuffer indexBuffer, int firstIndex, int count)
-        {
-            NativeMethods.bgfx_encoder_set_index_buffer(ptr, indexBuffer.handle, firstIndex, count);
-        }
-
-        /// <summary>
-        /// Sets the vertex buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
-        /// <param name="vertexBuffer">The vertex buffer to set.</param>
-        public void SetVertexBuffer(int stream, VertexBuffer vertexBuffer)
-        {
-            NativeMethods.bgfx_encoder_set_vertex_buffer(ptr, (byte)stream, vertexBuffer.handle, 0, -1);
-        }
-
-        /// <summary>
-        /// Sets the vertex buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
-        /// <param name="vertexBuffer">The vertex buffer to set.</param>
-        /// <param name="firstVertex">The index of the first vertex to use.</param>
-        /// <param name="count">The number of vertices to pull from the buffer.</param>
-        public void SetVertexBuffer(int stream, VertexBuffer vertexBuffer, int firstVertex, int count)
-        {
-            NativeMethods.bgfx_encoder_set_vertex_buffer(ptr, (byte)stream, vertexBuffer.handle, firstVertex, count);
-        }
-
-        /// <summary>
-        /// Sets the index buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="indexBuffer">The index buffer to set.</param>
-        public void SetIndexBuffer(DynamicIndexBuffer indexBuffer)
-        {
-            NativeMethods.bgfx_encoder_set_dynamic_index_buffer(ptr, indexBuffer.handle, 0, -1);
-        }
-
-        /// <summary>
-        /// Sets the index buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="indexBuffer">The index buffer to set.</param>
-        /// <param name="firstIndex">The first index in the buffer to use.</param>
-        /// <param name="count">The number of indices to pull from the buffer.</param>
-        public void SetIndexBuffer(DynamicIndexBuffer indexBuffer, int firstIndex, int count)
-        {
-            NativeMethods.bgfx_encoder_set_dynamic_index_buffer(ptr, indexBuffer.handle, firstIndex, count);
-        }
-
-        /// <summary>
-        /// Sets the vertex buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
-        /// <param name="vertexBuffer">The vertex buffer to set.</param>
-        public void SetVertexBuffer(int stream, DynamicVertexBuffer vertexBuffer)
-        {
-            NativeMethods.bgfx_encoder_set_dynamic_vertex_buffer(ptr, (byte)stream, vertexBuffer.handle, 0, -1);
-        }
-
-        /// <summary>
-        /// Sets the vertex buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
-        /// <param name="vertexBuffer">The vertex buffer to set.</param>
-        /// <param name="startVertex">The index of the first vertex to use.</param>
-        /// <param name="count">The number of vertices to pull from the buffer.</param>
-        public void SetVertexBuffer(int stream, DynamicVertexBuffer vertexBuffer, int startVertex, int count)
-        {
-            NativeMethods.bgfx_encoder_set_dynamic_vertex_buffer(ptr, (byte)stream, vertexBuffer.handle, startVertex, count);
-        }
-
-        /// <summary>
-        /// Sets the index buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="indexBuffer">The index buffer to set.</param>
-        public void SetIndexBuffer(TransientIndexBuffer indexBuffer)
-        {
-            NativeMethods.bgfx_encoder_set_transient_index_buffer(ptr, ref indexBuffer, 0, -1);
-        }
-
-        /// <summary>
-        /// Sets the index buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="indexBuffer">The index buffer to set.</param>
-        /// <param name="firstIndex">The first index in the buffer to use.</param>
-        /// <param name="count">The number of indices to pull from the buffer.</param>
-        public void SetIndexBuffer(TransientIndexBuffer indexBuffer, int firstIndex, int count)
-        {
-            NativeMethods.bgfx_encoder_set_transient_index_buffer(ptr, ref indexBuffer, firstIndex, count);
-        }
-
-        /// <summary>
-        /// Sets the vertex buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
-        /// <param name="vertexBuffer">The vertex buffer to set.</param>
-        public void SetVertexBuffer(int stream, TransientVertexBuffer vertexBuffer)
-        {
-            NativeMethods.bgfx_encoder_set_transient_vertex_buffer(ptr, (byte)stream, ref vertexBuffer, 0, -1);
-        }
-
-        /// <summary>
-        /// Sets the vertex buffer to use for drawing primitives.
-        /// </summary>
-        /// <param name="stream">The index of the vertex stream to set.</param>
-        /// <param name="vertexBuffer">The vertex buffer to set.</param>
-        /// <param name="firstVertex">The index of the first vertex to use.</param>
-        /// <param name="count">The number of vertices to pull from the buffer.</param>
-        public void SetVertexBuffer(int stream, TransientVertexBuffer vertexBuffer, int firstVertex, int count)
-        {
-            NativeMethods.bgfx_encoder_set_transient_vertex_buffer(ptr, (byte)stream, ref vertexBuffer, firstVertex, count);
-        }
-
-        /// <summary>
-        /// Sets the number of auto-generated vertices for use with gl_VertexID.
-        /// </summary>
-        /// <param name="count">The number of auto-generated vertices.</param>
-        public void SetVertexCount(int count)
-        {
-            NativeMethods.bgfx_encoder_set_vertex_count(ptr, count);
-        }
-
-        /// <summary>
-        /// Sets instance data to use for drawing primitives.
-        /// </summary>
-        /// <param name="instanceData">The instance data.</param>
-        /// <param name="start">The starting offset in the buffer.</param>
-        /// <param name="count">The number of entries to pull from the buffer.</param>
-        public void SetInstanceDataBuffer(ref InstanceDataBuffer instanceData, int start = 0, int count = -1)
-        {
-            NativeMethods.bgfx_encoder_set_instance_data_buffer(ptr, ref instanceData.data, (uint)start, (uint)count);
-        }
-
-        /// <summary>
-        /// Sets instance data to use for drawing primitives.
-        /// </summary>
-        /// <param name="vertexBuffer">The vertex buffer containing instance data.</param>
-        /// <param name="firstVertex">The index of the first vertex to use.</param>
-        /// <param name="count">The number of vertices to pull from the buffer.</param>
-        public void SetInstanceDataBuffer(VertexBuffer vertexBuffer, int firstVertex, int count)
-        {
-            NativeMethods.bgfx_encoder_set_instance_data_from_vertex_buffer(ptr, vertexBuffer.handle, firstVertex, count);
-        }
-
-        /// <summary>
-        /// Sets instance data to use for drawing primitives.
-        /// </summary>
-        /// <param name="vertexBuffer">The vertex buffer containing instance data.</param>
-        /// <param name="firstVertex">The index of the first vertex to use.</param>
-        /// <param name="count">The number of vertices to pull from the buffer.</param>
-        public void SetInstanceDataBuffer(DynamicVertexBuffer vertexBuffer, int firstVertex, int count)
-        {
-            NativeMethods.bgfx_encoder_set_instance_data_from_dynamic_vertex_buffer(ptr, vertexBuffer.handle, firstVertex, count);
-        }
-
-        /// <summary>
-        /// Marks a view as "touched", ensuring that its background is cleared even if nothing is rendered.
-        /// </summary>
-        /// <param name="id">The index of the view to touch.</param>
-        /// <returns>The number of draw calls.</returns>
-        public int Touch(ushort id)
-        {
-            return NativeMethods.bgfx_encoder_touch(ptr, id);
-        }
-
-        /// <summary>
-        /// Submits the current batch of primitives for rendering.
-        /// </summary>
-        /// <param name="id">The index of the view to submit.</param>
-        /// <param name="program">The program with which to render.</param>
-        /// <param name="depth">A depth value to use for sorting the batch.</param>
-        /// <param name="preserveState"><c>true</c> to preserve internal draw state after the call.</param>
-        /// <returns>The number of draw calls.</returns>
-        public int Submit(ushort id, Program program, int depth = 0, bool preserveState = false)
-        {
-            return NativeMethods.bgfx_encoder_submit(ptr, id, program.handle, depth, preserveState);
-        }
-
-        /// <summary>
-        /// Submits the current batch of primitives for rendering.
-        /// </summary>
-        /// <param name="id">The index of the view to submit.</param>
-        /// <param name="program">The program with which to render.</param>
-        /// <param name="query">An occlusion query to use as a predicate during rendering.</param>
-        /// <param name="depth">A depth value to use for sorting the batch.</param>
-        /// <param name="preserveState"><c>true</c> to preserve internal draw state after the call.</param>
-        /// <returns>The number of draw calls.</returns>
-        public int Submit(ushort id, Program program, OcclusionQuery query, int depth = 0, bool preserveState = false)
-        {
-            return NativeMethods.bgfx_encoder_submit_occlusion_query(ptr, id, program.handle, query.handle, depth, preserveState);
-        }
-
-        /// <summary>
-        /// Submits an indirect batch of drawing commands to be used for rendering.
-        /// </summary>
-        /// <param name="id">The index of the view to submit.</param>
-        /// <param name="program">The program with which to render.</param>
-        /// <param name="indirectBuffer">The buffer containing drawing commands.</param>
-        /// <param name="startIndex">The index of the first command to process.</param>
-        /// <param name="count">The number of commands to process from the buffer.</param>
-        /// <param name="depth">A depth value to use for sorting the batch.</param>
-        /// <param name="preserveState"><c>true</c> to preserve internal draw state after the call.</param>
-        /// <returns>The number of draw calls.</returns>
-        public int Submit(ushort id, Program program, IndirectBuffer indirectBuffer, int startIndex = 0, int count = 1, int depth = 0, bool preserveState = false)
-        {
-            return NativeMethods.bgfx_encoder_submit_indirect(ptr, id, program.handle, indirectBuffer.handle, (ushort)startIndex, (ushort)count, depth, preserveState);
-        }
-
-        /// <summary>
-        /// Sets a texture mip as a compute image.
-        /// </summary>
-        /// <param name="stage">The buffer stage to set.</param>
-        /// <param name="texture">The texture to set.</param>
-        /// <param name="mip">The index of the mip level within the texture to set.</param>
-        /// <param name="format">The format of the buffer data.</param>
-        /// <param name="access">Access control flags.</param>
-        public void SetComputeImage(byte stage, Texture texture, byte mip, ComputeBufferAccess access, TextureFormat format = TextureFormat.Unknown)
-        {
-            NativeMethods.bgfx_encoder_set_image(ptr, stage, texture.handle, mip, format, access);
-        }
-
-        /// <summary>
-        /// Sets an index buffer as a compute resource.
-        /// </summary>
-        /// <param name="stage">The resource stage to set.</param>
-        /// <param name="buffer">The buffer to set.</param>
-        /// <param name="access">Access control flags.</param>
-        public void SetComputeBuffer(byte stage, IndexBuffer buffer, ComputeBufferAccess access)
-        {
-            NativeMethods.bgfx_encoder_set_compute_index_buffer(ptr, stage, buffer.handle, access);
-        }
-
-        /// <summary>
-        /// Sets a verterx buffer as a compute resource.
-        /// </summary>
-        /// <param name="stage">The resource stage to set.</param>
-        /// <param name="buffer">The buffer to set.</param>
-        /// <param name="access">Access control flags.</param>
-        public void SetComputeBuffer(byte stage, VertexBuffer buffer, ComputeBufferAccess access)
-        {
-            NativeMethods.bgfx_encoder_set_compute_vertex_buffer(ptr, stage, buffer.handle, access);
-        }
-
-        /// <summary>
-        /// Sets a dynamic index buffer as a compute resource.
-        /// </summary>
-        /// <param name="stage">The resource stage to set.</param>
-        /// <param name="buffer">The buffer to set.</param>
-        /// <param name="access">Access control flags.</param>
-        public void SetComputeBuffer(byte stage, DynamicIndexBuffer buffer, ComputeBufferAccess access)
-        {
-            NativeMethods.bgfx_encoder_set_compute_dynamic_index_buffer(ptr, stage, buffer.handle, access);
-        }
-
-        /// <summary>
-        /// Sets a dynamic vertex buffer as a compute resource.
-        /// </summary>
-        /// <param name="stage">The resource stage to set.</param>
-        /// <param name="buffer">The buffer to set.</param>
-        /// <param name="access">Access control flags.</param>
-        public void SetComputeBuffer(byte stage, DynamicVertexBuffer buffer, ComputeBufferAccess access)
-        {
-            NativeMethods.bgfx_encoder_set_compute_dynamic_vertex_buffer(ptr, stage, buffer.handle, access);
-        }
-
-        /// <summary>
-        /// Sets an indirect buffer as a compute resource.
-        /// </summary>
-        /// <param name="stage">The resource stage to set.</param>
-        /// <param name="buffer">The buffer to set.</param>
-        /// <param name="access">Access control flags.</param>
-        public void SetComputeBuffer(byte stage, IndirectBuffer buffer, ComputeBufferAccess access)
-        {
-            NativeMethods.bgfx_encoder_set_compute_indirect_buffer(ptr, stage, buffer.handle, access);
-        }
-
-        /// <summary>
-        /// Dispatches a compute job.
-        /// </summary>
-        /// <param name="id">The index of the view to dispatch.</param>
-        /// <param name="program">The shader program to use.</param>
-        /// <param name="xCount">The size of the job in the first dimension.</param>
-        /// <param name="yCount">The size of the job in the second dimension.</param>
-        /// <param name="zCount">The size of the job in the third dimension.</param>
-        public void Dispatch(ushort id, Program program, int xCount = 1, int yCount = 1, int zCount = 1)
-        {
-            // TODO: unused
-            byte unused = 0;
-            NativeMethods.bgfx_encoder_dispatch(ptr, id, program.handle, (uint)xCount, (uint)yCount, (uint)zCount, unused);
-        }
-
-        /// <summary>
-        /// Dispatches an indirect compute job.
-        /// </summary>
-        /// <param name="id">The index of the view to dispatch.</param>
-        /// <param name="program">The shader program to use.</param>
-        /// <param name="indirectBuffer">The buffer containing drawing commands.</param>
-        /// <param name="startIndex">The index of the first command to process.</param>
-        /// <param name="count">The number of commands to process from the buffer.</param>
-        public void Dispatch(ushort id, Program program, IndirectBuffer indirectBuffer, int startIndex = 0, int count = 1)
-        {
-            // TODO: unused
-            byte unused = 0;
-            NativeMethods.bgfx_encoder_dispatch_indirect(ptr, id, program.handle, indirectBuffer.handle, (ushort)startIndex, (ushort)count, unused);
-        }
-
-        /// <summary>
-        /// Discards all previously set state for the draw call.
-        /// </summary>
-        public void Discard()
-        {
-            NativeMethods.bgfx_encoder_discard(ptr);
-        }
-
-        /// <summary>
-        /// Finishes submission of commands from this encoder.
-        /// </summary>
-        public void Dispose()
-        {
-            NativeMethods.bgfx_end(ptr);
-        }
-
-        /// <summary>
-        /// Determines whether the specified object is equal to this instance.
-        /// </summary>
-        /// <param name="other">The object to compare with this instance.</param>
-        /// <returns><c>true</c> if the specified object is equal to this instance; otherwise, <c>false</c>.</returns>
-        public bool Equals(Encoder other)
-        {
-            return ptr == other.ptr;
-        }
-
-        /// <summary>
-        /// Determines whether the specified <see cref="System.Object" /> is equal to this instance.
-        /// </summary>
-        /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
-        /// <returns>
-        ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public override bool Equals(object obj)
-        {
-            var other = obj as Encoder?;
-            if (other == null)
-                return false;
-
-            return Equals(other);
-        }
-
-        /// <summary>
-        /// Returns a hash code for this instance.
-        /// </summary>
-        /// <returns>
-        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
-        /// </returns>
-        public override int GetHashCode()
-        {
-            return ptr.GetHashCode();
-        }
-
-        /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
-        /// </returns>
-        public override string ToString()
-        {
-            return ptr.ToString();
-        }
-
-        /// <summary>
-        /// Implements the equality operator.
-        /// </summary>
-        /// <param name="left">The left side of the operator.</param>
-        /// <param name="right">The right side of the operator.</param>
-        /// <returns>
-        /// <c>true</c> if the two objects are equal; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool operator ==(Encoder left, Encoder right)
-        {
-            return left.Equals(right);
-        }
-
-        /// <summary>
-        /// Implements the inequality operator.
-        /// </summary>
-        /// <param name="left">The left side of the operator.</param>
-        /// <param name="right">The right side of the operator.</param>
-        /// <returns>
-        /// <c>true</c> if the two objects are not equal; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool operator !=(Encoder left, Encoder right)
-        {
-            return !left.Equals(right);
-        }
-    }
-
-    /// <summary>
     /// An aggregated frame buffer, with one or more attached texture surfaces.
     /// </summary>
     public unsafe struct FrameBuffer : IDisposable, IEquatable<FrameBuffer>
@@ -3260,37 +2122,14 @@ namespace BLITTEngine.Foundation
         /// </summary>
         /// <param name="attachments">A set of attachments from which to build the frame buffer.</param>
         /// <param name="destroyTextures">if set to <c>true</c>, attached textures will be destroyed when the frame buffer is destroyed.</param>
-        public FrameBuffer(Attachment[] attachments, bool destroyTextures = false)
+        public FrameBuffer(Texture[] attachments, bool destroyTextures = false)
         {
             var count = (byte)attachments.Length;
-            var native = stackalloc NativeAttachment[count];
+            var handles = stackalloc ushort[count];
             for (int i = 0; i < count; i++)
-            {
-                var attachment = attachments[i];
-                native[i] = new NativeAttachment
-                {
-                    handle = attachment.Texture.handle,
-                    mip = (ushort)attachment.Mip,
-                    layer = (ushort)attachment.Layer
-                };
-            }
+                handles[i] = attachments[i].handle;
 
-            handle = NativeMethods.bgfx_create_frame_buffer_from_attachment(count, native, destroyTextures);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FrameBuffer"/> struct.
-        /// </summary>
-        /// <param name="textures">A set of textures from which to build the frame buffer.</param>
-        /// <param name="destroyTextures">if set to <c>true</c>, attached textures will be destroyed when the frame buffer is destroyed.</param>
-        public FrameBuffer(Texture[] textures, bool destroyTextures = false)
-        {
-            var count = (byte)textures.Length;
-            var native = stackalloc ushort[count];
-            for (int i = 0; i < count; i++)
-                native[i] = textures[i].handle;
-
-            handle = NativeMethods.bgfx_create_frame_buffer_from_handles(count, native, destroyTextures);
+            handle = NativeMethods.bgfx_create_frame_buffer_from_handles(count, handles, destroyTextures);
         }
 
         /// <summary>
@@ -3314,14 +2153,59 @@ namespace BLITTEngine.Foundation
         }
 
         /// <summary>
-        /// Gets the texture associated with a particular framebuffer attachment.
+        /// Blits the contents of the framebuffer to a texture.
         /// </summary>
-        /// <param name="attachment">The attachment index.</param>
-        /// <returns>The texture associated with the attachment.</returns>
-        public Texture GetTexture(int attachment = 0)
+        /// <param name="viewId">The view in which the blit will be ordered.</param>
+        /// <param name="dest">The destination texture.</param>
+        /// <param name="destX">The destination X position.</param>
+        /// <param name="destY">The destination Y position.</param>
+        /// <param name="attachment">The frame buffer attachment from which to blit.</param>
+        /// <param name="sourceX">The source X position.</param>
+        /// <param name="sourceY">The source Y position.</param>
+        /// <param name="width">The width of the region to blit.</param>
+        /// <param name="height">The height of the region to blit.</param>
+        /// <remarks>The destination texture must be created with the <see cref="TextureFlags.BlitDestination"/> flag.</remarks>
+        public void BlitTo(byte viewId, Texture dest, int destX, int destY, int attachment = 0, int sourceX = 0, int sourceY = 0,
+                            int width = ushort.MaxValue, int height = ushort.MaxValue)
         {
-            var info = new Texture.TextureInfo();
-            return new Texture(NativeMethods.bgfx_get_texture(handle, (byte)attachment), ref info);
+            BlitTo(viewId, dest, 0, destX, destY, 0, attachment, 0, sourceX, sourceY, 0, width, height, 0);
+        }
+
+        /// <summary>
+        /// Blits the contents of the framebuffer to a texture.
+        /// </summary>
+        /// <param name="viewId">The view in which the blit will be ordered.</param>
+        /// <param name="dest">The destination texture.</param>
+        /// <param name="destMip">The destination mip level.</param>
+        /// <param name="destX">The destination X position.</param>
+        /// <param name="destY">The destination Y position.</param>
+        /// <param name="destZ">The destination Z position.</param>
+        /// <param name="attachment">The frame buffer attachment from which to blit.</param>
+        /// <param name="sourceMip">The source mip level.</param>
+        /// <param name="sourceX">The source X position.</param>
+        /// <param name="sourceY">The source Y position.</param>
+        /// <param name="sourceZ">The source Z position.</param>
+        /// <param name="width">The width of the region to blit.</param>
+        /// <param name="height">The height of the region to blit.</param>
+        /// <param name="depth">The depth of the region to blit.</param>
+        /// <remarks>The destination texture must be created with the <see cref="TextureFlags.BlitDestination"/> flag.</remarks>
+        public void BlitTo(byte viewId, Texture dest, int destMip, int destX, int destY, int destZ, int attachment = 0,
+                            int sourceMip = 0, int sourceX = 0, int sourceY = 0, int sourceZ = 0,
+                            int width = ushort.MaxValue, int height = ushort.MaxValue, int depth = ushort.MaxValue)
+        {
+            NativeMethods.bgfx_blit_frame_buffer(viewId, dest.handle, (byte)destMip, (ushort)destX, (ushort)destY, (ushort)destZ,
+                handle, (byte)attachment, (byte)sourceMip, (ushort)sourceX, (ushort)sourceY, (ushort)sourceZ, (ushort)width, (ushort)height, (ushort)depth);
+        }
+
+        /// <summary>
+        /// Reads the contents of the frame buffer and stores them in memory pointed to by <paramref name="data"/>.
+        /// </summary>
+        /// <param name="attachment">The frame buffer attachment from which to read.</param>
+        /// <param name="data">The destination for the read image data.</param>
+        /// <remarks>The attachment must have been created with the <see cref="TextureFlags.ReadBack"/> flag.</remarks>
+        public void Read(int attachment, IntPtr data)
+        {
+            NativeMethods.bgfx_read_frame_buffer(handle, (byte)attachment, data);
         }
 
         /// <summary>
@@ -3396,13 +2280,6 @@ namespace BLITTEngine.Foundation
         public static bool operator !=(FrameBuffer left, FrameBuffer right)
         {
             return !left.Equals(right);
-        }
-
-        internal struct NativeAttachment
-        {
-            public ushort handle;
-            public ushort mip;
-            public ushort layer;
         }
     }
 
@@ -3620,7 +2497,7 @@ namespace BLITTEngine.Foundation
     /// </summary>
     public unsafe struct InstanceDataBuffer : IEquatable<InstanceDataBuffer>
     {
-        internal NativeStruct data;
+        internal readonly NativeStruct* ptr;
 
         /// <summary>
         /// Represents an invalid handle.
@@ -3630,12 +2507,12 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// A pointer that can be filled with instance data.
         /// </summary>
-        public IntPtr Data { get { return data.data; } }
+        public IntPtr Data { get { return ptr->data; } }
 
         /// <summary>
         /// The size of the data buffer.
         /// </summary>
-        public int Size { get { return data.size; } }
+        public int Size { get { return ptr->size; } }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceDataBuffer" /> struct.
@@ -3644,18 +2521,18 @@ namespace BLITTEngine.Foundation
         /// <param name="stride">The stride of each element.</param>
         public InstanceDataBuffer(int count, int stride)
         {
-            NativeMethods.bgfx_alloc_instance_data_buffer(out data, count, (ushort)stride);
+            ptr = NativeMethods.bgfx_alloc_instance_data_buffer(count, (ushort)stride);
         }
 
         /// <summary>
-        /// Gets the available space that can be used to allocate an instance buffer.
+        /// Checks for available space to allocate an instance buffer.
         /// </summary>
-        /// <param name="count">The number of elements required.</param>
+        /// <param name="count">The number of elements to allocate.</param>
         /// <param name="stride">The stride of each element.</param>
-        /// <returns>The number of available elements.</returns>
-        public static int GetAvailableSpace(int count, int stride)
+        /// <returns><c>true</c> if there is space available to allocate the buffer.</returns>
+        public static bool CheckAvailableSpace(int count, int stride)
         {
-            return NativeMethods.bgfx_get_avail_instance_data_buffer(count, (ushort)stride);
+            return NativeMethods.bgfx_check_avail_instance_data_buffer(count, (ushort)stride);
         }
 
         /// <summary>
@@ -3665,9 +2542,7 @@ namespace BLITTEngine.Foundation
         /// <returns><c>true</c> if the specified object is equal to this instance; otherwise, <c>false</c>.</returns>
         public bool Equals(InstanceDataBuffer other)
         {
-            return data.data == other.data.data &&
-                   data.offset == other.data.offset &&
-                   data.size == other.data.size;
+            return ptr == other.ptr;
         }
 
         /// <summary>
@@ -3694,7 +2569,7 @@ namespace BLITTEngine.Foundation
         /// </returns>
         public override int GetHashCode()
         {
-            return (data.data.GetHashCode() ^ data.offset) >> 13 ^ data.size;
+            return new IntPtr(ptr).GetHashCode();
         }
 
         /// <summary>
@@ -3827,7 +2702,7 @@ namespace BLITTEngine.Foundation
                 throw new ArgumentNullException("data");
 
             var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            var block = new MemoryBlock(gcHandle.AddrOfPinnedObject(), Marshal.SizeOf<T>() * data.Length);
+            var block = new MemoryBlock(gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(typeof(T)) * data.Length);
 
             gcHandle.Free();
             return block;
@@ -3848,7 +2723,7 @@ namespace BLITTEngine.Foundation
                 throw new ArgumentNullException("data");
 
             var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            return MakeRef(gcHandle.AddrOfPinnedObject(), Marshal.SizeOf<T>() * data.Length, GCHandle.ToIntPtr(gcHandle), ReleaseHandleCallback);
+            return MakeRef(gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(typeof(T)) * data.Length, GCHandle.ToIntPtr(gcHandle), ReleaseHandleCallback);
         }
 
         /// <summary>
@@ -3980,21 +2855,7 @@ namespace BLITTEngine.Foundation
         /// </summary>
         public OcclusionQueryResult Result
         {
-            get { return NativeMethods.bgfx_get_result(handle, null); }
-        }
-
-        /// <summary>
-        /// Gets the number of pixels that passed the test. Only valid
-        /// if <see cref="Result"/> is also valid.
-        /// </summary>
-        public int PassingPixels
-        {
-            get
-            {
-                int pixels = 0;
-                NativeMethods.bgfx_get_result(handle, &pixels);
-                return pixels;
-            }
+            get { return NativeMethods.bgfx_get_result(handle); }
         }
 
         OcclusionQuery(ushort handle)
@@ -4111,14 +2972,6 @@ namespace BLITTEngine.Foundation
         Stats* data;
 
         /// <summary>
-        /// CPU time between two <see cref="Bgfx.Frame"/> calls.
-        /// </summary>
-        public long CpuTimeFrame
-        {
-            get { return data->CpuTimeFrame; }
-        }
-
-        /// <summary>
         /// CPU frame start time.
         /// </summary>
         public long CpuTimeStart
@@ -4182,583 +3035,20 @@ namespace BLITTEngine.Foundation
             get { return TimeSpan.FromSeconds((double)(GpuTimeEnd - GpuTimeStart) / GpuTimerFrequency); }
         }
 
-        /// <summary>
-        /// Time spent waiting for the render thread.
-        /// </summary>
-        public long WaitingForRender
-        {
-            get { return data->WaitRender; }
-        }
-
-        /// <summary>
-        /// Time spent waiting for the submit thread.
-        /// </summary>
-        public long WaitingForSubmit
-        {
-            get { return data->WaitSubmit; }
-        }
-
-        /// <summary>
-        /// The number of draw calls submitted.
-        /// </summary>
-        public int DrawCallsSubmitted
-        {
-            get { return data->NumDraw; }
-        }
-
-        /// <summary>
-        /// The number of compute calls submitted.
-        /// </summary>
-        public int ComputeCallsSubmitted
-        {
-            get { return data->NumCompute; }
-        }
-
-        /// <summary>
-        /// Maximum observed GPU driver latency.
-        /// </summary>
-        public int MaxGpuLatency
-        {
-            get { return data->MaxGpuLatency; }
-        }
-
-        /// <summary>
-        /// Number of allocated dynamic index buffers.
-        /// </summary>
-        public int DynamicIndexBufferCount
-        {
-            get { return data->NumDynamicIndexBuffers; }
-        }
-
-        /// <summary>
-        /// Number of allocated dynamic vertex buffers.
-        /// </summary>
-        public int DynamicVertexBufferCount
-        {
-            get { return data->NumDynamicVertexBuffers; }
-        }
-
-        /// <summary>
-        /// Number of allocated frame buffers.
-        /// </summary>
-        public int FrameBufferCount
-        {
-            get { return data->NumFrameBuffers; }
-        }
-
-        /// <summary>
-        /// Number of allocated index buffers.
-        /// </summary>
-        public int IndexBufferCount
-        {
-            get { return data->NumIndexBuffers; }
-        }
-
-        /// <summary>
-        /// Number of allocated occlusion queries.
-        /// </summary>
-        public int OcclusionQueryCount
-        {
-            get { return data->NumOcclusionQueries; }
-        }
-
-        /// <summary>
-        /// Number of allocated shader programs.
-        /// </summary>
-        public int ProgramCount
-        {
-            get { return data->NumPrograms; }
-        }
-
-        /// <summary>
-        /// Number of allocated shaders.
-        /// </summary>
-        public int ShaderCount
-        {
-            get { return data->NumShaders; }
-        }
-
-        /// <summary>
-        /// Number of allocated textures.
-        /// </summary>
-        public int TextureCount
-        {
-            get { return data->NumTextures; }
-        }
-
-        /// <summary>
-        /// Number of allocated uniforms.
-        /// </summary>
-        public int UniformCount
-        {
-            get { return data->NumUniforms; }
-        }
-
-        /// <summary>
-        /// Number of allocated vertex buffers.
-        /// </summary>
-        public int VertexBufferCount
-        {
-            get { return data->NumVertexBuffers; }
-        }
-
-        /// <summary>
-        /// Number of allocated vertex declarations.
-        /// </summary>
-        public int VertexDeclarationCount
-        {
-            get { return data->NumVertexDecls; }
-        }
-
-        /// <summary>
-        /// The amount of memory used by textures.
-        /// </summary>
-        public long TextureMemoryUsed
-        {
-            get { return data->TextureMemoryUsed; }
-        }
-
-        /// <summary>
-        /// The amount of memory used by render targets.
-        /// </summary>
-        public long RenderTargetMemoryUsed
-        {
-            get { return data->RtMemoryUsed; }
-        }
-
-        /// <summary>
-        /// The number of transient vertex buffers used.
-        /// </summary>
-        public int TransientVertexBuffersUsed
-        {
-            get { return data->TransientVbUsed; }
-        }
-
-        /// <summary>
-        /// The number of transient index buffers used.
-        /// </summary>
-        public int TransientIndexBuffersUsed
-        {
-            get { return data->TransientIbUsed; }
-        }
-
-        /// <summary>
-        /// Maximum available GPU memory.
-        /// </summary>
-        public long MaxGpuMemory
-        {
-            get { return data->GpuMemoryMax; }
-        }
-
-        /// <summary>
-        /// The amount of GPU memory currently in use.
-        /// </summary>
-        public long GpuMemoryUsed
-        {
-            get { return data->GpuMemoryUsed; }
-        }
-
-        /// <summary>
-        /// The width of the back buffer.
-        /// </summary>
-        public int BackbufferWidth
-        {
-            get { return data->Width; }
-        }
-
-        /// <summary>
-        /// The height of the back buffer.
-        /// </summary>
-        public int BackbufferHeight
-        {
-            get { return data->Height; }
-        }
-
-        /// <summary>
-        /// The width of the debug text buffer.
-        /// </summary>
-        public int TextBufferWidth
-        {
-            get { return data->TextWidth; }
-        }
-
-        /// <summary>
-        /// The height of the debug text buffer.
-        /// </summary>
-        public int TextBufferHeight
-        {
-            get { return data->TextHeight; }
-        }
-
-        /// <summary>
-        /// Gets a collection of statistics for each rendering view.
-        /// </summary>
-        public ViewStatsCollection Views
-        {
-            get { return new ViewStatsCollection(data->ViewStats, data->NumViews); }
-        }
-
-        static PerfStats()
-        {
-            Debug.Assert(Stats.NumTopologies == Enum.GetValues(typeof(Topology)).Length);
-        }
-
         internal PerfStats(Stats* data)
         {
             this.data = data;
         }
 
-        /// <summary>
-        /// Gets the number of primitives rendered with the given topology.
-        /// </summary>
-        /// <param name="topology">The topology whose primitive count should be returned.</param>
-        /// <returns>The number of primitives rendered.</returns>
-        public int GetPrimitiveCount(Topology topology)
-        {
-            return (int)data->NumPrims[(int)topology];
-        }
-
-        /// <summary>
-        /// Contains perf metrics for a single rendering view.
-        /// </summary>
-        public struct ViewStats
-        {
-            ViewStatsNative* data;
-
-            /// <summary>
-            /// The name of the view.
-            /// </summary>
-            public string Name
-            {
-                get { return new string(data->Name); }
-            }
-
-            /// <summary>
-            /// The amount of CPU time elapsed during processing of this view.
-            /// </summary>
-            public long CpuTimeElapsed
-            {
-                get { return (long)data->CpuTimeElapsed; }
-            }
-
-            /// <summary>
-            /// The amount of GPU time elapsed during processing of this view.
-            /// </summary>
-            public long GpuTimeElapsed
-            {
-                get { return (long)data->GpuTimeElapsed; }
-            }
-
-            internal ViewStats(ViewStatsNative* data)
-            {
-                this.data = data;
-            }
-        }
-
-        /// <summary>
-        /// Provides access to a collection of view statistics.
-        /// </summary>
-        public struct ViewStatsCollection : IReadOnlyList<ViewStats>
-        {
-            ViewStatsNative* data;
-            int count;
-
-            /// <summary>
-            /// Accesses the element at the specified index.
-            /// </summary>
-            /// <param name="index">The index of the element to retrieve.</param>
-            /// <returns>The element at the given index.</returns>
-            public ViewStats this[int index]
-            {
-                get { return new ViewStats(data + index); }
-            }
-
-            /// <summary>
-            /// The number of elements in the collection.
-            /// </summary>
-            public int Count
-            {
-                get { return count; }
-            }
-
-            internal ViewStatsCollection(ViewStatsNative* data, int count)
-            {
-                this.data = data;
-                this.count = count;
-            }
-
-            /// <summary>
-            /// Gets an enumerator for the collection.
-            /// </summary>
-            /// <returns>A collection enumerator.</returns>
-            public Enumerator GetEnumerator()
-            {
-                return new Enumerator(this);
-            }
-
-            IEnumerator<ViewStats> IEnumerable<ViewStats>.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            /// <summary>
-            /// Implements an enumerator for a ViewStatsCollection.
-            /// </summary>
-            public struct Enumerator : IEnumerator<ViewStats>
-            {
-                ViewStatsCollection collection;
-                int index;
-
-                /// <summary>
-                /// The current enumerated item.
-                /// </summary>
-                public ViewStats Current
-                {
-                    get { return collection[index]; }
-                }
-
-                object IEnumerator.Current
-                {
-                    get { return Current; }
-                }
-
-                internal Enumerator(ViewStatsCollection collection)
-                {
-                    this.collection = collection;
-                    index = -1;
-                }
-
-                /// <summary>
-                /// Advances to the next item in the sequence.
-                /// </summary>
-                /// <returns><c>true</c> if there are more items in the collection; otherwise, <c>false</c>.</returns>
-                public bool MoveNext()
-                {
-                    var newIndex = index + 1;
-                    if (newIndex >= collection.Count)
-                        return false;
-
-                    index = newIndex;
-                    return true;
-                }
-
-                /// <summary>
-                /// Empty; does nothing.
-                /// </summary>
-                public void Dispose()
-                {
-                }
-
-                /// <summary>
-                /// Not implemented.
-                /// </summary>
-                public void Reset()
-                {
-                    throw new NotImplementedException();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Contains perf metrics for a single encoder instance.
-        /// </summary>
-        public struct EncoderStats
-        {
-            EncoderStatsNative* data;
-
-            /// <summary>
-            /// CPU frame start time.
-            /// </summary>
-            public long CpuTimeStart
-            {
-                get { return data->CpuTimeBegin; }
-            }
-
-            /// <summary>
-            /// CPU frame end time.
-            /// </summary>
-            public long CpuTimeEnd
-            {
-                get { return data->CpuTimeEnd; }
-            }
-
-            internal EncoderStats(EncoderStatsNative* data)
-            {
-                this.data = data;
-            }
-        }
-
-        /// <summary>
-        /// Provides access to a collection of encoder statistics.
-        /// </summary>
-        public struct EncoderStatsCollection : IReadOnlyList<EncoderStats>
-        {
-            EncoderStatsNative* data;
-            int count;
-
-            /// <summary>
-            /// Accesses the element at the specified index.
-            /// </summary>
-            /// <param name="index">The index of the element to retrieve.</param>
-            /// <returns>The element at the given index.</returns>
-            public EncoderStats this[int index]
-            {
-                get { return new EncoderStats(data + index); }
-            }
-
-            /// <summary>
-            /// The number of elements in the collection.
-            /// </summary>
-            public int Count
-            {
-                get { return count; }
-            }
-
-            internal EncoderStatsCollection(EncoderStatsNative* data, int count)
-            {
-                this.data = data;
-                this.count = count;
-            }
-
-            /// <summary>
-            /// Gets an enumerator for the collection.
-            /// </summary>
-            /// <returns>A collection enumerator.</returns>
-            public Enumerator GetEnumerator()
-            {
-                return new Enumerator(this);
-            }
-
-            IEnumerator<EncoderStats> IEnumerable<EncoderStats>.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            /// <summary>
-            /// Implements an enumerator for an EncoderStatsCollection.
-            /// </summary>
-            public struct Enumerator : IEnumerator<EncoderStats>
-            {
-                EncoderStatsCollection collection;
-                int index;
-
-                /// <summary>
-                /// The current enumerated item.
-                /// </summary>
-                public EncoderStats Current
-                {
-                    get { return collection[index]; }
-                }
-
-                object IEnumerator.Current
-                {
-                    get { return Current; }
-                }
-
-                internal Enumerator(EncoderStatsCollection collection)
-                {
-                    this.collection = collection;
-                    index = -1;
-                }
-
-                /// <summary>
-                /// Advances to the next item in the sequence.
-                /// </summary>
-                /// <returns><c>true</c> if there are more items in the collection; otherwise, <c>false</c>.</returns>
-                public bool MoveNext()
-                {
-                    var newIndex = index + 1;
-                    if (newIndex >= collection.Count)
-                        return false;
-
-                    index = newIndex;
-                    return true;
-                }
-
-                /// <summary>
-                /// Empty; does nothing.
-                /// </summary>
-                public void Dispose()
-                {
-                }
-
-                /// <summary>
-                /// Not implemented.
-                /// </summary>
-                public void Reset()
-                {
-                    throw new NotImplementedException();
-                }
-            }
-        }
-
 #pragma warning disable 649
-        internal struct ViewStatsNative
-        {
-            public fixed char Name[256];
-            public ushort View;
-            public ulong CpuTimeElapsed;
-            public ulong GpuTimeElapsed;
-        }
-
-        internal struct EncoderStatsNative
-        {
-            public long CpuTimeBegin;
-            public long CpuTimeEnd;
-        }
-
         internal struct Stats
         {
-            public const int NumTopologies = 5;
-
-            public long CpuTimeFrame;
             public long CpuTimeBegin;
             public long CpuTimeEnd;
             public long CpuTimerFrequency;
             public long GpuTimeBegin;
             public long GpuTimeEnd;
             public long GpuTimerFrequency;
-            public long WaitRender;
-            public long WaitSubmit;
-            public int NumDraw;
-            public int NumCompute;
-            public int MaxGpuLatency;
-            public ushort NumDynamicIndexBuffers;
-            public ushort NumDynamicVertexBuffers;
-            public ushort NumFrameBuffers;
-            public ushort NumIndexBuffers;
-            public ushort NumOcclusionQueries;
-            public ushort NumPrograms;
-            public ushort NumShaders;
-            public ushort NumTextures;
-            public ushort NumUniforms;
-            public ushort NumVertexBuffers;
-            public ushort NumVertexDecls;
-            public long TextureMemoryUsed;
-            public long RtMemoryUsed;
-            public int TransientVbUsed;
-            public int TransientIbUsed;
-            public fixed uint NumPrims[NumTopologies];
-            public long GpuMemoryMax;
-            public long GpuMemoryUsed;
-            public ushort Width;
-            public ushort Height;
-            public ushort TextWidth;
-            public ushort TextHeight;
-            public ushort NumViews;
-            public ViewStatsNative* ViewStats;
-            public byte NumEncoders;
-            public EncoderStatsNative* EncoderStats;
         }
 #pragma warning restore 649
     }
@@ -4792,11 +3082,6 @@ namespace BLITTEngine.Foundation
         /// Depth-stencil pointer to use instead of letting the library create its own.
         /// </summary>
         public IntPtr BackbufferDepthStencil;
-
-        /// <summary>
-        /// Occulus OVR session.
-        /// </summary>
-        public IntPtr OvrSession;
     }
 
     /// <summary>
@@ -4933,34 +3218,19 @@ namespace BLITTEngine.Foundation
         public static readonly RenderState None = 0;
 
         /// <summary>
-        /// Enable writing the Red color channel to the framebuffer.
+        /// Enable writing color data to the framebuffer.
         /// </summary>
-        public static readonly RenderState WriteR = 0x0000000000000001;
-
-        /// <summary>
-        /// Enable writing the Green color channel to the framebuffer.
-        /// </summary>
-        public static readonly RenderState WriteG = 0x0000000000000002;
-
-        /// <summary>
-        /// Enable writing the Blue color channel to the framebuffer.
-        /// </summary>
-        public static readonly RenderState WriteB = 0x0000000000000004;
+        public static readonly RenderState ColorWrite = 0x0000000000000001;
 
         /// <summary>
         /// Enable writing alpha data to the framebuffer.
         /// </summary>
-        public static readonly RenderState WriteA = 0x0000000000000008;
+        public static readonly RenderState AlphaWrite = 0x0000000000000002;
 
         /// <summary>
         /// Enable writing to the depth buffer.
         /// </summary>
-        public static readonly RenderState WriteZ = 0x0000004000000000;
-
-        /// <summary>
-        /// Enable writing all three color channels to the framebuffer.
-        /// </summary>
-        public static readonly RenderState WriteRGB = WriteR | WriteG | WriteB;
+        public static readonly RenderState DepthWrite = 0x0000000000000004;
 
         /// <summary>
         /// Use a "less than" comparison to pass the depth test.
@@ -5098,11 +3368,6 @@ namespace BLITTEngine.Foundation
         public static readonly RenderState BlendIndependent = 0x0000000400000000;
 
         /// <summary>
-        /// Enable alpha to coverage blending.
-        /// </summary>
-        public static readonly RenderState BlendAlphaToCoverage = 0x0000000800000000;
-
-        /// <summary>
         /// Don't perform culling of back faces.
         /// </summary>
         public static readonly RenderState NoCulling = 0x0000000000000000;
@@ -5148,22 +3413,12 @@ namespace BLITTEngine.Foundation
         public static readonly RenderState Multisampling = 0x1000000000000000;
 
         /// <summary>
-        /// Enable line antialiasing.
-        /// </summary>
-        public static readonly RenderState LineAA = 0x2000000000000000;
-
-        /// <summary>
-        /// Enable conservative rasterization.
-        /// </summary>
-        public static readonly RenderState ConservativeRasterization = 0x4000000000000000;
-
-        /// <summary>
         /// Provides a set of sane defaults.
         /// </summary>
         public static readonly RenderState Default =
-            WriteRGB |
-            WriteA |
-            WriteZ |
+            ColorWrite |
+            AlphaWrite |
+            DepthWrite |
             DepthTestLess |
             CullClockwise |
             Multisampling;
@@ -5481,15 +3736,6 @@ namespace BLITTEngine.Foundation
         public void Dispose()
         {
             NativeMethods.bgfx_destroy_shader(handle);
-        }
-
-        /// <summary>
-        /// Sets the name of the shader, for debug display purposes.
-        /// </summary>
-        /// <param name="name">The name of the shader.</param>
-        public void SetName(string name)
-        {
-            NativeMethods.bgfx_set_shader_name(handle, name, int.MaxValue);
         }
 
         /// <summary>
@@ -5959,13 +4205,13 @@ namespace BLITTEngine.Foundation
         }
 
         /// <summary>
-        /// Gets the available space in the global transient index buffer.
+        /// Check if there is available space in the global transient index buffer.
         /// </summary>
-        /// <param name="count">The number of 16-bit indices required.</param>
-        /// <returns>The number of available indices.</returns>
-        public static int GetAvailableSpace(int count)
+        /// <param name="count">The number of 16-bit indices to allocate.</param>
+        /// <returns><c>true</c> if there is sufficient space for the give number of indices.</returns>
+        public static bool CheckAvailableSpace(int count)
         {
-            return NativeMethods.bgfx_get_avail_transient_index_buffer(count);
+            return NativeMethods.bgfx_check_avail_transient_index_buffer(count);
         }
 
         /// <summary>
@@ -6085,14 +4331,16 @@ namespace BLITTEngine.Foundation
         }
 
         /// <summary>
-        /// Gets the available space in the global transient vertex buffer.
+        /// Check if there is available space in the global transient vertex buffer.
         /// </summary>
-        /// <param name="count">The number of vertices required.</param>
+        /// <param name="count">The number of vertices to allocate.</param>
         /// <param name="layout">The layout of each vertex.</param>
-        /// <returns>The number of available vertices.</returns>
-        public static int GetAvailableSpace(int count, VertexLayout layout)
+        /// <returns>
+        ///   <c>true</c> if there is sufficient space for the give number of vertices.
+        /// </returns>
+        public static bool CheckAvailableSpace(int count, VertexLayout layout)
         {
-            return NativeMethods.bgfx_get_avail_transient_vertex_buffer(count, ref layout.data);
+            return NativeMethods.bgfx_check_avail_transient_vertex_buffer(count, ref layout.data);
         }
 
         /// <summary>
@@ -6173,7 +4421,7 @@ namespace BLITTEngine.Foundation
     /// <summary>
     /// Represents a shader uniform.
     /// </summary>
-    public unsafe struct Uniform : IDisposable, IEquatable<Uniform>
+    public struct Uniform : IDisposable, IEquatable<Uniform>
     {
         internal readonly ushort handle;
 
@@ -6181,45 +4429,6 @@ namespace BLITTEngine.Foundation
         /// Represents an invalid handle.
         /// </summary>
         public static readonly Uniform Invalid = new Uniform();
-
-        /// <summary>
-        /// The name of the uniform.
-        /// </summary>
-        public string Name
-        {
-            get
-            {
-                Info info;
-                NativeMethods.bgfx_get_uniform_info(handle, out info);
-                return Marshal.PtrToStringAnsi(new IntPtr(info.name));
-            }
-        }
-
-        /// <summary>
-        /// The type of the data represented by the uniform.
-        /// </summary>
-        public UniformType Type
-        {
-            get
-            {
-                Info info;
-                NativeMethods.bgfx_get_uniform_info(handle, out info);
-                return info.type;
-            }
-        }
-
-        /// <summary>
-        /// Size of the array, if the uniform is an array type.
-        /// </summary>
-        public int ArraySize
-        {
-            get
-            {
-                Info info;
-                NativeMethods.bgfx_get_uniform_info(handle, out info);
-                return info.arraySize;
-            }
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Uniform"/> struct.
@@ -6327,13 +4536,6 @@ namespace BLITTEngine.Foundation
         public static bool operator !=(Uniform left, Uniform right)
         {
             return !left.Equals(right);
-        }
-
-        internal struct Info
-        {
-            public fixed sbyte name[256];
-            public UniformType type;
-            public ushort arraySize;
         }
     }
 
@@ -6538,12 +4740,12 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// Specifies the type of data in a compute buffer as being unsigned integers.
         /// </summary>
-        ComputeTypeInt = 0x10,
+        ComputeTypeUInt = 0x10,
 
         /// <summary>
         /// Specifies the type of data in a compute buffer as being signed integers.
         /// </summary>
-        ComputeTypeUInt = 0x20,
+        ComputeTypeInt = 0x20,
 
         /// <summary>
         /// Specifies the type of data in a compute buffer as being floating point values.
@@ -6722,24 +4924,9 @@ namespace BLITTEngine.Foundation
     public enum DebugColor
     {
         /// <summary>
-        /// Black.
+        /// Transparent.
         /// </summary>
-        Black,
-
-        /// <summary>
-        /// Blue.
-        /// </summary>
-        Blue,
-
-        /// <summary>
-        /// Green.
-        /// </summary>
-        Green,
-
-        /// <summary>
-        /// Cyan.
-        /// </summary>
-        Cyan,
+        Transparent,
 
         /// <summary>
         /// Red.
@@ -6747,19 +4934,34 @@ namespace BLITTEngine.Foundation
         Red,
 
         /// <summary>
-        /// Magenta.
+        /// Green.
         /// </summary>
-        Magenta,
+        Green,
 
         /// <summary>
-        /// Brown.
+        /// Yellow.
         /// </summary>
-        Brown,
+        Yellow,
 
         /// <summary>
-        /// Light gray.
+        /// Blue.
         /// </summary>
-        LightGray,
+        Blue,
+
+        /// <summary>
+        /// Purple.
+        /// </summary>
+        Purple,
+
+        /// <summary>
+        /// Cyan.
+        /// </summary>
+        Cyan,
+
+        /// <summary>
+        /// Gray.
+        /// </summary>
+        Gray,
 
         /// <summary>
         /// Dark gray.
@@ -6767,9 +4969,9 @@ namespace BLITTEngine.Foundation
         DarkGray,
 
         /// <summary>
-        /// Light blue.
+        /// Light red.
         /// </summary>
-        LightBlue,
+        LightRed,
 
         /// <summary>
         /// Light green.
@@ -6777,24 +4979,24 @@ namespace BLITTEngine.Foundation
         LightGreen,
 
         /// <summary>
+        /// Light yellow.
+        /// </summary>
+        LightYellow,
+
+        /// <summary>
+        /// Light blue.
+        /// </summary>
+        LightBlue,
+
+        /// <summary>
+        /// Light purple.
+        /// </summary>
+        LightPurple,
+
+        /// <summary>
         /// Light cyan.
         /// </summary>
         LightCyan,
-
-        /// <summary>
-        /// Light red.
-        /// </summary>
-        LightRed,
-
-        /// <summary>
-        /// Light magenta.
-        /// </summary>
-        LightMagenta,
-
-        /// <summary>
-        /// Yellow.
-        /// </summary>
-        Yellow,
 
         /// <summary>
         /// White.
@@ -6832,12 +5034,7 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// Display debug text.
         /// </summary>
-        DisplayText = 0x8,
-
-        /// <summary>
-        /// Enable the internal library performance profiler.
-        /// </summary>
-        Profiler = 0x10
+        DisplayText = 0x8
     }
 
     /// <summary>
@@ -6852,104 +5049,14 @@ namespace BLITTEngine.Foundation
         None = 0,
 
         /// <summary>
-        /// Device supports alpha to coverage.
+        /// Device supports "Less than or equal to" texture comparison mode.
         /// </summary>
-        AlphaToCoverage = 0x1,
-
-        /// <summary>
-        /// Device supports independent blending of simultaneous render targets.
-        /// </summary>
-        BlendIndependent = 0x2,
-
-        /// <summary>
-        /// Device supports compute shaders.
-        /// </summary>
-        Compute = 0x4,
-
-        /// <summary>
-        /// Device supports conservative rasterization.
-        /// </summary>
-        ConservativeRasterization = 0x8,
-
-        /// <summary>
-        /// Device supports indirect drawing via GPU buffers.
-        /// </summary>
-        DrawIndirect = 0x10,
-
-        /// <summary>
-        /// Fragment shaders can access depth values.
-        /// </summary>
-        FragmentDepth = 0x20,
-
-        /// <summary>
-        /// Device supports ordering of fragment output.
-        /// </summary>
-        FragmentOrdering = 0x40,
-
-        /// <summary>
-        /// A graphics debugger is present.
-        /// </summary>
-        GraphicsDebugger = 0x80,
-
-        /// <summary>
-        /// Devices supports HDR10 rendering.
-        /// </summary>
-        HDR10 = 0x100,
-
-        /// <summary>
-        /// Device supports high-DPI rendering.
-        /// </summary>
-        HighDPI = 0x400,
-
-        /// <summary>
-        /// Device supports 32-bit indices.
-        /// </summary>
-        Index32 = 0x800,
-
-        /// <summary>
-        /// Device supports instancing.
-        /// </summary>
-        Instancing = 0x1000,
-
-        /// <summary>
-        /// Device supports occlusion queries.
-        /// </summary>
-        OcclusionQuery = 0x2000,
-
-        /// <summary>
-        /// Device supports multithreaded rendering.
-        /// </summary>
-        RendererMultithreaded = 0x4000,
-
-        /// <summary>
-        /// Indicates whether the device can render to multiple swap chains.
-        /// </summary>
-        SwapChain = 0x8000,
-
-        /// <summary>
-        /// Device supports 2D texture arrays.
-        /// </summary>
-        Texture2DArray = 0x10000,
-
-        /// <summary>
-        /// Device supports 3D textures.
-        /// </summary>
-        Texture3D = 0x20000,
-
-        /// <summary>
-        /// Device supports texture blits.
-        /// </summary>
-        TextureBlit = 0x40000,
+        TextureCompareLessEqual = 0x1,
 
         /// <summary>
         /// Device supports other texture comparison modes.
         /// </summary>
-        TextureCompareExtended = 0x80000,
-
-        /// <summary>
-        /// Device supports "Less than or equal to" texture comparison mode.
-        /// </summary>
-        TextureCompareLessEqual = 0x100000,
+        TextureCompareExtended = 0x2,
 
         /// <summary>
         /// Device supports all texture comparison modes.
@@ -6957,34 +5064,89 @@ namespace BLITTEngine.Foundation
         TextureCompareAll = TextureCompareLessEqual | TextureCompareExtended,
 
         /// <summary>
-        /// Device supports cubemap texture arrays.
+        /// Device supports 3D textures.
         /// </summary>
-        TextureCubeArray = 0x200000,
-
-        /// <summary>
-        /// Device supports directly accessing texture data.
-        /// </summary>
-        TextureDirectAccess = 0x400000,
-
-        /// <summary>
-        /// Device supports reading back texture data.
-        /// </summary>
-        TextureReadBack = 0x800000,
+        Texture3D = 0x4,
 
         /// <summary>
         /// Device supports 16-bit floats as vertex attributes.
         /// </summary>
-        VertexAttributeHalf = 0x1000000,
+        VertexAttributeHalf = 0x8,
 
         /// <summary>
         /// UInt10 vertex attributes are supported.
         /// </summary>
-        VertexAttributeUInt10 = 0x2000000,
+        VertexAttributeUInt10 = 0x10,
 
         /// <summary>
-        /// Devices supports rendering with VertexID only.
+        /// Device supports instancing.
         /// </summary>
-        VertexID = 0x4000000
+        Instancing = 0x20,
+
+        /// <summary>
+        /// Device supports multithreaded rendering.
+        /// </summary>
+        RendererMultithreaded = 0x40,
+
+        /// <summary>
+        /// Fragment shaders can access depth values.
+        /// </summary>
+        FragmentDepth = 0x80,
+
+        /// <summary>
+        /// Device supports independent blending of simultaneous render targets.
+        /// </summary>
+        BlendIndependent = 0x100,
+
+        /// <summary>
+        /// Device supports compute shaders.
+        /// </summary>
+        Compute = 0x200,
+
+        /// <summary>
+        /// Device supports ordering of fragment output.
+        /// </summary>
+        FragmentOrdering = 0x400,
+
+        /// <summary>
+        /// Indicates whether the device can render to multiple swap chains.
+        /// </summary>
+        SwapChain = 0x800,
+
+        /// <summary>
+        /// Head mounted displays are supported.
+        /// </summary>
+        HeadMountedDisplay = 0x1000,
+
+        /// <summary>
+        /// Device supports 32-bit indices.
+        /// </summary>
+        Index32 = 0x2000,
+
+        /// <summary>
+        /// Device supports indirect drawing via GPU buffers.
+        /// </summary>
+        DrawIndirect = 0x4000,
+
+        /// <summary>
+        /// Device supports high-DPI rendering.
+        /// </summary>
+        HighDPI = 0x8000,
+
+        /// <summary>
+        /// Device supports texture blits.
+        /// </summary>
+        TextureBlit = 0x10000,
+
+        /// <summary>
+        /// Device supports reading back texture data.
+        /// </summary>
+        TextureReadBack = 0x20000,
+
+        /// <summary>
+        /// Device supports occlusion queries.
+        /// </summary>
+        OcclusionQuery = 0x40000
     }
 
     /// <summary>
@@ -6996,6 +5158,11 @@ namespace BLITTEngine.Foundation
         /// A debug check failed; the program can safely continue, but the issue should be investigated.
         /// </summary>
         DebugCheck,
+
+        /// <summary>
+        /// The user's hardware failed checks for the minimum required specs.
+        /// </summary>
+        MinimumRequiredSpecs,
 
         /// <summary>
         /// The program tried to compile an invalid shader.
@@ -7047,7 +5214,7 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// No backend given.
         /// </summary>
-        Noop,
+        Null,
 
         /// <summary>
         /// Direct3D 9
@@ -7063,11 +5230,6 @@ namespace BLITTEngine.Foundation
         /// Direct3D 12
         /// </summary>
         Direct3D12,
-
-        /// <summary>
-        /// PlayStation 4's GNM
-        /// </summary>
-        GNM,
 
         /// <summary>
         /// Apple Metal.
@@ -7110,11 +5272,6 @@ namespace BLITTEngine.Foundation
         /// The frame was rendered.
         /// </summary>
         Render,
-
-        /// <summary>
-        /// The internal semaphore timed out; rendering was skipped.
-        /// </summary>
-        Timeout,
 
         /// <summary>
         /// Rendering is done; the program should exit.
@@ -7174,6 +5331,21 @@ namespace BLITTEngine.Foundation
         Capture = 0x200,
 
         /// <summary>
+        /// Enable head mounted display support.
+        /// </summary>
+        HeadMountedDisplay = 0x400,
+
+        /// <summary>
+        /// Enable debugging for head mounted display rendering.
+        /// </summary>
+        HeadMountedDisplayDebug = 0x800,
+
+        /// <summary>
+        /// Recenter the head mounted display.
+        /// </summary>
+        HeadMountedDisplayRecenter = 0x1000,
+
+        /// <summary>
         /// Flush all commands to the device after rendering.
         /// </summary>
         FlushAfterRender = 0x2000,
@@ -7190,31 +5362,21 @@ namespace BLITTEngine.Foundation
         SrgbBackbuffer = 0x8000,
 
         /// <summary>
-        /// Enable HDR10 rendering.
-        /// </summary>
-        HDR10 = 0x10000,
-
-        /// <summary>
         /// Enable High-DPI rendering.
         /// </summary>
-        HighDPI = 0x20000,
+        HighDPI = 0x10000,
 
         /// <summary>
         /// Enables depth clamping.
         /// </summary>
-        DepthClamp = 0x40000,
-
-        /// <summary>
-        /// Suspends rendering.
-        /// </summary>
-        Suspend = 0x80000
+        DepthClamp = 0x20000
     }
 
     /// <summary>
     /// Specifies various texture flags.
     /// </summary>
     [Flags]
-    public enum TextureFlags : long
+    public enum TextureFlags
     {
         /// <summary>
         /// No flags set.
@@ -7292,6 +5454,36 @@ namespace BLITTEngine.Foundation
         MipFilterPoint = 0x00000400,
 
         /// <summary>
+        /// The texture will be used as a render target.
+        /// </summary>
+        RenderTarget = 0x00001000,
+
+        /// <summary>
+        /// The render target texture support 2x multisampling.
+        /// </summary>
+        RenderTargetMultisample2x = 0x00002000,
+
+        /// <summary>
+        /// The render target texture support 4x multisampling.
+        /// </summary>
+        RenderTargetMultisample4x = 0x00003000,
+
+        /// <summary>
+        /// The render target texture support 8x multisampling.
+        /// </summary>
+        RenderTargetMultisample8x = 0x00004000,
+
+        /// <summary>
+        /// The render target texture support 16x multisampling.
+        /// </summary>
+        RenderTargetMultisample16x = 0x00005000,
+
+        /// <summary>
+        /// The texture is only writeable (render target).
+        /// </summary>
+        RenderTargetWriteOnly = 0x00008000,
+
+        /// <summary>
         /// Use a "less than" operator when comparing textures.
         /// </summary>
         CompareLess = 0x00010000,
@@ -7332,64 +5524,24 @@ namespace BLITTEngine.Foundation
         CompareAlways = 0x00080000,
 
         /// <summary>
-        /// Sample stencil instead of depth.
-        /// </summary>
-        SampleStencil = 0x100000,
-
-        /// <summary>
-        /// Perform MSAA sampling on the texture.
-        /// </summary>
-        MSAASample = 0x800000000,
-
-        /// <summary>
-        /// The texture will be used as a render target.
-        /// </summary>
-        RenderTarget = 0x1000000000,
-
-        /// <summary>
-        /// The render target texture support 2x multisampling.
-        /// </summary>
-        RenderTargetMultisample2x = 0x2000000000,
-
-        /// <summary>
-        /// The render target texture support 4x multisampling.
-        /// </summary>
-        RenderTargetMultisample4x = 0x3000000000,
-
-        /// <summary>
-        /// The render target texture support 8x multisampling.
-        /// </summary>
-        RenderTargetMultisample8x = 0x4000000000,
-
-        /// <summary>
-        /// The render target texture support 16x multisampling.
-        /// </summary>
-        RenderTargetMultisample16x = 0x5000000000,
-
-        /// <summary>
-        /// The texture is only writeable (render target).
-        /// </summary>
-        RenderTargetWriteOnly = 0x8000000000,
-
-        /// <summary>
         /// Texture is the target of compute shader writes.
         /// </summary>
-        ComputeWrite = 0x100000000000,
+        ComputeWrite = 0x00100000,
 
         /// <summary>
         /// Texture data is in non-linear sRGB format.
         /// </summary>
-        Srgb = 0x200000000000,
+        Srgb = 0x00200000,
 
         /// <summary>
         /// Texture can be used as the destination of a blit operation.
         /// </summary>
-        BlitDestination = 0x400000000000,
+        BlitDestination = 0x00400000,
 
         /// <summary>
         /// Texture data can be read back.
         /// </summary>
-        ReadBack = 0x800000000000
+        ReadBack = 0x00800000
     }
 
     /// <summary>
@@ -7484,51 +5636,6 @@ namespace BLITTEngine.Foundation
         /// PVRTC2 compression with alpha (4 bits per pixel)
         /// </summary>
         PTC24,
-
-        /// <summary>
-        /// ATC RGB (4 bits per pixel)
-        /// </summary>
-        ATC,
-
-        /// <summary>
-        /// ATCE RGBA with explicit alpha (8 bits per pixel)
-        /// </summary>
-        ATCE,
-
-        /// <summary>
-        /// ATCE RGBA with interpolated alpha (8 bits per pixel)
-        /// </summary>
-        ATCI,
-
-        /// <summary>
-        /// ASTC 4x4 8.0 bpp
-        /// </summary>
-        ASTC4x4,
-
-        /// <summary>
-        /// ASTC 5x5 5.12 bpp
-        /// </summary>
-        ASTC5x5,
-
-        /// <summary>
-        /// ASTC 6x6 3.56 bpp
-        /// </summary>
-        ASTC6x6,
-
-        /// <summary>
-        /// ASTC 8x5 3.20 bpp
-        /// </summary>
-        ASTC8x5,
-
-        /// <summary>
-        /// ASTC 8x6 2.67 bpp
-        /// </summary>
-        ASTC8x6,
-
-        /// <summary>
-        /// ASTC 10x5 2.56 bpp
-        /// </summary>
-        ASTC10x5,
 
         /// <summary>
         /// Unknown texture format.
@@ -7666,26 +5773,6 @@ namespace BLITTEngine.Foundation
         RG32F,
 
         /// <summary>
-        /// 8-bit three channel.
-        /// </summary>
-        RGB8,
-
-        /// <summary>
-        /// 8-bit three channel (integer).
-        /// </summary>
-        RGB8I,
-
-        /// <summary>
-        /// 8-bit three channel (unsigned).
-        /// </summary>
-        RGB8U,
-
-        /// <summary>
-        /// 8-bit three channel (signed).
-        /// </summary>
-        RGB8S,
-
-        /// <summary>
         /// 9-bit three channel floating point with shared 5-bit exponent.
         /// </summary>
         RGB9E5F,
@@ -7778,7 +5865,7 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// 11-11-10 color (float).
         /// </summary>
-        RG11B10F,
+        R11G11B10F,
 
         /// <summary>
         /// Unknown depth format.
@@ -7905,43 +5992,7 @@ namespace BLITTEngine.Foundation
         /// <summary>
         /// The format is supported for MSAA sampling.
         /// </summary>
-        MSAA = 0x2000,
-
-        /// <summary>
-        /// The format supports auto-generated mipmaps.
-        /// </summary>
-        MipsAutogen = 0x4000
-    }
-
-    /// <summary>
-    /// Specifies possible primitive topologies.
-    /// </summary>
-    public enum Topology
-    {
-        /// <summary>
-        /// List of triangles.
-        /// </summary>
-        TriangleList,
-
-        /// <summary>
-        /// Strip of triangles.
-        /// </summary>
-        TriangleStrip,
-
-        /// <summary>
-        /// List of lines.
-        /// </summary>
-        LineList,
-
-        /// <summary>
-        /// Strip of lines.
-        /// </summary>
-        LineStrip,
-
-        /// <summary>
-        /// List of points.
-        /// </summary>
-        PointList
+        MSAA = 0x2000
     }
 
     /// <summary>
@@ -8079,16 +6130,6 @@ namespace BLITTEngine.Foundation
         Color1,
 
         /// <summary>
-        /// Third color channel.
-        /// </summary>
-        Color2,
-
-        /// <summary>
-        /// Fourth color channel.
-        /// </summary>
-        Color3,
-
-        /// <summary>
         /// Indices.
         /// </summary>
         Indices,
@@ -8140,32 +6181,6 @@ namespace BLITTEngine.Foundation
     }
 
     /// <summary>
-    /// Specifies possible sorting modes for a view.
-    /// </summary>
-    public enum ViewMode
-    {
-        /// <summary>
-        /// Default sorting method.
-        /// </summary>
-        Default,
-
-        /// <summary>
-        /// Do each draw in the order it is issued.
-        /// </summary>
-        Sequential,
-
-        /// <summary>
-        /// Sort each draw by depth, ascending.
-        /// </summary>
-        DepthAscending,
-
-        /// <summary>
-        /// Sort each draw by depth, descending.
-        /// </summary>
-        DepthDescending
-    }
-
-    /// <summary>
     /// Delegate type for callback functions.
     /// </summary>
     /// <param name="userData">User-provided data to the original allocation call.</param>
@@ -8176,25 +6191,30 @@ namespace BLITTEngine.Foundation
     [SuppressUnmanagedCodeSecurity]
     unsafe static class NativeMethods
     {
-#pragma warning disable IDE1006 // Naming Styles
-
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_update_texture_2d(ushort handle, ushort layer, byte mip, ushort x, ushort y, ushort width, ushort height, MemoryBlock.DataPtr* memory, ushort pitch);
+        public static extern void bgfx_update_texture_2d(ushort handle, byte mip, ushort x, ushort y, ushort width, ushort height, MemoryBlock.DataPtr* memory, ushort pitch);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_update_texture_3d(ushort handle, byte mip, ushort x, ushort y, ushort z, ushort width, ushort height, ushort depth, MemoryBlock.DataPtr* memory);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_update_texture_cube(ushort handle, CubeMapFace side, ushort layer, byte mip, ushort x, ushort y, ushort width, ushort height, MemoryBlock.DataPtr* memory, ushort pitch);
+        public static extern void bgfx_update_texture_cube(ushort handle, CubeMapFace side, byte mip, ushort x, ushort y, ushort width, ushort height, MemoryBlock.DataPtr* memory, ushort pitch);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_get_avail_transient_index_buffer(int num);
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool bgfx_check_avail_transient_index_buffer(int num);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_get_avail_transient_vertex_buffer(int num, ref VertexLayout.Data decl);
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool bgfx_check_avail_transient_vertex_buffer(int num, ref VertexLayout.Data decl);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_get_avail_instance_data_buffer(int num, ushort stride);
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool bgfx_check_avail_instance_data_buffer(int num, ushort stride);
+
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool bgfx_check_avail_transient_buffers(int numVertices, ref VertexLayout.Data decl, int numIndices);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_alloc_transient_index_buffer(out TransientIndexBuffer tib, int num);
@@ -8207,19 +6227,25 @@ namespace BLITTEngine.Foundation
         public static extern bool bgfx_alloc_transient_buffers(out TransientVertexBuffer tvb, ref VertexLayout.Data decl, ushort numVertices, out TransientIndexBuffer tib, ushort numIndices);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_alloc_instance_data_buffer(out InstanceDataBuffer.NativeStruct ptr, int num, ushort stride);
+        public static extern InstanceDataBuffer.NativeStruct* bgfx_alloc_instance_data_buffer(int num, ushort stride);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_dispatch(ushort id, ushort program, uint numX, uint numY, uint numZ, byte flags);
+        public static extern int bgfx_dispatch(byte id, ushort program, ushort numX, ushort numY, ushort numZ, byte flags);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_dispatch_indirect(ushort id, ushort program, ushort indirectHandle, ushort start, ushort num, byte flags);
+        public static extern int bgfx_dispatch_indirect(byte id, ushort program, ushort indirectHandle, ushort start, ushort num, byte flags);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_set_texture(byte stage, ushort sampler, ushort texture, uint flags);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_image(byte stage, ushort texture, byte mip, TextureFormat format, ComputeBufferAccess access);
+        public static extern void bgfx_set_texture_from_frame_buffer(byte stage, ushort sampler, ushort frameBuffer, byte attachment, uint flags);
+
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void bgfx_set_image(byte stage, ushort sampler, ushort texture, byte mip, TextureFormat format, ComputeBufferAccess access);
+
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void bgfx_set_image_from_frame_buffer(byte stage, ushort sampler, ushort frameBuffer, byte attachment, TextureFormat format, ComputeBufferAccess access);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_set_compute_index_buffer(byte stage, ushort handle, ComputeBufferAccess access);
@@ -8246,16 +6272,13 @@ namespace BLITTEngine.Foundation
         public static extern ushort bgfx_create_frame_buffer_from_handles(byte count, ushort* handles, [MarshalAs(UnmanagedType.U1)] bool destroyTextures);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern ushort bgfx_create_frame_buffer_from_attachment(byte count, FrameBuffer.NativeAttachment* attachment, [MarshalAs(UnmanagedType.U1)] bool destroyTextures);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern ushort bgfx_create_frame_buffer_from_nwh(IntPtr nwh, ushort width, ushort height, TextureFormat depthFormat);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_destroy_frame_buffer(ushort handle);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_view_frame_buffer(ushort id, ushort handle);
+        public static extern void bgfx_set_view_frame_buffer(byte id, ushort handle);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern ushort bgfx_create_program(ushort vsh, ushort fsh, [MarshalAs(UnmanagedType.U1)] bool destroyShaders);
@@ -8291,50 +6314,34 @@ namespace BLITTEngine.Foundation
         public static extern ushort bgfx_create_uniform([MarshalAs(UnmanagedType.LPStr)] string name, UniformType type, ushort arraySize);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_get_uniform_info(ushort handle, out Uniform.Info info);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_destroy_uniform(ushort handle);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern ushort bgfx_create_texture(MemoryBlock.DataPtr* mem, TextureFlags flags, byte skip, out Texture.TextureInfo info);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern ushort bgfx_create_texture_2d(ushort width, ushort _height, [MarshalAs(UnmanagedType.U1)] bool hasMips, ushort numLayers, TextureFormat format, TextureFlags flags, MemoryBlock.DataPtr* mem);
+        public static extern ushort bgfx_create_texture_2d(ushort width, ushort _height, byte numMips, TextureFormat format, TextureFlags flags, MemoryBlock.DataPtr* mem);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern ushort bgfx_create_texture_2d_scaled(BackbufferRatio ratio, [MarshalAs(UnmanagedType.U1)] bool hasMips, ushort numLayers, TextureFormat format, TextureFlags flags);
+        public static extern ushort bgfx_create_texture_2d_scaled(BackbufferRatio ratio, byte numMips, TextureFormat format, TextureFlags flags);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern ushort bgfx_create_texture_3d(ushort width, ushort _height, ushort _depth, [MarshalAs(UnmanagedType.U1)] bool hasMips, TextureFormat format, TextureFlags flags, MemoryBlock.DataPtr* mem);
+        public static extern ushort bgfx_create_texture_3d(ushort width, ushort _height, ushort _depth, byte numMips, TextureFormat format, TextureFlags flags, MemoryBlock.DataPtr* mem);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern ushort bgfx_create_texture_cube(ushort size, [MarshalAs(UnmanagedType.U1)] bool hasMips, ushort numLayers, TextureFormat format, TextureFlags flags, MemoryBlock.DataPtr* mem);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_texture_name(ushort handle, [MarshalAs(UnmanagedType.LPStr)] string name, int len);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr bgfx_get_direct_access_ptr(ushort handle);
+        public static extern ushort bgfx_create_texture_cube(ushort size, byte numMips, TextureFormat format, TextureFlags flags, MemoryBlock.DataPtr* mem);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_destroy_texture(ushort handle);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_calc_texture_size(ref Texture.TextureInfo info, ushort width, ushort height, ushort depth, [MarshalAs(UnmanagedType.U1)] bool cubeMap, [MarshalAs(UnmanagedType.U1)] bool hasMips, ushort numLayers, TextureFormat format);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        public static extern bool bgfx_is_texture_valid(ushort depth, [MarshalAs(UnmanagedType.U1)] bool cubeMap, ushort numLayers, TextureFormat format, TextureFlags flags);
+        public static extern void bgfx_calc_texture_size(ref Texture.TextureInfo info, ushort width, ushort height, ushort depth, [MarshalAs(UnmanagedType.U1)] bool cubeMap, byte mipCount, TextureFormat format);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern ushort bgfx_create_shader(MemoryBlock.DataPtr* memory);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern ushort bgfx_get_shader_uniforms(ushort handle, Uniform[] uniforms, ushort max);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_shader_name(ushort handle, [MarshalAs(UnmanagedType.LPStr)] string name, int len);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_destroy_shader(ushort handle);
@@ -8385,10 +6392,10 @@ namespace BLITTEngine.Foundation
         public static extern void bgfx_destroy_indirect_buffer(ushort handle);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_image_swizzle_bgra8(IntPtr dst, int width, int height, int pitch, IntPtr src);
+        public static extern void bgfx_image_swizzle_bgra8(int width, int height, int pitch, IntPtr src, IntPtr dst);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_image_rgba8_downsample_2x2(IntPtr dst, int width, int height, int pitch, IntPtr src);
+        public static extern void bgfx_image_rgba8_downsample_2x2(int width, int height, int pitch, IntPtr src, IntPtr dst);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_set_platform_data(ref PlatformData data);
@@ -8397,7 +6404,7 @@ namespace BLITTEngine.Foundation
         public static extern InternalData* bgfx_get_internal_data();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern RenderFrameResult bgfx_render_frame(int timeoutMs);
+        public static extern RenderFrameResult bgfx_render_frame();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr bgfx_override_internal_texture_ptr(ushort handle, IntPtr ptr);
@@ -8415,10 +6422,10 @@ namespace BLITTEngine.Foundation
         public static extern void bgfx_shutdown();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_reset(int width, int height, ResetFlags flags, TextureFormat format);
+        public static extern void bgfx_reset(int width, int height, ResetFlags flags);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_frame([MarshalAs(UnmanagedType.U1)] bool capture);
+        public static extern int bgfx_frame();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_set_debug(DebugFeatures flags);
@@ -8436,49 +6443,49 @@ namespace BLITTEngine.Foundation
         public static extern void bgfx_set_stencil(uint frontFace, uint backFace);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_touch(ushort id);
+        public static extern int bgfx_touch(byte id);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_submit(ushort id, ushort programHandle, int depth, [MarshalAs(UnmanagedType.U1)] bool preserveState);
+        public static extern int bgfx_submit(byte id, ushort programHandle, int depth);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_submit_occlusion_query(ushort id, ushort programHandle, ushort queryHandle, int depth, [MarshalAs(UnmanagedType.U1)] bool preserveState);
+        public static extern int bgfx_submit_occlusion_query(byte id, ushort programHandle, ushort queryHandle, int depth);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_submit_indirect(ushort id, ushort programHandle, ushort indirectHandle, ushort start, ushort num, int depth, [MarshalAs(UnmanagedType.U1)] bool preserveState);
+        public static extern int bgfx_submit_indirect(byte id, ushort programHandle, ushort indirectHandle, ushort start, ushort num, int depth);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_discard();
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_view_name(ushort id, [MarshalAs(UnmanagedType.LPStr)] string name);
+        public static extern void bgfx_set_view_name(byte id, [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_view_rect(ushort id, ushort x, ushort y, ushort width, ushort height);
+        public static extern void bgfx_set_view_rect(byte id, ushort x, ushort y, ushort width, ushort height);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_view_rect_auto(ushort id, ushort x, ushort y, BackbufferRatio ratio);
+        public static extern void bgfx_set_view_rect_auto(byte id, ushort x, ushort y, BackbufferRatio ratio);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_view_scissor(ushort id, ushort x, ushort y, ushort width, ushort height);
+        public static extern void bgfx_set_view_scissor(byte id, ushort x, ushort y, ushort width, ushort height);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_view_clear(ushort id, ClearTargets flags, int rgba, float depth, byte stencil);
+        public static extern void bgfx_set_view_clear(byte id, ClearTargets flags, int rgba, float depth, byte stencil);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_view_clear_mrt(ushort id, ClearTargets flags, float depth, byte stencil, byte rt0, byte rt1, byte rt2, byte rt3, byte rt4, byte rt5, byte rt6, byte rt7);
+        public static extern void bgfx_set_view_clear_mrt(byte id, ClearTargets flags, float depth, byte stencil, byte rt0, byte rt1, byte rt2, byte rt3, byte rt4, byte rt5, byte rt6, byte rt7);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_set_palette_color(byte index, float* color);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_view_mode(ushort id, ViewMode mode);
+        public static extern void bgfx_set_view_seq(byte id, [MarshalAs(UnmanagedType.U1)] bool enabled);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_view_transform(ushort id, float* view, float* proj);
+        public static extern void bgfx_set_view_transform(byte id, float* view, float* proj);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_request_screen_shot(ushort handle, [MarshalAs(UnmanagedType.LPStr)] string filePath);
+        public static extern void bgfx_save_screen_shot([MarshalAs(UnmanagedType.LPStr)] string filePath);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_set_state(ulong state, int rgba);
@@ -8496,17 +6503,13 @@ namespace BLITTEngine.Foundation
         public static extern ushort bgfx_weld_vertices(ushort* output, ref VertexLayout.Data decl, IntPtr data, ushort num, float epsilon);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern byte bgfx_get_supported_renderers(byte max, RendererBackend[] backends);
+        public static extern byte bgfx_get_supported_renderers(RendererBackend[] backends);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern sbyte* bgfx_get_renderer_name(RendererBackend backend);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_init_ctor(InitSettings.Native* ptr);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        public static extern bool bgfx_init(InitSettings.Native* ptr);
+        public static extern void bgfx_init(RendererBackend backend, ushort vendorId, ushort deviceId, IntPtr callbacks, IntPtr allocator);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_dbg_text_printf(ushort x, ushort y, byte color, [MarshalAs(UnmanagedType.LPStr)] string format, [MarshalAs(UnmanagedType.LPStr)] string args);
@@ -8524,10 +6527,10 @@ namespace BLITTEngine.Foundation
         public static extern void bgfx_set_dynamic_index_buffer(ushort handle, int firstIndex, int count);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_vertex_buffer(byte stream, ushort handle, int startVertex, int count);
+        public static extern void bgfx_set_vertex_buffer(ushort handle, int startVertex, int count);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_dynamic_vertex_buffer(byte stream, ushort handle, int startVertex, int count);
+        public static extern void bgfx_set_dynamic_vertex_buffer(ushort handle, int count);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_set_uniform(ushort handle, void* value, ushort arraySize);
@@ -8542,19 +6545,13 @@ namespace BLITTEngine.Foundation
         public static extern void bgfx_set_scissor_cached(ushort cache);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_transient_vertex_buffer(byte stream, ref TransientVertexBuffer tvb, int startVertex, int numVertices);
+        public static extern void bgfx_set_transient_vertex_buffer(ref TransientVertexBuffer tvb, int startVertex, int numVertices);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_set_transient_index_buffer(ref TransientIndexBuffer tib, int startIndex, int numIndices);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_vertex_count(int numVertices);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_instance_count(int numInstances);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_set_instance_data_buffer(ref InstanceDataBuffer.NativeStruct idb, uint start, uint num);
+        public static extern void bgfx_set_instance_data_buffer(InstanceDataBuffer.NativeStruct* idb, ushort num);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_set_instance_data_from_vertex_buffer(ushort handle, int startVertex, int count);
@@ -8563,17 +6560,21 @@ namespace BLITTEngine.Foundation
         public static extern void bgfx_set_instance_data_from_dynamic_vertex_buffer(ushort handle, int startVertex, int count);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_reset_view(ushort id);
+        public static extern void bgfx_reset_view(byte id);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_blit(ushort id, ushort dst, byte dstMip, ushort dstX, ushort dstY, ushort dstZ, ushort src,
+        public static extern void bgfx_blit(byte id, ushort dst, byte dstMip, ushort dstX, ushort dstY, ushort dstZ, ushort src,
                                              byte srcMip, ushort srcX, ushort srcY, ushort srcZ, ushort width, ushort height, ushort depth);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint bgfx_read_texture(ushort handle, IntPtr data, byte mip);
+        public static extern void bgfx_blit_frame_buffer(byte id, ushort dst, byte dstMip, ushort dstX, ushort dstY, ushort dstZ, ushort src, byte attachment,
+                                                          byte srcMip, ushort srcX, ushort srcY, ushort srcZ, ushort width, ushort height, ushort depth);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern ushort bgfx_get_texture(ushort handle, byte attachment);
+        public static extern void bgfx_read_texture(ushort handle, IntPtr data);
+
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void bgfx_read_frame_buffer(ushort handle, byte attachment, IntPtr data);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern ushort bgfx_create_occlusion_query();
@@ -8582,124 +6583,10 @@ namespace BLITTEngine.Foundation
         public static extern void bgfx_destroy_occlusion_query(ushort handle);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern OcclusionQueryResult bgfx_get_result(ushort handle, int* pixels);
+        public static extern OcclusionQueryResult bgfx_get_result(ushort handle);
 
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_set_condition(ushort handle, [MarshalAs(UnmanagedType.U1)] bool visible);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_vsnprintf(sbyte* str, IntPtr count, [MarshalAs(UnmanagedType.LPStr)] string format, IntPtr argList);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr bgfx_begin();
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_end(IntPtr encoder);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_marker(IntPtr encoder, [MarshalAs(UnmanagedType.LPStr)] string marker);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_state(IntPtr encoder, ulong state, int rgba);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_condition(IntPtr encoder, ushort handle, [MarshalAs(UnmanagedType.U1)] bool visible);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_stencil(IntPtr encoder, uint frontFace, uint backFace);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern ushort bgfx_encoder_set_scissor(IntPtr encoder, ushort x, ushort y, ushort width, ushort height);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_scissor_cached(IntPtr encoder, ushort cache);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_encoder_set_transform(IntPtr encoder, float* matrix, ushort count);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_transform_cached(IntPtr encoder, int cache, ushort num);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_uniform(IntPtr encoder, ushort handle, void* value, ushort arraySize);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_index_buffer(IntPtr encoder, ushort handle, int firstIndex, int count);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_dynamic_index_buffer(IntPtr encoder, ushort handle, int firstIndex, int count);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_vertex_buffer(IntPtr encoder, byte stream, ushort handle, int startVertex, int count);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_dynamic_vertex_buffer(IntPtr encoder, byte stream, ushort handle, int startVertex, int count);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_transient_vertex_buffer(IntPtr encoder, byte stream, ref TransientVertexBuffer tvb, int startVertex, int numVertices);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_transient_index_buffer(IntPtr encoder, ref TransientIndexBuffer tib, int startIndex, int numIndices);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_vertex_count(IntPtr encoder, int numVertices);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_instance_data_buffer(IntPtr encoder, ref InstanceDataBuffer.NativeStruct idb, uint start, uint num);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_instance_data_from_vertex_buffer(IntPtr encoder, ushort handle, int startVertex, int count);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_instance_data_from_dynamic_vertex_buffer(IntPtr encoder, ushort handle, int startVertex, int count);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_texture(IntPtr encoder, byte stage, ushort sampler, ushort texture, uint flags);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_encoder_touch(IntPtr encoder, ushort id);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_encoder_submit(IntPtr encoder, ushort id, ushort programHandle, int depth, [MarshalAs(UnmanagedType.U1)] bool preserveState);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_encoder_submit_occlusion_query(IntPtr encoder, ushort id, ushort programHandle, ushort queryHandle, int depth, [MarshalAs(UnmanagedType.U1)] bool preserveState);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_encoder_submit_indirect(IntPtr encoder, ushort id, ushort programHandle, ushort indirectHandle, ushort start, ushort num, int depth, [MarshalAs(UnmanagedType.U1)] bool preserveState);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_image(IntPtr encoder, byte stage, ushort texture, byte mip, TextureFormat format, ComputeBufferAccess access);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_compute_index_buffer(IntPtr encoder, byte stage, ushort handle, ComputeBufferAccess access);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_compute_vertex_buffer(IntPtr encoder, byte stage, ushort handle, ComputeBufferAccess access);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_compute_dynamic_index_buffer(IntPtr encoder, byte stage, ushort handle, ComputeBufferAccess access);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_compute_dynamic_vertex_buffer(IntPtr encoder, byte stage, ushort handle, ComputeBufferAccess access);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_set_compute_indirect_buffer(IntPtr encoder, byte stage, ushort handle, ComputeBufferAccess access);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_encoder_dispatch(IntPtr encoder, ushort id, ushort program, uint numX, uint numY, uint numZ, byte flags);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bgfx_encoder_dispatch_indirect(IntPtr encoder, ushort id, ushort program, ushort indirectHandle, ushort start, ushort num, byte flags);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_discard(IntPtr encoder);
-
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void bgfx_encoder_blit(IntPtr encoder, ushort id, ushort dst, byte dstMip, ushort dstX, ushort dstY, ushort dstZ, ushort src,
-                                                    byte srcMip, ushort srcX, ushort srcY, ushort srcZ, ushort width, ushort height, ushort depth);
-
-#pragma warning restore IDE1006 // Naming Styles
 
 #if DEBUG
         const string DllName = "bgfx_debug.dll";
@@ -8708,14 +6595,11 @@ namespace BLITTEngine.Foundation
 #endif
     }
 
-    unsafe struct CallbackShim
+    struct CallbackShim
     {
         IntPtr vtbl;
         IntPtr reportError;
         IntPtr reportDebug;
-        IntPtr profilerBegin;
-        IntPtr profilerBeginLiteral;
-        IntPtr profilerEnd;
         IntPtr getCachedSize;
         IntPtr getCacheEntry;
         IntPtr setCacheEntry;
@@ -8732,7 +6616,7 @@ namespace BLITTEngine.Foundation
             if (savedDelegates != null)
                 throw new InvalidOperationException("Callbacks should only be initialized once; bgfx can only deal with one set at a time.");
 
-            var memory = Marshal.AllocHGlobal(Marshal.SizeOf<CallbackShim>());
+            var memory = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(CallbackShim)));
             var shim = (CallbackShim*)memory;
             var saver = new DelegateSaver(handler, shim);
 
@@ -8758,19 +6642,11 @@ namespace BLITTEngine.Foundation
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        delegate void ReportErrorHandler(IntPtr thisPtr, string fileName, ushort line, ErrorType errorType, string message);
+        delegate void ReportErrorHandler(IntPtr thisPtr, ErrorType errorType, string message);
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         delegate void ReportDebugHandler(IntPtr thisPtr, string fileName, ushort line, string format, IntPtr args);
-
-        [SuppressUnmanagedCodeSecurity]
-        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        delegate void ProfilerBeginHandler(IntPtr thisPtr, sbyte* name, int abgr, sbyte* filePath, ushort line);
-
-        [SuppressUnmanagedCodeSecurity]
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate void ProfilerEndHandler(IntPtr thisPtr);
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -8809,9 +6685,6 @@ namespace BLITTEngine.Foundation
             ICallbackHandler handler;
             ReportErrorHandler reportError;
             ReportDebugHandler reportDebug;
-            ProfilerBeginHandler profilerBegin;
-            ProfilerBeginHandler profilerBeginLiteral;
-            ProfilerEndHandler profilerEnd;
             GetCachedSizeHandler getCachedSize;
             GetCacheEntryHandler getCacheEntry;
             SetCacheEntryHandler setCacheEntry;
@@ -8825,9 +6698,6 @@ namespace BLITTEngine.Foundation
                 this.handler = handler;
                 reportError = ReportError;
                 reportDebug = ReportDebug;
-                profilerBegin = ProfilerBegin;
-                profilerBeginLiteral = ProfilerBegin;
-                profilerEnd = ProfilerEnd;
                 getCachedSize = GetCachedSize;
                 getCacheEntry = GetCacheEntry;
                 setCacheEntry = SetCacheEntry;
@@ -8838,9 +6708,6 @@ namespace BLITTEngine.Foundation
 
                 shim->reportError = Marshal.GetFunctionPointerForDelegate(reportError);
                 shim->reportDebug = Marshal.GetFunctionPointerForDelegate(reportDebug);
-                shim->profilerBegin = Marshal.GetFunctionPointerForDelegate(profilerBegin);
-                shim->profilerBeginLiteral = Marshal.GetFunctionPointerForDelegate(profilerBeginLiteral);
-                shim->profilerEnd = Marshal.GetFunctionPointerForDelegate(profilerEnd);
                 shim->getCachedSize = Marshal.GetFunctionPointerForDelegate(getCachedSize);
                 shim->getCacheEntry = Marshal.GetFunctionPointerForDelegate(getCacheEntry);
                 shim->setCacheEntry = Marshal.GetFunctionPointerForDelegate(setCacheEntry);
@@ -8850,24 +6717,14 @@ namespace BLITTEngine.Foundation
                 shim->captureFrame = Marshal.GetFunctionPointerForDelegate(captureFrame);
             }
 
-            void ReportError(IntPtr thisPtr, string fileName, ushort line, ErrorType errorType, string message)
+            void ReportError(IntPtr thisPtr, ErrorType errorType, string message)
             {
-                handler.ReportError(fileName, line, errorType, message);
+                handler.ReportError(errorType, message);
             }
 
             void ReportDebug(IntPtr thisPtr, string fileName, ushort line, string format, IntPtr args)
             {
                 handler.ReportDebug(fileName, line, format, args);
-            }
-
-            void ProfilerBegin(IntPtr thisPtr, sbyte* name, int color, sbyte* filePath, ushort line)
-            {
-                handler.ProfilerBegin(new string(name), color, new string(filePath), line);
-            }
-
-            void ProfilerEnd(IntPtr thisPtr)
-            {
-                handler.ProfilerEnd();
             }
 
             int GetCachedSize(IntPtr thisPtr, long id)

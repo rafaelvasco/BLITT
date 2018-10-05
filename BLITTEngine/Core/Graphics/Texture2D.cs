@@ -54,12 +54,11 @@ namespace BLITTEngine.Core.Graphics
 
             MemoryBlock image_memory = MemoryBlock.FromArray(pixmap.PixelData);
 
-          
+
             InternalTexture = Texture.Create2D(
                width: pixmap.Width,
                 height: pixmap.Height,
-                hasMips: false,
-                arrayLayers: 0,
+                mipCount: 0,
                 format: TextureFormat.BGRA8,
                 flags: Flags,
                 memory: image_memory
@@ -74,9 +73,7 @@ namespace BLITTEngine.Core.Graphics
             InternalTexture = Texture.Create2D(
                width: width,
                 height: height,
-                hasMips: false,
-                arrayLayers: 0,
-
+                mipCount: 0,
                 format: TextureFormat.BGRA8,
                 flags: Flags,
                 memory: null
@@ -87,7 +84,7 @@ namespace BLITTEngine.Core.Graphics
         {
             var memory = MemoryBlock.MakeRef(pixmap.PixelDataPtr, pixmap.SizeBytes, IntPtr.Zero);
 
-            InternalTexture.Update2D(0, 0, 0, 0, pixmap.Width, pixmap.Height, memory, pixmap.Stride);
+            InternalTexture.Update2D(0, 0, 0, pixmap.Width, pixmap.Height, memory, pixmap.Stride);
         }
 
         private void UpdateTextureFlags()

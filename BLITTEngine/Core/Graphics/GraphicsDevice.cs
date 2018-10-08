@@ -88,6 +88,7 @@ namespace BLITTEngine.Core.Graphics
         public void Clear(in Color color)
         {
             Bgfx.SetViewClear(0, ClearTargets.Color, color.RGBAI);
+            Bgfx.SetViewClear(1, ClearTargets.Color, color.RGBAI);
         }
 
         public void LoadShaderProgram(string name, byte[] vertex_shader_src, byte[] frag_shader_src)
@@ -141,6 +142,7 @@ namespace BLITTEngine.Core.Graphics
         {
             current_view_id = id;
 
+            Bgfx.Touch(0);
             Bgfx.Touch(id);
 
             Bgfx.SetRenderState(render_state);

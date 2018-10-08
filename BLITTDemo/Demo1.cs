@@ -69,14 +69,19 @@ namespace BLITTDemo
         public override void Draw(Canvas canvas)
         {
             canvas.Clear(Color.CornflowerBlue);
+                
 
             canvas.Begin(scene_view);
+
+           
 
             canvas.Draw(texture, x, y);
 
             canvas.End();
 
             canvas.Begin(gui_view);
+
+            
 
             canvas.Draw(texture, 100, 100);
 

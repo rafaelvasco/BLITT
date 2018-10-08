@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 using BLITTEngine.Foundation;
 using BLITTEngine.Resources;
 

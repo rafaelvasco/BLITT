@@ -2,18 +2,24 @@ using BLITTEngine.Foundation;
 using BLITTEngine.Numerics;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace BLITTEngine.Core.Graphics
 {
-    public class GraphicsInfo
+    internal class GraphicsInfo
     {
         public RendererBackend RendererBackend;
         public int MaxTextureSize;
     }
 
-    public class GraphicsDevice : IDisposable
+    internal class DrawPass
+    {
+
+    }
+
+    internal class GraphicsDevice : IDisposable
     {
         private const string EMBEDED_SHADERS_PATH = "BLITTEngine.EngineResources.Shaders.bin";
 
@@ -30,13 +36,11 @@ namespace BLITTEngine.Core.Graphics
         private int vertex_idx;
         private int quad_count;
 
-        private Matrix4 projection_matrix;
-        private Matrix4 transform_matrix;
-        
+        private byte current_view_id;
 
         public GraphicsDevice(IntPtr surface_handle, int backbuffer_width, int backbuffer_height)
         {
-           
+
             this.shaders_catalog = new Dictionary<string, ShaderProgram>();
 
             Bgfx.SetPlatformData(new PlatformData() { WindowHandle = surface_handle });
@@ -58,8 +62,7 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
 
-
-            UpdateViewport(backbuffer_width, backbuffer_height);
+            ResizeBackbuffer(backbuffer_width, backbuffer_height);
 
             InitializeRenderBuffers();
         }
@@ -102,7 +105,7 @@ namespace BLITTEngine.Core.Graphics
             shaders_catalog.Add(name, shader_program);
         }
 
-        public unsafe void DrawTexture(Texture2D texture, float x, float y)
+        public unsafe void AddQuad(Texture2D texture, float x, float y)
         {
             if (current_texture != texture)
             {
@@ -131,23 +134,24 @@ namespace BLITTEngine.Core.Graphics
             }
         }
 
-        public unsafe void Begin()
+        public unsafe void Begin(byte id,
+            in RenderState render_state,
+            in Matrix4x4 projection,
+            in RectangleI viewport)
         {
-            Bgfx.Touch(0);
+            current_view_id = id;
 
-            Bgfx.DebugTextClear();
+            Bgfx.Touch(id);
 
-            var viewMatrix = transform_matrix;
-            var projMatrix = projection_matrix;
+            Bgfx.SetRenderState(render_state);
 
-            Bgfx.SetRenderState(
-                RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha) |
-                RenderState.ColorWrite |
-                RenderState.AlphaWrite);
+            var projMatrix = projection;
 
-            Bgfx.SetViewTransform(0, &viewMatrix.M11, &projMatrix.M11);
+            Bgfx.SetViewTransform(id, null, &projMatrix.M11);
 
-            Bgfx.DebugTextWrite(2, 2, DebugColor.White, DebugColor.Cyan, "HELLO WORLD!");
+            Bgfx.SetViewRect(id, viewport.X, viewport.Y, viewport.W, viewport.H);
+
+
         }
 
         public void End()
@@ -155,31 +159,22 @@ namespace BLITTEngine.Core.Graphics
             Flush();
         }
 
-        public unsafe void UpdateViewport(int width, int height)
+        public unsafe void ResizeBackbuffer(int width, int height)
         {
             Bgfx.Reset(width, height, ResetFlags.Vsync);
-            Bgfx.SetViewRect(0, 0, 0, width, height);
+        }
 
-            transform_matrix = Matrix4.Identity;
+        public void Frame()
+        {
+            Bgfx.Frame();
 
-            Matrix4.CreateOrthographicOffCenter(
-
-                left: 0.0f,
-                right: width,
-                bottom: height,
-                top: 0.0f,
-                0.0f,
-                1.0f, out projection_matrix
-            );
-
-
+            current_view_id = 0;
         }
 
         private unsafe void Flush()
         {
             if (vertex_idx == 0)
             {
-                Bgfx.Frame();
                 return;
             }
 
@@ -195,15 +190,13 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.SetVertexBuffer(vertex_buffer, 0, vertex_idx);
             Bgfx.SetIndexBuffer(index_buffer, 0, quad_count * 6);
 
-            Bgfx.Submit(0, default_shader.Program);
-
-            Bgfx.Frame();
+            Bgfx.Submit(current_view_id, default_shader.Program);
 
             vertex_idx = 0;
             quad_count = 0;
         }
 
-       
+
 
         private unsafe void InitializeRenderBuffers()
         {

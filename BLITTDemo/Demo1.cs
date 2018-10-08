@@ -19,12 +19,20 @@ namespace BLITTDemo
 
         private Texture2D texture;
 
+        private CanvasView scene_view;
+        private CanvasView gui_view;
+
         public override void Init()
         {
             texture = Content.GetTexture2D("ship");
 
             tw = texture.Width;
             th = texture.Height;
+
+            scene_view = Canvas.CreateView(ViewOrigin.Center);
+
+            gui_view = Canvas.CreateView(ViewOrigin.TopLeft, blending: Blending.Alpha);
+
         }
 
         public override void Update(float dt)
@@ -32,33 +40,49 @@ namespace BLITTDemo
             x += dx;
             y += dy;
 
-            if(x > Canvas.Width - tw)
+            var hcw = Canvas.Width/2;
+            var hch = Canvas.Height /2;
+
+            if(x > hcw - tw)
             {
                 dx = -dx;
-                x = Canvas.Width - tw;
+                x = hcw - tw;
             }
-            else if (x < 0)
+            else if (x < -hcw)
             {
                 dx = -dx;
-                x = 0;
+                x = -hcw;
             }
 
-            if (y > Canvas.Height - th)
+            if (y > hch - th)
             {
                 dy = -dy;
-                y = Canvas.Height - th;
+                y = hch - th;
             }
-            else if (y < 0)
+            else if (y < -hch)
             {
                 dy = -dy;
-                y = 0;
+                y = -hch;
             }
         }
 
         public override void Draw(Canvas canvas)
         {
             canvas.Clear(Color.CornflowerBlue);
+
+            canvas.Begin(scene_view);
+
             canvas.Draw(texture, x, y);
+
+            canvas.End();
+
+            canvas.Begin(gui_view);
+
+            canvas.Draw(texture, 100, 100);
+
+            canvas.End();
+
+
 
 
         }

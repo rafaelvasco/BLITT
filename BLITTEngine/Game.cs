@@ -163,11 +163,9 @@ namespace BLITTEngine
                     CurrentScene.Update(Clock.DeltaTime);
                 }
 
-                GraphicsDevice.Begin();
-
                 CurrentScene.Draw(Canvas);
 
-                GraphicsDevice.End();
+                GraphicsDevice.Frame();
             }
 
 #if DEBUG

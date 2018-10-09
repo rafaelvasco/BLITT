@@ -1,4 +1,5 @@
 using BLITTEngine.Foundation;
+using BLITTEngine.Foundation.STB;
 using BLITTEngine.Numerics;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,7 @@ namespace BLITTEngine.Core.Graphics
     internal class GraphicsDevice : IDisposable
     {
         private const string EMBEDED_SHADERS_PATH = "BLITTEngine.EngineResources.Shaders.bin";
+        private const string EMBEDED_TEXTURES_PATH = "BLITTEngine.EngineResources.Images";
 
         public GraphicsInfo Info { get; }
 
@@ -30,16 +32,41 @@ namespace BLITTEngine.Core.Graphics
         private ShaderProgram default_shader;
         private Dictionary<string, ShaderProgram> shaders_catalog;
         private Texture2D current_texture;
+        private Texture2D dummy_texture;
         private VertexPCT[] quad_vertices;
+        private Matrix4x4 proj_matrix;
+        private Matrix4x4 proj_matrix_gui;
         private ushort[] quad_indices;
         private IndexBuffer index_buffer;
         private int vertex_idx;
         private int quad_count;
+        private int backbuffer_width;
+        private int backbuffer_height;
 
-        private byte current_view_id;
 
         public GraphicsDevice(IntPtr surface_handle, int backbuffer_width, int backbuffer_height)
         {
+            this.backbuffer_width = backbuffer_width;
+            this.backbuffer_height = backbuffer_height;
+
+            proj_matrix = Matrix4x4.CreateOrthographicOffCenter(
+                left: -backbuffer_width / 2, 
+                right: backbuffer_width / 2, 
+                bottom: backbuffer_height / 2, 
+                top: -backbuffer_height / 2, 
+                zNearPlane: 0.0f, 
+                zFarPlane: 1.0f);
+
+            proj_matrix_gui = Matrix4x4.CreateOrthographicOffCenter(
+                
+                left: 0,
+                right: backbuffer_width,
+                bottom: backbuffer_height,
+                top: 0,
+                zNearPlane: 0.0f,
+                zFarPlane: 1.0f
+                
+            );
 
             this.shaders_catalog = new Dictionary<string, ShaderProgram>();
 
@@ -65,6 +92,8 @@ namespace BLITTEngine.Core.Graphics
             ResizeBackbuffer(backbuffer_width, backbuffer_height);
 
             InitializeRenderBuffers();
+
+            dummy_texture = LoadEmbededTexture("sprite");
         }
 
         public void Dispose()
@@ -81,6 +110,8 @@ namespace BLITTEngine.Core.Graphics
             shaders_catalog.Clear();
 
             index_buffer.Dispose();
+
+            dummy_texture.Dispose();
 
             Bgfx.Shutdown();
         }
@@ -135,23 +166,41 @@ namespace BLITTEngine.Core.Graphics
             }
         }
 
-        public unsafe void Begin(byte id,
-            in RenderState render_state,
-            in Matrix4x4 projection,
-            in RectangleI viewport)
+        public unsafe void Begin()
         {
-            current_view_id = id;
+            var projMatrix = proj_matrix;
+            var projMatrixGui = proj_matrix_gui;
 
             Bgfx.Touch(0);
-            Bgfx.Touch(id);
 
-            Bgfx.SetRenderState(render_state);
+            Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717);
 
-            var projMatrix = projection;
+            Bgfx.SetRenderState(RenderState.BlendAlpha | RenderState.ColorWrite | RenderState.AlphaWrite);
 
-            Bgfx.SetViewTransform(id, null, &projMatrix.M11);
+            Bgfx.SetViewTransform(0, null, &projMatrixGui.M11);
 
-            Bgfx.SetViewRect(id, viewport.X, viewport.Y, viewport.W, viewport.H);
+            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
+
+            AddQuad(dummy_texture, 0, 0);
+
+            Flush();
+
+
+            Bgfx.Touch(0);
+
+            Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717);
+
+            Bgfx.SetRenderState(RenderState.BlendAlpha | RenderState.ColorWrite | RenderState.AlphaWrite);
+
+            
+
+            Bgfx.SetViewTransform(0, null, &projMatrix.M11);
+
+            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
+
+            AddQuad(dummy_texture, 0, 0);
+
+            Flush();
 
 
         }
@@ -159,18 +208,13 @@ namespace BLITTEngine.Core.Graphics
         public void End()
         {
             Flush();
+
+            Bgfx.Frame();
         }
 
         public unsafe void ResizeBackbuffer(int width, int height)
         {
             Bgfx.Reset(width, height, ResetFlags.Vsync);
-        }
-
-        public void Frame()
-        {
-            Bgfx.Frame();
-
-            current_view_id = 0;
         }
 
         private unsafe void Flush()
@@ -192,7 +236,7 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.SetVertexBuffer(vertex_buffer, 0, vertex_idx);
             Bgfx.SetIndexBuffer(index_buffer, 0, quad_count * 6);
 
-            Bgfx.Submit(current_view_id, default_shader.Program);
+            Bgfx.Submit(0, default_shader.Program);
 
             vertex_idx = 0;
             quad_count = 0;
@@ -292,6 +336,39 @@ namespace BLITTEngine.Core.Graphics
             default_shader = shaders_catalog["base_2d"];
 
             default_shader.AddTextureUniform("texture_2d");
+        }
+            
+        private Texture2D LoadEmbededTexture(string name)
+        {
+            try
+            {
+                ImageReader image_reader = new ImageReader();
+
+                string path = EMBEDED_TEXTURES_PATH + "." + name + ".png";
+
+                using (var tex_stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(path))
+                {
+                    if (tex_stream != null)
+                    {
+                        var loaded_image = image_reader.Read(tex_stream);
+
+                        var pixmap = new Pixmap(loaded_image.Data, loaded_image.Width, loaded_image.Height);
+
+                        var texture = new Texture2D(pixmap);
+
+                        pixmap.Dispose();
+
+                        return texture;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Failed to load embeded Texture : {e.Message}");
+            }
+
+            return null;
+            
         }
     }
 }

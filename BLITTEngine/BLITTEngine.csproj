@@ -35,12 +35,14 @@
         </ContentWithTargetPath>
     </ItemGroup>
     <ItemGroup>
+      <None Remove="EngineResources\Images\sprite.png" />
       <None Remove="EngineResources\Shaders\bin\glsl\fs_base_2d.bin" />
       <None Remove="EngineResources\Shaders\bin\glsl\vs_base_2d.bin" />
       <None Remove="EngineResources\Shaders\bin\hlsl\fs_base_2d.bin" />
       <None Remove="EngineResources\Shaders\bin\hlsl\vs_base_2d.bin" />
     </ItemGroup>
     <ItemGroup>
+      <EmbeddedResource Include="EngineResources\Images\sprite.png" />
       <EmbeddedResource Include="EngineResources\Shaders\bin\glsl\fs_base_2d.bin" />
       <EmbeddedResource Include="EngineResources\Shaders\bin\glsl\vs_base_2d.bin" />
       <EmbeddedResource Include="EngineResources\Shaders\bin\hlsl\fs_base_2d.bin" />

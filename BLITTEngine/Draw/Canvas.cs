@@ -87,12 +87,7 @@ namespace BLITTEngine.Draw
         {
             ready_to_draw = true;
 
-            gfx.Begin(
-                view.Id,
-                view.RenderState,
-                view.ProjectionMatrix,
-                view.Viewport
-            );
+           
         }
 
         public void End()

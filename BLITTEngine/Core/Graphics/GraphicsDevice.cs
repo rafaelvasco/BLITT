@@ -43,7 +43,8 @@ namespace BLITTEngine.Core.Graphics
         private int backbuffer_width;
         private int backbuffer_height;
         private byte cur_view;
-
+        private float dummy_x;
+        private float dummy_x2;
 
         public GraphicsDevice(IntPtr surface_handle, int backbuffer_width, int backbuffer_height)
         {
@@ -86,7 +87,8 @@ namespace BLITTEngine.Core.Graphics
 
             Console.WriteLine($"Graphics Backend : {Info.RendererBackend}");
 
-            Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717FF);
+            Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717);
+            //Bgfx.SetViewClear(1, ClearTargets.Color, 0x171717);
 
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
 
@@ -119,8 +121,8 @@ namespace BLITTEngine.Core.Graphics
 
         public void Clear(in Color color)
         {
-            Bgfx.SetViewClear(0, ClearTargets.Color, color.RGBAI);
-            Bgfx.SetViewClear(1, ClearTargets.Color, color.RGBAI);
+            //Bgfx.SetViewClear(0, ClearTargets.Color, color.RGBAI);
+            //Bgfx.SetViewClear(1, ClearTargets.Color, color.RGBAI);
         }
 
         public void LoadShaderProgram(string name, byte[] vertex_shader_src, byte[] frag_shader_src)
@@ -176,15 +178,21 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.Touch(cur_view);
 
-            Bgfx.SetViewClear(cur_view, ClearTargets.Color, 0x171717);
-
-            Bgfx.SetViewTransform(cur_view, null, &projMatrixGui.M11);
-
-            Bgfx.SetViewRect(cur_view, 0, 0, backbuffer_width, backbuffer_height);
 
             Bgfx.SetRenderState(RenderState.BlendAlpha | RenderState.ColorWrite | RenderState.AlphaWrite);
 
-            AddQuad(dummy_texture, 0, 0);
+            Bgfx.SetViewTransform(cur_view, null, &projMatrix.M11);
+
+            Bgfx.SetViewRect(cur_view, 0, 0, backbuffer_width, backbuffer_height);
+
+            dummy_x2 += 5.0f;
+
+            if (dummy_x2 > 300)
+            {
+                dummy_x2 = 0;
+            }
+
+            AddQuad(dummy_texture, dummy_x2, 0);
 
 
             Flush();
@@ -194,13 +202,20 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.Touch(cur_view);
 
-            Bgfx.SetViewClear(cur_view, ClearTargets.Color, 0x171717);
+            Bgfx.SetRenderState(RenderState.BlendAlpha | RenderState.ColorWrite | RenderState.AlphaWrite);
 
-            Bgfx.SetViewTransform(cur_view, null, &projMatrix.M11);
+            Bgfx.SetViewTransform(cur_view, null, &projMatrixGui.M11);
 
             Bgfx.SetViewRect(cur_view, 0, 0, backbuffer_width, backbuffer_height);
 
-            AddQuad(dummy_texture, 0, 0);
+            dummy_x += 5.0f;
+
+            if(dummy_x > 300)
+            {
+                dummy_x = 0;
+            }
+
+            AddQuad(dummy_texture, dummy_x, 0);
 
             Flush();
 

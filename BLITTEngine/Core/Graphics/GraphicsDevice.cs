@@ -42,6 +42,7 @@ namespace BLITTEngine.Core.Graphics
         private int quad_count;
         private int backbuffer_width;
         private int backbuffer_height;
+        private byte cur_view;
 
 
         public GraphicsDevice(IntPtr surface_handle, int backbuffer_width, int backbuffer_height)
@@ -50,22 +51,22 @@ namespace BLITTEngine.Core.Graphics
             this.backbuffer_height = backbuffer_height;
 
             proj_matrix = Matrix4x4.CreateOrthographicOffCenter(
-                left: -backbuffer_width / 2, 
-                right: backbuffer_width / 2, 
-                bottom: backbuffer_height / 2, 
-                top: -backbuffer_height / 2, 
-                zNearPlane: 0.0f, 
+                left: -backbuffer_width / 2,
+                right: backbuffer_width / 2,
+                bottom: backbuffer_height / 2,
+                top: -backbuffer_height / 2,
+                zNearPlane: 0.0f,
                 zFarPlane: 1.0f);
 
             proj_matrix_gui = Matrix4x4.CreateOrthographicOffCenter(
-                
+
                 left: 0,
                 right: backbuffer_width,
                 bottom: backbuffer_height,
                 top: 0,
                 zNearPlane: 0.0f,
                 zFarPlane: 1.0f
-                
+
             );
 
             this.shaders_catalog = new Dictionary<string, ShaderProgram>();
@@ -171,32 +172,33 @@ namespace BLITTEngine.Core.Graphics
             var projMatrix = proj_matrix;
             var projMatrixGui = proj_matrix_gui;
 
-            Bgfx.Touch(0);
+            cur_view = 0;
 
-            Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717);
+            Bgfx.Touch(cur_view);
+
+            Bgfx.SetViewClear(cur_view, ClearTargets.Color, 0x171717);
+
+            Bgfx.SetViewTransform(cur_view, null, &projMatrixGui.M11);
+
+            Bgfx.SetViewRect(cur_view, 0, 0, backbuffer_width, backbuffer_height);
 
             Bgfx.SetRenderState(RenderState.BlendAlpha | RenderState.ColorWrite | RenderState.AlphaWrite);
-
-            Bgfx.SetViewTransform(0, null, &projMatrixGui.M11);
-
-            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
 
             AddQuad(dummy_texture, 0, 0);
 
+
             Flush();
 
+            cur_view = 1;
 
-            Bgfx.Touch(0);
 
-            Bgfx.SetViewClear(0, ClearTargets.Color, 0x171717);
+            Bgfx.Touch(cur_view);
 
-            Bgfx.SetRenderState(RenderState.BlendAlpha | RenderState.ColorWrite | RenderState.AlphaWrite);
+            Bgfx.SetViewClear(cur_view, ClearTargets.Color, 0x171717);
 
-            
+            Bgfx.SetViewTransform(cur_view, null, &projMatrix.M11);
 
-            Bgfx.SetViewTransform(0, null, &projMatrix.M11);
-
-            Bgfx.SetViewRect(0, 0, 0, backbuffer_width, backbuffer_height);
+            Bgfx.SetViewRect(cur_view, 0, 0, backbuffer_width, backbuffer_height);
 
             AddQuad(dummy_texture, 0, 0);
 
@@ -236,10 +238,11 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.SetVertexBuffer(vertex_buffer, 0, vertex_idx);
             Bgfx.SetIndexBuffer(index_buffer, 0, quad_count * 6);
 
-            Bgfx.Submit(0, default_shader.Program);
+            Bgfx.Submit(cur_view, default_shader.Program);
 
             vertex_idx = 0;
             quad_count = 0;
+
         }
 
 
@@ -337,7 +340,7 @@ namespace BLITTEngine.Core.Graphics
 
             default_shader.AddTextureUniform("texture_2d");
         }
-            
+
         private Texture2D LoadEmbededTexture(string name)
         {
             try
@@ -368,7 +371,7 @@ namespace BLITTEngine.Core.Graphics
             }
 
             return null;
-            
+
         }
     }
 }

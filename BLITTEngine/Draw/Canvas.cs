@@ -1,52 +1,108 @@
 using BLITTEngine.Core.Graphics;
+using BLITTEngine.Foundation;
 using BLITTEngine.Numerics;
 using System.Numerics;
 
 namespace BLITTEngine.Draw
 {
-    public enum ViewOrigin
+    public enum CanvasPivot
     {
         TopLeft,
         Center
     }
 
-    public sealed class Canvas
+    public enum Blending
     {
-        private GraphicsDevice gfx;
+        None,
+        Alpha,
+        Add,
+    }
 
-        public int Width { get; private set; }
-
-        public int Height { get; private set; }
-
-        private CanvasView[] views;
-        private byte view_idx = 1;
-        private bool ready_to_draw = false;
-
-        internal Canvas(GraphicsDevice graphics_device, int width, int height)
+    public class CanvasLayer
+    {
+        public CanvasPivot Origin
         {
-            views = new CanvasView[255];
+            get => origin;
 
-            gfx = graphics_device;
+            set
+            {
+                if(origin != value)
+                {
+                    origin  = value;
 
-            this.Width = width;
-            this.Height = height;
+                    UpdateRenderGroup();
+
+                    Modified = true;
+                }
+            }
         }
 
-        public CanvasView CreateView(ViewOrigin origin, RectangleI viewport = default, Blending blending = Blending.Alpha)
+        public RectangleI Viewport
+        {
+            get => viewport;
+            set
+            {
+                if(viewport != value)
+                {
+                    viewport = value;
+
+                    UpdateRenderGroup();
+
+                    Modified = true;
+                }
+            }
+        }
+
+        public Blending Blending
+        {
+            get => blending;
+            set
+            {
+                if (blending != value)
+                {
+                    blending = value;
+
+                    UpdateRenderGroup();
+
+                    Modified = true;
+                }
+            }
+        }
+
+        private CanvasPivot origin;
+        private RectangleI viewport;
+        private Blending blending;
+        internal RenderGroup RenderGroup;
+        internal bool Modified;
+
+        internal CanvasLayer(byte id, CanvasPivot origin, RectangleI viewport, Blending blending)
+        {
+            this.origin = origin;
+            this.viewport = viewport;
+            this.blending = blending;
+
+            if (RenderGroup == null)
+            {
+                RenderGroup = new RenderGroup()
+                {
+                    Id = id
+                };
+
+            }
+
+            this.UpdateRenderGroup();
+        }
+
+        private void UpdateRenderGroup()
         {
             Matrix4x4 view_proj = Matrix4x4.Identity;
-
-            if(viewport.IsEmpty)
-            {
-                viewport = new RectangleI(0, 0, this.Width, this.Height);
-            }
 
             var hcw = viewport.W/2;
             var hch = viewport.H/2;
 
             switch (origin)
             {
-                case ViewOrigin.TopLeft:
+                case CanvasPivot.TopLeft:
 
                     view_proj = Matrix4x4.CreateOrthographicOffCenter(
                         left: 0,
@@ -59,7 +115,7 @@ namespace BLITTEngine.Draw
 
                     break;
 
-                case ViewOrigin.Center:
+                case CanvasPivot.Center:
 
                     view_proj = Matrix4x4.CreateOrthographicOffCenter(
                         left: -hcw,
@@ -73,38 +129,113 @@ namespace BLITTEngine.Draw
                     break;
             }
 
+            var blend_state = RenderState.None;
 
+            switch (blending)
+            {
+                case Blending.None:
+                    blend_state = RenderState.BlendFunction(RenderState.BlendOne, RenderState.BlendZero);
 
-            return views[view_idx] = new CanvasView(view_idx++, viewport, view_proj, blending);
+                    break;
+                case Blending.Alpha:
+
+                    blend_state = RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha);
+
+                    break;
+                case Blending.Add:
+
+                    blend_state = RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendOne);
+
+                    break;
+            }
+
+            var render_state = RenderState.ColorWrite | RenderState.AlphaWrite | blend_state;
+
+            RenderGroup.ProjectionMatrix = view_proj;
+            RenderGroup.RenderState = render_state;
+            RenderGroup.Viewport = viewport;
+        }
+
+    }
+
+    public class Canvas
+    {
+        private CanvasLayer[] layers;
+
+        private byte layer_idx;
+
+        public int Width { get; private set; }
+
+        public int Height { get; private set; }
+
+        private bool ready_to_draw = false;
+
+        internal Canvas(int width, int height)
+        {
+            Width = width;
+            Height = height;
+
+            layers = new CanvasLayer[255];
+
+            CreateLayer(CanvasPivot.Center);
+        }
+
+        public void CreateLayer(CanvasPivot origin, RectangleI viewport = default, Blending blending = Blending.Alpha)
+        {
+            if(viewport.IsEmpty)
+            {
+                viewport = new RectangleI(0, 0, Width, Height);
+            }
+
+            var layer = new CanvasLayer(layer_idx, origin, viewport, blending);
+
+            layers[layer_idx++] = layer;
+
+            Renderer.SetupRenderGroup(layer.RenderGroup);
+        }
+
+        public CanvasLayer GetLayer(byte idx)
+        {
+            return layers[idx];
         }
 
         public void Clear(Color color)
         {
-            gfx.Clear(in color);
+            Renderer.Clear(in color);
         }
 
-        public void Begin(CanvasView view)
+        public void Begin(byte layer=0)
         {
             ready_to_draw = true;
 
-           
+            var layer_obj = layers[layer];
+
+            if(layer_obj.Modified)
+            {
+                Renderer.SetupRenderGroup(layer_obj.RenderGroup);
+
+                layer_obj.Modified = false;
+            }
+
+            Renderer.Begin(layer_obj.RenderGroup);
+
         }
 
         public void End()
         {
             ready_to_draw = false;
 
-            gfx.End();
+            Renderer.End();
         }
 
-        public void Draw(Texture2D texture, float x, float y)
+        public void Draw(GameObject drawable)
         {
             if (!ready_to_draw)
             {
                 return;
             }
 
-            gfx.AddQuad(texture, x, y);
+            drawable.Draw();
         }
     }
 }

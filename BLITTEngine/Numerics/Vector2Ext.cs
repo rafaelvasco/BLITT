@@ -13,11 +13,11 @@ namespace BLITTEngine.Numerics
         {
             return Normalize(vec);
         }
-        
+
         public static Vector2 Normalize(Vector2 v)
         {
             float len = v.Length();
-            
+
             if (len > 0f)
                 return new Vector2(v.X / len, v.Y / len);
             return v;

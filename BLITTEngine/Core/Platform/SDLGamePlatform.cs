@@ -98,6 +98,8 @@ namespace BLITTEngine.Core.Platform
 
         public override void Quit()
         {
+            Console.WriteLine($" > Closing GamePlatform");
+
             SDL.Quit();
         }
 

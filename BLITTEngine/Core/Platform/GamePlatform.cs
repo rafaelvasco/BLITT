@@ -13,7 +13,6 @@ namespace BLITTEngine.Core.Platform
 
         public abstract bool IsFullscreen { get; }
 
-        
         /* CORE */
         public abstract void Init(string title, int width, int height, bool fullscreen);
         public abstract void Quit();
@@ -25,7 +24,7 @@ namespace BLITTEngine.Core.Platform
         public abstract void ShowScreen(bool show);
         public abstract void SetFullscreen(bool enabled);
         public abstract IntPtr GetRenderSurfaceHandle();
-        
+
         /* INPUT */
         public abstract ref KeyboardState GetKeyboardState();
         public abstract ref MouseState GetMouseState();

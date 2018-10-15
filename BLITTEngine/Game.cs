@@ -24,11 +24,9 @@ namespace BLITTEngine
         public static Game Instance { get; private set; }
 
         internal readonly GamePlatform Platform;
-        internal readonly GraphicsDevice GraphicsDevice;
 
-        public readonly Control Control;
-        public readonly Content Content;
         public readonly Clock Clock;
+
         public readonly Canvas Canvas;
 
         public Scene CurrentScene { get; private set; }
@@ -68,25 +66,24 @@ namespace BLITTEngine
             var timer = Stopwatch.StartNew();
 
             Platform = new SDLGamePlatform();
-
-            Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, fullscreen: props.Fullscreen);
-
-            Console.WriteLine($" > Platform Init took: {timer.Elapsed.TotalSeconds}");
-
-            GraphicsDevice = new GraphicsDevice(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight);
-
-            Console.WriteLine($" > Graphics Init took: {timer.Elapsed.TotalSeconds}");
-
             Platform.OnQuit += OnPlatformQuit;
             Platform.OnWinResized += OnScreenResized;
 
-            Canvas = new Canvas(GraphicsDevice, props.CanvasWidth, props.CanvasHeight);
-            Control = new Control(Platform);
-            Content = new Content("Assets");
-            Clock = new Clock();
+            Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, fullscreen: props.Fullscreen);
 
-            Scene.Content = Content;
-            Scene.Canvas = Canvas;
+            Content.Init(root_path: "Assets");
+
+            Console.WriteLine($" > Platform Init took: {timer.Elapsed.TotalSeconds}");
+
+            Renderer.Init(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight);
+
+            Console.WriteLine($" > Graphics Init took: {timer.Elapsed.TotalSeconds}");
+
+            Canvas = new Canvas(props.CanvasWidth, props.CanvasHeight);
+
+            Control.Init(Platform);
+
+            Clock = new Clock();
 
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         }
@@ -94,7 +91,7 @@ namespace BLITTEngine
         public void Dispose()
         {
             Content.UnloadAll();
-            GraphicsDevice.Dispose();
+            Renderer.Terminate();
             Platform.Quit();
         }
 
@@ -163,12 +160,9 @@ namespace BLITTEngine
                     CurrentScene.Update(Clock.DeltaTime);
                 }
 
-                //CurrentScene.Draw(Canvas);
+                CurrentScene.Draw(Canvas);
 
-                GraphicsDevice.Begin();
-
-
-                GraphicsDevice.End();
+                Renderer.Flip();
             }
 
 #if DEBUG

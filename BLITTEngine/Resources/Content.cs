@@ -1,12 +1,12 @@
+using BLITTEngine.Core.Graphics;
+using BLITTEngine.Core.Foundation;
+using BLITTEngine.Core.Foundation.STB;
+using BLITTEngine.Numerics;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using BLITTEngine.Core.Graphics;
-using BLITTEngine.Foundation;
-using BLITTEngine.Foundation.STB;
-using BLITTEngine.Numerics;
 
 namespace BLITTEngine.Resources
 {
@@ -47,7 +47,7 @@ namespace BLITTEngine.Resources
         {
             if (loaded_assets.TryGetValue(asset_name, out var asset))
             {
-                return (Texture2D) asset;
+                return (Texture2D)asset;
             }
 
             var id = new StringBuilder(asset_name);
@@ -76,7 +76,6 @@ namespace BLITTEngine.Resources
                     loaded_assets.Add(key, texture);
 
                     return texture;
-
                 }
             }
             catch (FileNotFoundException e)
@@ -162,14 +161,14 @@ namespace BLITTEngine.Resources
 
             Console.WriteLine($" > Disposing {builtin_shaders.Keys.Count} embeded shaders. ");
 
-            foreach(var shader in builtin_shaders)
+            foreach (var shader in builtin_shaders)
             {
                 shader.Value.Dispose();
             }
 
             Console.WriteLine($" > Disposing {builtin_textures.Keys.Count} embeded textures. ");
 
-            foreach(var texture in builtin_textures)
+            foreach (var texture in builtin_textures)
             {
                 texture.Value.Dispose();
             }
@@ -199,7 +198,7 @@ namespace BLITTEngine.Resources
                     throw new InvalidOperationException($"Shaders are unavailable for Renderer Backend: {renderer_backend}");
             }
 
-            foreach(var shader_name in embeded_shaders_names)
+            foreach (var shader_name in embeded_shaders_names)
             {
                 LoadEmbededShaderProgram(shaders_path, shader_name);
             }
@@ -211,7 +210,7 @@ namespace BLITTEngine.Resources
             {
                 ImageReader image_reader = new ImageReader();
 
-                foreach(var tex_name in embeded_textures_names)
+                foreach (var tex_name in embeded_textures_names)
                 {
                     string path = EMBEDED_TEXTURES_PATH + "." + tex_name + ".png";
 
@@ -283,6 +282,5 @@ namespace BLITTEngine.Resources
 
             builtin_shaders.Add(name, shader_program);
         }
-
     }
 }

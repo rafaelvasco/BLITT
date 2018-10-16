@@ -3,7 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace BLITTEngine.Foundation
+namespace BLITTEngine.Core.Foundation
 {
     internal static class FuncLoader
     {
@@ -33,7 +33,7 @@ namespace BLITTEngine.Foundation
             [DllImport("/usr/lib/libSystem.dylib")]
             public static extern IntPtr dlsym(IntPtr handle, string symbol);
         }
-        
+
         private const int RTLD_LAZY = 0x0001;
 
         public static IntPtr LoadLibrary(string libname)
@@ -41,13 +41,15 @@ namespace BLITTEngine.Foundation
             var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             libname = Path.Combine(assemblyLocation, libname);
-            
+
             switch (CurrentPlatform.OS)
             {
                 case OS.Windows:
                     return Windows.LoadLibraryW(libname);
+
                 case OS.MacOSX:
                     return OSX.dlopen(libname, RTLD_LAZY);
+
                 default:
                     return Linux.dlopen(libname, RTLD_LAZY);
             }
@@ -62,9 +64,11 @@ namespace BLITTEngine.Foundation
                 case OS.Windows:
                     ret = Windows.GetProcAddress(library, function);
                     break;
+
                 case OS.MacOSX:
                     ret = OSX.dlsym(library, function);
                     break;
+
                 default:
                     ret = Linux.dlsym(library, function);
                     break;

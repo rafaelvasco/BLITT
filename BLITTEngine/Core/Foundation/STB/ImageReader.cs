@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace BLITTEngine.Foundation.STB
+namespace BLITTEngine.Core.Foundation.STB
 {
     public unsafe class ImageReader
     {
@@ -63,7 +63,6 @@ namespace BLITTEngine.Foundation.STB
                 {
                     Width = x,
                     Height = y
-                    
                 };
 
                 if (result == null)

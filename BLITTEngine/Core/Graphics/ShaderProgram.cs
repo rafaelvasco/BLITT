@@ -1,7 +1,7 @@
+using BLITTEngine.Core.Foundation;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using BLITTEngine.Foundation;
 
 namespace BLITTEngine.Core.Graphics
 {
@@ -18,7 +18,6 @@ namespace BLITTEngine.Core.Graphics
 
         public ShaderParameterType Type { get; private set; }
 
-
         public string Name { get; }
 
         internal Uniform InternalUniform { get; private set; }
@@ -33,10 +32,10 @@ namespace BLITTEngine.Core.Graphics
                 case ShaderParameterType.Vector:
                     value_vector = new Vector4();
                     break;
+
                 case ShaderParameterType.Matrix:
                     value_matrix = Matrix4x4.Identity;
                     break;
-
             }
 
             ChangeUniform(type);
@@ -56,6 +55,7 @@ namespace BLITTEngine.Core.Graphics
                     this.InternalUniform = new Uniform(this.Name, UniformType.Matrix4x4);
                     this.Type = type;
                     break;
+
                 case ShaderParameterType.Vector:
                     this.InternalUniform.Dispose();
                     this.InternalUniform = new Uniform(this.Name, UniformType.Vector4);
@@ -66,7 +66,6 @@ namespace BLITTEngine.Core.Graphics
 
         public void SetValue(float value)
         {
-
             value_vector.X = value;
         }
 
@@ -77,7 +76,6 @@ namespace BLITTEngine.Core.Graphics
 
         public void SetValue(ref Vector4 value)
         {
-
             value_vector.X = value.X;
             value_vector.Y = value.Y;
             value_vector.Z = value.Z;
@@ -86,7 +84,6 @@ namespace BLITTEngine.Core.Graphics
 
         public void SetValue(ref Vector3 value)
         {
-
             value_vector.X = value.X;
             value_vector.Y = value.Y;
             value_vector.Z = value.Z;
@@ -103,7 +100,6 @@ namespace BLITTEngine.Core.Graphics
 
         public void SetValue(float value1, float value2, float value3, float value4)
         {
-
             value_vector.X = value1;
             value_vector.Y = value2;
             value_vector.Z = value3;
@@ -120,16 +116,17 @@ namespace BLITTEngine.Core.Graphics
             switch (Type)
             {
                 case ShaderParameterType.Vector:
-                {
-                    var value = value_vector;
-                    Bgfx.SetUniform(InternalUniform, &value);
-                }
+                    {
+                        var value = value_vector;
+                        Bgfx.SetUniform(InternalUniform, &value);
+                    }
                     break;
+
                 case ShaderParameterType.Matrix:
-                {
-                    var value = value_matrix;
-                    Bgfx.SetUniform(InternalUniform, &value);
-                }
+                    {
+                        var value = value_matrix;
+                        Bgfx.SetUniform(InternalUniform, &value);
+                    }
                     break;
             }
         }
@@ -151,7 +148,6 @@ namespace BLITTEngine.Core.Graphics
             texture_uniforms = new Dictionary<string, Uniform>();
 
             Program = new Program(vertexShader, fragShader, destroyShaders: true);
-
         }
 
         public void AddTextureUniform(string name)
@@ -166,7 +162,7 @@ namespace BLITTEngine.Core.Graphics
             texture_uniforms.Add(name, textureUniform);
         }
 
-        public void SetTexture(Texture2D texture, string uniformName, byte tex_unit=0)
+        public void SetTexture(Texture2D texture, string uniformName, byte tex_unit = 0)
         {
             if (texture_uniforms.TryGetValue(uniformName, out var uniform))
             {
@@ -189,7 +185,6 @@ namespace BLITTEngine.Core.Graphics
                 shader_param_map.Add(name, shader_params.Count);
                 shader_params.Add(param);
             }
-
         }
 
         public void SetParameter(string name, Vector2 value)
@@ -260,7 +255,6 @@ namespace BLITTEngine.Core.Graphics
             }
         }
 
-
         internal void SubmitUniforms()
         {
             foreach (var param in shader_params)
@@ -283,6 +277,5 @@ namespace BLITTEngine.Core.Graphics
 
             Program.Dispose();
         }
-
     }
 }

@@ -1,9 +1,8 @@
-﻿using System;
-using BLITTEngine.Core;
-using BLITTEngine.Core.Platform;
+﻿using BLITTEngine.Core.Platform;
 using BLITTEngine.Input.Keyboard;
 using BLITTEngine.Input.Mouse;
 using BLITTEngine.Numerics;
+using System;
 
 namespace BLITTEngine.Input
 {
@@ -13,7 +12,7 @@ namespace BLITTEngine.Input
 
         private static GamePlatform platform;
 
-        private static  KeyboardState kb_current_state;
+        private static KeyboardState kb_current_state;
         private static KeyboardState kb_prev_state;
 
         private static MouseState ms_current_state;

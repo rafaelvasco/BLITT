@@ -12,15 +12,15 @@ namespace BLITTEngine.Temporal
         }
 
         public int FPS => fps;
-        
+
         internal double TotalTime;
 
         internal double FrameDuration;
-        
+
         public float DeltaTime { get; private set; }
-        
+
         public bool Paused { get; internal set; }
-        
+
         private Stopwatch timer;
 
         private TimeSpan delta_timespan;
@@ -36,7 +36,6 @@ namespace BLITTEngine.Temporal
             TotalTime = 0;
             DeltaTime = 0;
             Paused = false;
-            
         }
 
         internal void Start()
@@ -53,12 +52,12 @@ namespace BLITTEngine.Temporal
         {
             Paused = false;
         }
-        
+
         internal void Pause()
         {
             Paused = true;
         }
-        
+
         internal void Tick()
         {
             if (!Paused)
@@ -68,7 +67,7 @@ namespace BLITTEngine.Temporal
 
                 TotalTime += delta_timespan.TotalSeconds;
 
-                DeltaTime = (float) delta_timespan.TotalSeconds;
+                DeltaTime = (float)delta_timespan.TotalSeconds;
 
                 fps_timer += DeltaTime;
 
@@ -83,6 +82,5 @@ namespace BLITTEngine.Temporal
                 total_timespan = timer.Elapsed;
             }
         }
-        
     }
 }

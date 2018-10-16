@@ -2,11 +2,11 @@
 {
     internal struct KeyboardState
     {
-        static readonly Key[] Empty = new Key[0];
+        private static readonly Key[] Empty = new Key[0];
 
-        uint keys0, keys1, keys2, keys3, keys4, keys5, keys6, keys7;
+        private uint keys0, keys1, keys2, keys3, keys4, keys5, keys6, keys7;
 
-        bool GetKey(Key key)
+        private bool GetKey(Key key)
         {
             uint mask = (uint)1 << (((int)key) & 0x1f);
 
@@ -76,7 +76,6 @@
             {
                 SetKey(key);
             }
-
         }
 
         public bool this[Key key] => GetKey(key);
@@ -172,6 +171,5 @@
             }
             return index;
         }
-
     }
 }

@@ -1,4 +1,4 @@
-using BLITTEngine.Foundation;
+using BLITTEngine.Core.Foundation;
 using BLITTEngine.Numerics;
 using BLITTEngine.Resources;
 using System;
@@ -49,7 +49,7 @@ namespace BLITTEngine.Core.Graphics
             Content.LoadEmbededShaders(Info.RendererBackend);
             //Content.LoadEmbededTextures();
 
-            one_pix_texture = Content.CreateTexture(1,1,Color.White);
+            one_pix_texture = Content.CreateTexture(1, 1, Color.White);
 
             default_shader = Content.GetBuiltinShader("base_2d");
             default_shader.AddTextureUniform("texture_2d");
@@ -63,8 +63,6 @@ namespace BLITTEngine.Core.Graphics
             ResizeBackbuffer(backbuffer_width, backbuffer_height);
 
             InitializeRenderBuffers();
-
-
         }
 
         internal static void Terminate()
@@ -103,9 +101,9 @@ namespace BLITTEngine.Core.Graphics
             fixed (VertexPCT* vertex_ptr = quad_vertices)
             {
                 *(vertex_ptr + vidx++) = new VertexPCT(x, y, u, v, col);
-                *(vertex_ptr + vidx++) = new VertexPCT(x+w, y, u2, v, col);
-                *(vertex_ptr + vidx++) = new VertexPCT(x+w, y+h, u2, v2, col);
-                *(vertex_ptr + vidx++) = new VertexPCT(x, y+h, u, v2, col);
+                *(vertex_ptr + vidx++) = new VertexPCT(x + w, y, u2, v, col);
+                *(vertex_ptr + vidx++) = new VertexPCT(x + w, y + h, u2, v2, col);
+                *(vertex_ptr + vidx++) = new VertexPCT(x, y + h, u, v2, col);
             }
 
             unchecked
@@ -122,7 +120,6 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetViewTransform(render_group.Id, null, &proj_matrix.M11);
             Bgfx.SetViewRect(render_group.Id, viewport.X, viewport.Y, viewport.W, viewport.H);
-
         }
 
         public static void Begin(RenderGroup render_group)
@@ -178,7 +175,6 @@ namespace BLITTEngine.Core.Graphics
 
             default_shader.SetTexture(current_texture, "texture_2d");
 
-
             Bgfx.SetRenderState(cur_render_group.RenderState);
 
             Bgfx.SetVertexBuffer(vertex_buffer, 0, vertex_idx);
@@ -189,10 +185,7 @@ namespace BLITTEngine.Core.Graphics
 
             vertex_idx = 0;
             quad_count = 0;
-
         }
-
-
 
         private static void InitializeRenderBuffers()
         {
@@ -214,6 +207,5 @@ namespace BLITTEngine.Core.Graphics
 
             index_buffer = new IndexBuffer(MemoryBlock.FromArray(quad_indices));
         }
-
     }
 }

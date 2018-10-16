@@ -1,6 +1,6 @@
-using System.Runtime.CompilerServices;
-using BLITTEngine.Foundation;
+using BLITTEngine.Core.Foundation;
 using BLITTEngine.Input.Mouse;
+using System.Runtime.CompilerServices;
 
 namespace BLITTEngine.Core.Platform
 {
@@ -16,11 +16,11 @@ namespace BLITTEngine.Core.Platform
                 case SDL.Mouse.Button.Left:
 
                     return MouseButton.Left;
-                
+
                 case SDL.Mouse.Button.Middle:
 
                     return MouseButton.Middle;
-                
+
                 case SDL.Mouse.Button.Right:
 
                     return MouseButton.Right;
@@ -43,9 +43,6 @@ namespace BLITTEngine.Core.Platform
         public override ref MouseState GetMouseState()
         {
             return ref mouse_state;
-
         }
-        
     }
-    
 }

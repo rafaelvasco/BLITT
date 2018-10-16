@@ -19,12 +19,12 @@ namespace BLITTEngine.Numerics
                 x * m.M22 + y * m.M31 + m.M32
             );
         }
-        
+
         public static Rectangle TransformRectangle(this Matrix3x2 m, ref Rectangle rec)
         {
             Vector2 topLeft = TransformPoint(m, rec.TopLeft);
             Vector2 bottomRight = TransformPoint(m, rec.BottomRight);
-            
+
             return new Rectangle(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
         }
 
@@ -36,8 +36,7 @@ namespace BLITTEngine.Numerics
             float tm3 = m.M22;
             float tm4 = m.M31;
             float tm5 = m.M32;
-            
-            
+
             float r0 = tm0 * m0 + tm3 * m1;
             float r1 = tm1 * m0 + tm4 * m1;
             float r2 = tm2 * m0 + tm5 * m1 + m2;
@@ -51,7 +50,6 @@ namespace BLITTEngine.Numerics
             m.M22 = r3;
             m.M31 = r4;
             m.M32 = r5;
-            
         }
 
         public static void CreateTransform(Vector2 scale, float rotation, Vector2 translation, out Matrix3x2 result)
@@ -62,21 +60,20 @@ namespace BLITTEngine.Numerics
             // m22 - m3
             // m31 - m4
             // m32 - m5
-            
+
             //Scale
             result.M11 = scale.X;
             result.M31 = scale.Y;
             result.M12 = result.M21 = result.M22 = result.M32 = 0f;
-            
+
             //Rotate
             float c = Calc.Cos(rotation);
             float s = Calc.Sin(rotation);
-            
+
             result.MultiplyBy(c, -s, 0f, s, c, 0f);
-            
+
             //Translate
             result.MultiplyBy(1f, 0f, translation.X, 0f, 1f, translation.Y);
         }
-            
     }
 }

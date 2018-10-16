@@ -1,5 +1,5 @@
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Foundation;
+using BLITTEngine.Core.Foundation;
 using BLITTEngine.Numerics;
 using System.Numerics;
 
@@ -26,9 +26,9 @@ namespace BLITTEngine.Draw
 
             set
             {
-                if(origin != value)
+                if (origin != value)
                 {
-                    origin  = value;
+                    origin = value;
 
                     UpdateRenderGroup();
 
@@ -42,7 +42,7 @@ namespace BLITTEngine.Draw
             get => viewport;
             set
             {
-                if(viewport != value)
+                if (viewport != value)
                 {
                     viewport = value;
 
@@ -87,7 +87,6 @@ namespace BLITTEngine.Draw
                 {
                     Id = id
                 };
-
             }
 
             this.UpdateRenderGroup();
@@ -97,8 +96,8 @@ namespace BLITTEngine.Draw
         {
             Matrix4x4 view_proj = Matrix4x4.Identity;
 
-            var hcw = viewport.W/2;
-            var hch = viewport.H/2;
+            var hcw = viewport.W / 2;
+            var hch = viewport.H / 2;
 
             switch (origin)
             {
@@ -137,11 +136,13 @@ namespace BLITTEngine.Draw
                     blend_state = RenderState.BlendFunction(RenderState.BlendOne, RenderState.BlendZero);
 
                     break;
+
                 case Blending.Alpha:
 
                     blend_state = RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha);
 
                     break;
+
                 case Blending.Add:
 
                     blend_state = RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendOne);
@@ -155,7 +156,6 @@ namespace BLITTEngine.Draw
             RenderGroup.RenderState = render_state;
             RenderGroup.Viewport = viewport;
         }
-
     }
 
     public class Canvas
@@ -182,7 +182,7 @@ namespace BLITTEngine.Draw
 
         public void CreateLayer(CanvasPivot origin, RectangleI viewport = default, Blending blending = Blending.Alpha)
         {
-            if(viewport.IsEmpty)
+            if (viewport.IsEmpty)
             {
                 viewport = new RectangleI(0, 0, Width, Height);
             }
@@ -204,13 +204,13 @@ namespace BLITTEngine.Draw
             Renderer.Clear(in color);
         }
 
-        public void Begin(byte layer=0)
+        public void Begin(byte layer = 0)
         {
             ready_to_draw = true;
 
             var layer_obj = layers[layer];
 
-            if(layer_obj.Modified)
+            if (layer_obj.Modified)
             {
                 Renderer.SetupRenderGroup(layer_obj.RenderGroup);
 
@@ -218,7 +218,6 @@ namespace BLITTEngine.Draw
             }
 
             Renderer.Begin(layer_obj.RenderGroup);
-
         }
 
         public void End()
@@ -236,6 +235,27 @@ namespace BLITTEngine.Draw
             }
 
             drawable.Draw();
+        }
+
+        public void DrawTexture(Texture2D texture, float x, float y, Color color)
+        {
+            var quad = new Quad()
+            {
+                U = 0,
+                V = 0,
+                U2 = 1,
+                V2 = 1,
+                W = texture.Width,
+                H = texture.Height,
+                Col = color
+            };
+
+            Renderer.AddQuad(texture, x, y, in quad);
+        }
+
+        public void DrawTexture(Texture2D texture, float x, float y, Quad quad)
+        {
+            Renderer.AddQuad(texture, x, y, in quad);
         }
     }
 }

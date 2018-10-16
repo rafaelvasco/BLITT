@@ -1,6 +1,3 @@
-using System;
-using System.Diagnostics;
-using System.Runtime;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Platform;
 using BLITTEngine.Draw;
@@ -8,6 +5,9 @@ using BLITTEngine.Input;
 using BLITTEngine.Numerics;
 using BLITTEngine.Resources;
 using BLITTEngine.Temporal;
+using System;
+using System.Diagnostics;
+using System.Runtime;
 
 namespace BLITTEngine
 {
@@ -176,6 +176,5 @@ namespace BLITTEngine
             );
 #endif
         }
-
     }
 }

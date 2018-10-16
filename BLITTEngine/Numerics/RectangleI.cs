@@ -20,9 +20,9 @@ namespace BLITTEngine.Numerics
             W = w;
             H = h;
         }
+
         public RectangleI(int w, int h) : this(0, 0, w, h)
         {
-            
         }
 
         public int Right => X + W;
@@ -92,10 +92,12 @@ namespace BLITTEngine.Numerics
         {
             return obj is RectangleI i && Equals(i);
         }
+
         public bool Equals(RectangleI other)
         {
             return Equals(ref other);
         }
+
         public bool Equals(ref RectangleI other)
         {
             return X == other.X && Y == other.Y && W == other.W && H == other.H;
@@ -105,10 +107,12 @@ namespace BLITTEngine.Numerics
         {
             return p.X >= X && p.Y >= Y && p.X < Right && p.Y < Bottom;
         }
+
         public bool Contains(ref RectangleI rect)
         {
             return rect.X >= X && rect.Y >= Y && rect.Right <= Right && rect.Bottom <= Bottom;
         }
+
         public bool Contains(RectangleI rect)
         {
             return Contains(ref rect);
@@ -144,6 +148,7 @@ namespace BLITTEngine.Numerics
             rect.H += y * 2;
             return rect;
         }
+
         public RectangleI Inflated(int amount)
         {
             return Inflated(amount, amount);
@@ -153,6 +158,7 @@ namespace BLITTEngine.Numerics
         {
             return X < other.X + other.W && Y < other.Y + other.H && X + W > other.X && Y + H > other.Y;
         }
+
         public bool Intersects(RectangleI other)
         {
             return Intersects(ref other);
@@ -163,7 +169,6 @@ namespace BLITTEngine.Numerics
             return $"{X},{Y},{W},{H}";
         }
 
-       
         public static implicit operator Rectangle(RectangleI r)
         {
             return new Rectangle(r.X, r.Y, r.W, r.H);
@@ -173,6 +178,7 @@ namespace BLITTEngine.Numerics
         {
             return a.Equals(ref b);
         }
+
         public static bool operator !=(RectangleI a, RectangleI b)
         {
             return !a.Equals(ref b);

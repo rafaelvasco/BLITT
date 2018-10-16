@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace BLITTEngine.Foundation.STB
+namespace BLITTEngine.Core.Foundation.STB
 {
     internal static unsafe class CRuntime
     {
@@ -48,7 +48,6 @@ namespace BLITTEngine.Foundation.STB
                 memcpy(temp, b, size);
                 memcpy(a, temp, size);
             }
-
             finally
             {
                 if (temp != null)
@@ -193,7 +192,6 @@ namespace BLITTEngine.Foundation.STB
             return Math.Ceiling(a);
         }
 
-
         public static double floor(double a)
         {
             return Math.Floor(a);
@@ -272,7 +270,6 @@ namespace BLITTEngine.Foundation.STB
                 qsortSwap(data, size, i, j);
             }
         }
-
 
         private static void qsortInternal(byte* data, long size, QSortComparer comparer, long left, long right)
         {

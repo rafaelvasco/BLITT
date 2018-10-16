@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace BLITTEngine.Core.Graphics
 {
-     public unsafe class Pixmap : Resource
+    public unsafe class Pixmap : Resource
     {
         public int Width => width;
         public int Height => height;
@@ -14,7 +14,6 @@ namespace BLITTEngine.Core.Graphics
         public int Stride => width * 4;
         internal IntPtr PixelDataPtr => data_ptr;
 
-
         private readonly int width;
         private readonly int height;
 
@@ -22,7 +21,6 @@ namespace BLITTEngine.Core.Graphics
         private readonly GCHandle gc_handle;
         private readonly IntPtr data_ptr;
         private int size;
-
 
         internal Pixmap(byte[] src_data, int width, int height)
         {
@@ -38,8 +36,6 @@ namespace BLITTEngine.Core.Graphics
             gc_handle = GCHandle.Alloc(this.data, GCHandleType.Pinned);
             data_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(this.data, 0);
         }
-
-
 
         internal Pixmap(int width, int height)
         {
@@ -64,16 +60,15 @@ namespace BLITTEngine.Core.Graphics
 
             fixed (byte* p = pd)
             {
-                var len = pd.Length-4;
-                for(int i=0; i < len; i+=4)
+                var len = pd.Length - 4;
+                for (int i = 0; i < len; i += 4)
                 {
-                    *(p+i) = b;
-                    *(p+i+1) = g;
-                    *(p+i+2) = r;
-                    *(p+i+3) = a;
+                    *(p + i) = b;
+                    *(p + i + 1) = g;
+                    *(p + i + 2) = r;
+                    *(p + i + 3) = a;
                 }
             }
-
         }
 
         private void SwizzleToBGRA()
@@ -85,7 +80,6 @@ namespace BLITTEngine.Core.Graphics
                 var len = pd.Length - 4;
                 for (int i = 0; i < len; i += 4)
                 {
-
                     byte r = pd[i];
                     byte g = pd[i + 1];
                     byte b = pd[i + 2];
@@ -97,7 +91,6 @@ namespace BLITTEngine.Core.Graphics
                     *(p + i + 3) = a;
                 }
             }
-
         }
 
         public byte[] GetRgbaBytes()
@@ -113,7 +106,6 @@ namespace BLITTEngine.Core.Graphics
                 var len = pd.Length - 4;
                 for (int i = 0; i < len; i += 4)
                 {
-
                     byte b = pd[i];
                     byte g = pd[i + 1];
                     byte r = pd[i + 2];
@@ -125,8 +117,6 @@ namespace BLITTEngine.Core.Graphics
                     *(p + i + 3) = a;
                 }
             }
-
-            
 
             return pixels;
         }

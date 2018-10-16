@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using BLITTEngine.Input.Keyboard;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using BLITTEngine.Input.Keyboard;
 
 namespace BLITTEngine.Core.Platform
 {
@@ -12,7 +12,7 @@ namespace BLITTEngine.Core.Platform
         private void InitKeyboard()
         {
             key_map = new Dictionary<int, Key>();
-            
+
             key_map.Add(8, Key.Back);
             key_map.Add(9, Key.Tab);
             key_map.Add(13, Key.Enter);
@@ -139,7 +139,6 @@ namespace BLITTEngine.Core.Platform
             var key = TranslatePlatformKey(keyCode);
 
             last_kb_state.ClearKey(key);
-
         }
 
         public override ref KeyboardState GetKeyboardState()

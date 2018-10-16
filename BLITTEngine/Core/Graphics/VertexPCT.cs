@@ -1,5 +1,5 @@
+using BLITTEngine.Core.Foundation;
 using System.Runtime.InteropServices;
-using BLITTEngine.Foundation;
 
 namespace BLITTEngine.Core.Graphics
 {
@@ -39,5 +39,4 @@ namespace BLITTEngine.Core.Graphics
             .Add(VertexAttributeUsage.Color0, 4, VertexAttributeType.UInt8, true)
             .End();
     }
-
 }

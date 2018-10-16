@@ -27,7 +27,7 @@ namespace BLITTEngine.Draw
             int tile_width = tex_w / cols;
             int tile_height = tex_h / rows;
 
-            Quad[] quads = new Quad[rows*cols];
+            Quad[] quads = new Quad[rows * cols];
 
             var quad_idx = 0;
 
@@ -40,10 +40,10 @@ namespace BLITTEngine.Draw
                     x = j * tile_width;
                     y = i * tile_height;
 
-                    u = x/tex_w;
-                    v = y/tex_h;
-                    u2 = (x + tile_width)/tex_w;
-                    v2 = (y + tile_height)/tex_h;
+                    u = x / tex_w;
+                    v = y / tex_h;
+                    u2 = (x + tile_width) / tex_w;
+                    v2 = (y + tile_height) / tex_h;
 
                     quads[quad_idx++] = new Quad()
                     {
@@ -70,8 +70,6 @@ namespace BLITTEngine.Draw
             int columns = tex_h / tile_height;
 
             return SpriteSheet.FromGrid(texture, rows, columns);
-
         }
-
     }
 }

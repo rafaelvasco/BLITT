@@ -1,5 +1,4 @@
-﻿
-namespace BLITTEngine.Draw
+﻿namespace BLITTEngine.Draw
 {
     public abstract class GameObject
     {

@@ -1,4 +1,4 @@
-﻿namespace BLITTEngine.Foundation.STB
+﻿namespace BLITTEngine.Core.Foundation.STB
 {
     public static unsafe partial class STBTrueType
     {

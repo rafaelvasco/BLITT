@@ -1,7 +1,6 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
-namespace BLITTEngine.Foundation.STB
+namespace BLITTEngine.Core.Foundation.STB
 {
     public static unsafe partial class STBImage
     {
@@ -61,6 +60,7 @@ namespace BLITTEngine.Foundation.STB
 
             // sizes for components, interleaved MCUs
             public int img_h_max, img_v_max;
+
             public int img_mcu_x, img_mcu_y;
             public int img_mcu_w, img_mcu_h;
 
@@ -88,6 +88,7 @@ namespace BLITTEngine.Foundation.STB
 
             // kernels
             public idct_block_kernel idct_block_kernel;
+
             public YCbCr_to_RGB_kernel YCbCr_to_RGB_kernel;
             public Resampler resample_row_hv_2_kernel;
 
@@ -200,7 +201,5 @@ namespace BLITTEngine.Foundation.STB
                 pal[i * 4 + 3] = (byte)(transp == i ? 0 : 255);
             }
         }
-
-       
     }
 }

@@ -1,5 +1,4 @@
-﻿
-namespace BLITTEngine.Foundation.STB
+﻿namespace BLITTEngine.Core.Foundation.STB
 {
     public class Image
     {

@@ -1,7 +1,6 @@
-using System;
-using BLITTEngine.Core.Graphics;
 using BLITTEngine.Input.Keyboard;
 using BLITTEngine.Input.Mouse;
+using System;
 
 namespace BLITTEngine.Core.Platform
 {
@@ -14,19 +13,31 @@ namespace BLITTEngine.Core.Platform
         public abstract bool IsFullscreen { get; }
 
         /* CORE */
+
         public abstract void Init(string title, int width, int height, bool fullscreen);
+
         public abstract void Quit();
+
         public abstract void PollEvents();
+
         public abstract void GetScreenSize(out int w, out int h);
+
         public abstract void SetScreenSize(int w, int h);
+
         public abstract void SetTitle(string title);
+
         public abstract void ShowCursor(bool show);
+
         public abstract void ShowScreen(bool show);
+
         public abstract void SetFullscreen(bool enabled);
+
         public abstract IntPtr GetRenderSurfaceHandle();
 
         /* INPUT */
+
         public abstract ref KeyboardState GetKeyboardState();
+
         public abstract ref MouseState GetMouseState();
     }
 }

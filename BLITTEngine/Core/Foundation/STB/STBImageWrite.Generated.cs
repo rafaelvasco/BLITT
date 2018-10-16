@@ -1,5 +1,4 @@
-﻿
-namespace BLITTEngine.Foundation.STB
+﻿namespace BLITTEngine.Core.Foundation.STB
 {
     unsafe partial class STBImageWrite
     {
@@ -230,6 +229,7 @@ namespace BLITTEngine.Foundation.STB
                     if ((expand_mono) != 0) stbiw__write3(s, (byte)(d[0]), (byte)(d[0]), (byte)(d[0]));
                     else s.func(s.context, d, (int)(1));
                     break;
+
                 case 3:
                 case 4:
                     if (((comp) == (4)) && (write_alpha == 0))
@@ -397,7 +397,6 @@ namespace BLITTEngine.Foundation.STB
                 rgbe[2] = ((byte)(linear[2] * normalize));
                 rgbe[3] = ((byte)(exponent + 128));
             }
-
         }
 
         public static void stbiw__write_run_data(stbi__write_context s, int length, byte databyte)
@@ -440,6 +439,7 @@ namespace BLITTEngine.Foundation.STB
                             linear[1] = (float)(scanline[x * ncomp + 1]);
                             linear[0] = (float)(scanline[x * ncomp + 0]);
                             break;
+
                         default:
                             linear[0] = (float)(linear[1] = (float)(linear[2] = (float)(scanline[x * ncomp + 0])));
                             break;
@@ -462,6 +462,7 @@ namespace BLITTEngine.Foundation.STB
                             linear[1] = (float)(scanline[x * ncomp + 1]);
                             linear[0] = (float)(scanline[x * ncomp + 0]);
                             break;
+
                         default:
                             linear[0] = (float)(linear[1] = (float)(linear[2] = (float)(scanline[x * ncomp + 0])));
                             break;
@@ -510,7 +511,6 @@ namespace BLITTEngine.Foundation.STB
                     }
                 }
             }
-
         }
 
         public static void* stbiw__sbgrowf(void** arr, int increment, int itemsize)
@@ -749,7 +749,6 @@ namespace BLITTEngine.Foundation.STB
             bitcount += (int)(7);
             _out_ = stbiw__zlib_flushf(_out_, &bitbuf, &bitcount);
 
-
             while ((bitcount) != 0)
             {
                 bitbuf |= (uint)((0) << bitcount);
@@ -910,21 +909,27 @@ namespace BLITTEngine.Foundation.STB
                                 case 0:
                                     line_buffer[i] = (sbyte)(z[i]);
                                     break;
+
                                 case 1:
                                     line_buffer[i] = (sbyte)(z[i]);
                                     break;
+
                                 case 2:
                                     line_buffer[i] = (sbyte)(z[i] - z[i - stride_bytes]);
                                     break;
+
                                 case 3:
                                     line_buffer[i] = (sbyte)(z[i] - (z[i - stride_bytes] >> 1));
                                     break;
+
                                 case 4:
                                     line_buffer[i] = ((sbyte)(z[i] - stbiw__paeth((int)(0), (int)(z[i - stride_bytes]), (int)(0))));
                                     break;
+
                                 case 5:
                                     line_buffer[i] = (sbyte)(z[i]);
                                     break;
+
                                 case 6:
                                     line_buffer[i] = (sbyte)(z[i]);
                                     break;
@@ -937,22 +942,28 @@ namespace BLITTEngine.Foundation.STB
                                 case 0:
                                     line_buffer[i] = (sbyte)(z[i]);
                                     break;
+
                                 case 1:
                                     line_buffer[i] = (sbyte)(z[i] - z[i - n]);
                                     break;
+
                                 case 2:
                                     line_buffer[i] = (sbyte)(z[i] - z[i - stride_bytes]);
                                     break;
+
                                 case 3:
                                     line_buffer[i] = (sbyte)(z[i] - ((z[i - n] + z[i - stride_bytes]) >> 1));
                                     break;
+
                                 case 4:
                                     line_buffer[i] =
                                         (sbyte)(z[i] - stbiw__paeth((int)(z[i - n]), (int)(z[i - stride_bytes]), (int)(z[i - stride_bytes - n])));
                                     break;
+
                                 case 5:
                                     line_buffer[i] = (sbyte)(z[i] - (z[i - n] >> 1));
                                     break;
+
                                 case 6:
                                     line_buffer[i] = (sbyte)(z[i] - stbiw__paeth((int)(z[i - n]), (int)(0), (int)(0)));
                                     break;
@@ -1275,7 +1286,6 @@ namespace BLITTEngine.Foundation.STB
                     s.func(s.context, h, head0.Length);
                 }
 
-
                 s.func(s.context, YTable, 64);
                 stbiw__putc(s, (byte)(1));
                 s.func(s.context, UVTable, 64);
@@ -1316,7 +1326,6 @@ namespace BLITTEngine.Foundation.STB
                 }
 
                 stbiw__putc(s, (byte)(0x11));
-
 
                 fixed (byte* c = &std_ac_chrominance_nrcodes[1])
                 {

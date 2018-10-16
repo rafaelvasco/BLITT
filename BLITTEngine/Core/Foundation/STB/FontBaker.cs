@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace BLITTEngine.Foundation.STB
+namespace BLITTEngine.Core.Foundation.STB
 {
     public struct FontBakerCharacterRange
     {
@@ -70,7 +70,6 @@ namespace BLITTEngine.Foundation.STB
             {
                 fixed (byte* ttfPtr = ttf)
                 {
-
                     foreach (var range in ranges)
                     {
                         if (range.Start > range.End)

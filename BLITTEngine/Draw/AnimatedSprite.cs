@@ -39,8 +39,8 @@ namespace BLITTEngine.Draw
             public int FrameIndex
             {
                 get => frame_index;
-                set  {
-
+                set
+                {
                     frame_index = value;
 
                     Calc.Clamp(sprite_sheet_frames, ref frame_index);
@@ -61,7 +61,6 @@ namespace BLITTEngine.Draw
 
             internal Animation(string name, params FrameProps[] frame_defs)
             {
-
                 this.Name = name;
 
                 this.sprite_sheet_frames = new int[frame_defs.Length];
@@ -70,7 +69,7 @@ namespace BLITTEngine.Draw
 
                 var idx = 0;
 
-                foreach(var frame_def in frame_defs)
+                foreach (var frame_def in frame_defs)
                 {
                     this.sprite_sheet_frames[idx] = frame_defs[idx].FrameIndex;
                     this.frame_draw_origins[idx] = frame_defs[idx].FrameDrawOrigin;
@@ -80,7 +79,6 @@ namespace BLITTEngine.Draw
                 }
 
                 this.length = sprite_sheet_frames.Length;
-
             }
 
             internal void SetFrameDelay(int frame_idx, int delay)
@@ -129,7 +127,6 @@ namespace BLITTEngine.Draw
             }
         }
 
-
         private Dictionary<string, Animation> animations;
 
         private Animation current_animation;
@@ -151,7 +148,7 @@ namespace BLITTEngine.Draw
         {
             var frame_defs = new FrameProps[sprite_sheet_frame_indices.Length];
 
-            for(var i = 0; i < sprite_sheet_frame_indices.Length; i++)
+            for (var i = 0; i < sprite_sheet_frame_indices.Length; i++)
             {
                 var frame = sprite_sheet_frame_indices[i];
                 var frame_w = sprite_sheet[frame].W;
@@ -195,8 +192,6 @@ namespace BLITTEngine.Draw
         {
             if (animations.TryGetValue(name, out var anim))
             {
-
-
                 anim.SetFrameDrawOrigin(frame, origin);
             }
         }
@@ -223,7 +218,7 @@ namespace BLITTEngine.Draw
                 return;
             }
 
-            var anim  = current_animation;
+            var anim = current_animation;
 
             var quad = sprite_sheet[anim.SpriteSheetFrameIdx];
 
@@ -237,5 +232,4 @@ namespace BLITTEngine.Draw
             Renderer.AddQuad(sprite_sheet.Texture, X - offset.X, Y - offset.Y, in quad);
         }
     }
-
 }

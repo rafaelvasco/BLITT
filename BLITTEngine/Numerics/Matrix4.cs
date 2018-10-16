@@ -20,8 +20,6 @@ namespace BLITTEngine.Numerics
                                                     0f, 0f, 1f, 0f,
                                                     0f, 0f, 0f, 1f);
 
-
-
         public Matrix4(float m11, float m12, float m13, float m14, float m21, float m22, float m23, float m24, float m31,
                       float m32, float m33, float m34, float m41, float m42, float m43, float m44)
         {
@@ -46,19 +44,19 @@ namespace BLITTEngine.Numerics
         public static void CreateOrthographic(float width, float height, float zNearPlane, float zFarPlane, out Matrix4 result)
         {
             result.M11 = 2f / width;
-		    result.M12 = result.M13 = result.M14 = 0f;
-		    result.M22 = 2f / height;
-		    result.M21 = result.M23 = result.M24 = 0f;
-		    result.M33 = 1f / (zNearPlane - zFarPlane);
-		    result.M31 = result.M32 = result.M34 = 0f;
-		    result.M41 = result.M42 = 0f;
-		    result.M43 = zNearPlane / (zNearPlane - zFarPlane);
-		    result.M44 = 1f;
+            result.M12 = result.M13 = result.M14 = 0f;
+            result.M22 = 2f / height;
+            result.M21 = result.M23 = result.M24 = 0f;
+            result.M33 = 1f / (zNearPlane - zFarPlane);
+            result.M31 = result.M32 = result.M34 = 0f;
+            result.M41 = result.M42 = 0f;
+            result.M43 = zNearPlane / (zNearPlane - zFarPlane);
+            result.M44 = 1f;
         }
 
         public static void CreateOrthographicOffCenter(float left, float right, float bottom, float top, float zNearPlane, float zFarPlane, out Matrix4 result)
         {
-			result.M11 = 2.0f / (right - left);
+            result.M11 = 2.0f / (right - left);
             result.M12 = result.M13 = result.M14 = 0.0f;
 
             result.M22 = 2.0f / (top - bottom);
@@ -71,7 +69,6 @@ namespace BLITTEngine.Numerics
             result.M42 = (top + bottom) / (bottom - top);
             result.M43 = zNearPlane / (zNearPlane - zFarPlane);
             result.M44 = 1.0f;
-		}
-
+        }
     }
 }

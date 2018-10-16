@@ -4,10 +4,8 @@ using System.Numerics;
 
 namespace BLITTEngine.Draw
 {
-
     public class Sprite : GameObject
     {
-
         public float X;
 
         public float Y;
@@ -17,7 +15,7 @@ namespace BLITTEngine.Draw
             get => col;
             set
             {
-                if(col != value)
+                if (col != value)
                 {
                     col = value;
 
@@ -28,7 +26,7 @@ namespace BLITTEngine.Draw
 
         public Vector2 Origin
         {
-            get => new Vector2(offset_x/Quad.W, offset_y/Quad.H);
+            get => new Vector2(offset_x / Quad.W, offset_y / Quad.H);
             set
             {
                 offset_x = value.X * Quad.W;
@@ -59,7 +57,7 @@ namespace BLITTEngine.Draw
             get => scale;
             set
             {
-                if(scale != value)
+                if (scale != value)
                 {
                     scale = value;
 
@@ -70,7 +68,6 @@ namespace BLITTEngine.Draw
 
         internal Texture2D Texture;
         internal Quad Quad;
-
 
         private uint col = 0xFFFFFFFF;
         private float offset_x;

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace BLITTEngine.Foundation.STB
+namespace BLITTEngine.Core.Foundation.STB
 {
     unsafe partial class STBTrueType
     {
@@ -360,7 +360,6 @@ namespace BLITTEngine.Foundation.STB
             {
                 stbtt__cff_int(b);
             }
-
         }
 
         public static stbtt__buf stbtt__dict_get(stbtt__buf* b, int key)
@@ -584,6 +583,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     case STBTT_PLATFORM_ID_UNICODE:
                         info->index_map = (int)(cmap + ttULONG(data + encoding_record + 4));
                         break;
@@ -1204,27 +1204,32 @@ namespace BLITTEngine.Foundation.STB
                         in_header = (int)(0);
                         stbtt__buf_skip(&b, (int)((maskbits + 7) / 8));
                         break;
+
                     case 0x01:
                     case 0x03:
                     case 0x12:
                     case 0x17:
                         maskbits += (int)(sp / 2);
                         break;
+
                     case 0x15:
                         in_header = (int)(0);
                         if ((sp) < (2)) return (int)(0);
                         stbtt__csctx_rmove_to(c, (float)(s[sp - 2]), (float)(s[sp - 1]));
                         break;
+
                     case 0x04:
                         in_header = (int)(0);
                         if ((sp) < (1)) return (int)(0);
                         stbtt__csctx_rmove_to(c, (float)(0), (float)(s[sp - 1]));
                         break;
+
                     case 0x16:
                         in_header = (int)(0);
                         if ((sp) < (1)) return (int)(0);
                         stbtt__csctx_rmove_to(c, (float)(s[sp - 1]), (float)(0));
                         break;
+
                     case 0x05:
                         if ((sp) < (2)) return (int)(0);
                         for (; (i + 1) < (sp); i += (int)(2))
@@ -1233,6 +1238,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     case 0x07:
                     case 0x06:
                         {
@@ -1263,6 +1269,7 @@ namespace BLITTEngine.Foundation.STB
                             }
                         }
                         break;
+
                     case 0x1F:
                     case 0x1E:
                         {
@@ -1294,6 +1301,7 @@ namespace BLITTEngine.Foundation.STB
                             }
                         }
                         break;
+
                     case 0x08:
                         if ((sp) < (6)) return (int)(0);
                         for (; (i + 5) < (sp); i += (int)(6))
@@ -1303,6 +1311,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     case 0x18:
                         if ((sp) < (8)) return (int)(0);
                         for (; (i + 5) < (sp - 2); i += (int)(6))
@@ -1314,6 +1323,7 @@ namespace BLITTEngine.Foundation.STB
                         if ((i + 1) >= (sp)) return (int)(0);
                         stbtt__csctx_rline_to(c, (float)(s[i]), (float)(s[i + 1]));
                         break;
+
                     case 0x19:
                         if ((sp) < (8)) return (int)(0);
                         for (; (i + 1) < (sp - 6); i += (int)(2))
@@ -1325,6 +1335,7 @@ namespace BLITTEngine.Foundation.STB
                         stbtt__csctx_rccurve_to(c, (float)(s[i]), (float)(s[i + 1]), (float)(s[i + 2]), (float)(s[i + 3]),
                             (float)(s[i + 4]), (float)(s[i + 5]));
                         break;
+
                     case 0x1A:
                     case 0x1B:
                         if ((sp) < (4)) return (int)(0);
@@ -1347,6 +1358,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     case 0x0A:
                     case 0x1D:
                         if ((b0) == (0x0A))
@@ -1367,14 +1379,17 @@ namespace BLITTEngine.Foundation.STB
                         b.cursor = (int)(0);
                         clear_stack = (int)(0);
                         break;
+
                     case 0x0B:
                         if (subr_stack_height <= 0) return (int)(0);
                         b = (stbtt__buf)(subr_stack[--subr_stack_height]);
                         clear_stack = (int)(0);
                         break;
+
                     case 0x0E:
                         stbtt__csctx_close_shape(c);
                         return (int)(1);
+
                     case 0x0C:
                         {
                             float dx1;
@@ -1408,6 +1423,7 @@ namespace BLITTEngine.Foundation.STB
                                     stbtt__csctx_rccurve_to(c, (float)(dx4), (float)(0), (float)(dx5), (float)(-dy2), (float)(dx6),
                                         (float)(0));
                                     break;
+
                                 case 0x23:
                                     if ((sp) < (13)) return (int)(0);
                                     dx1 = (float)(s[0]);
@@ -1427,6 +1443,7 @@ namespace BLITTEngine.Foundation.STB
                                     stbtt__csctx_rccurve_to(c, (float)(dx4), (float)(dy4), (float)(dx5), (float)(dy5), (float)(dx6),
                                         (float)(dy6));
                                     break;
+
                                 case 0x24:
                                     if ((sp) < (9)) return (int)(0);
                                     dx1 = (float)(s[0]);
@@ -1443,6 +1460,7 @@ namespace BLITTEngine.Foundation.STB
                                     stbtt__csctx_rccurve_to(c, (float)(dx4), (float)(0), (float)(dx5), (float)(dy5), (float)(dx6),
                                         (float)(-(dy1 + dy2 + dy5)));
                                     break;
+
                                 case 0x25:
                                     if ((sp) < (11)) return (int)(0);
                                     dx1 = (float)(s[0]);
@@ -1465,10 +1483,12 @@ namespace BLITTEngine.Foundation.STB
                                     stbtt__csctx_rccurve_to(c, (float)(dx4), (float)(dy4), (float)(dx5), (float)(dy5), (float)(dx6),
                                         (float)(dy6));
                                     break;
+
                                 default: return (int)(0);
                             }
                         }
                         break;
+
                     default:
                         if (((b0 != 255) && (b0 != 28)) && (((b0) < (32)) || ((b0) > (254)))) return (int)(0);
                         if ((b0) == (255))
@@ -1546,7 +1566,6 @@ namespace BLITTEngine.Foundation.STB
                     *leftSideBearing =
                         (int)(ttSHORT(info->data + info->hmtx + 4 * numOfLongHorMetrics + 2 * (glyph_index - numOfLongHorMetrics)));
             }
-
         }
 
         public static int stbtt__GetGlyphKernInfoAdvance(stbtt_fontinfo* info, int glyph1, int glyph2)
@@ -1604,6 +1623,7 @@ namespace BLITTEngine.Foundation.STB
                         }
                     }
                     break;
+
                 case 2:
                     {
                         ushort rangeCount = (ushort)(ttUSHORT(coverageTable + 2));
@@ -1631,6 +1651,7 @@ namespace BLITTEngine.Foundation.STB
                         }
                     }
                     break;
+
                 default:
                     {
                     }
@@ -1655,6 +1676,7 @@ namespace BLITTEngine.Foundation.STB
                         classDefTable = classDef1ValueArray + 2 * glyphCount;
                     }
                     break;
+
                 case 2:
                     {
                         ushort classRangeCount = (ushort)(ttUSHORT(classDefTable + 2));
@@ -1680,6 +1702,7 @@ namespace BLITTEngine.Foundation.STB
                         classDefTable = classRangeRecords + 6 * classRangeCount;
                     }
                     break;
+
                 default:
                     {
                     }
@@ -1763,6 +1786,7 @@ namespace BLITTEngine.Foundation.STB
                                             }
                                         }
                                         break;
+
                                     case 2:
                                         {
                                             ushort valueFormat1 = (ushort)(ttUSHORT(table + 4));
@@ -1785,6 +1809,7 @@ namespace BLITTEngine.Foundation.STB
                                             }
                                         }
                                         break;
+
                                     default:
                                         {
                                             break;
@@ -1885,7 +1910,6 @@ namespace BLITTEngine.Foundation.STB
                 if ((ix1) != null) *ix1 = ((int)(CRuntime.ceil((double)(x1 * scale_x + shift_x))));
                 if ((iy1) != null) *iy1 = ((int)(CRuntime.ceil((double)(-y0 * scale_y + shift_y))));
             }
-
         }
 
         public static void stbtt_GetGlyphBitmapBox(stbtt_fontinfo* font, int glyph, float scale_x, float scale_y, int* ix0,
@@ -1933,7 +1957,6 @@ namespace BLITTEngine.Foundation.STB
                 --hh->num_remaining_in_head_chunk;
                 return (sbyte*)(hh->head) + sizeof(stbtt__hheap_chunk) + size * (ulong)hh->num_remaining_in_head_chunk;
             }
-
         }
 
         public static void stbtt__hheap_free(stbtt__hheap* hh, void* p)
@@ -2016,7 +2039,6 @@ namespace BLITTEngine.Foundation.STB
             {
                 scanline[x] += (float)(e->direction * (y1 - y0) * (1 - ((x0 - x) + (x1 - x)) / 2));
             }
-
         }
 
         public static void stbtt__fill_active_edges_new(float* scanline, float* scanline_fill, int len, stbtt__active_edge* e,
@@ -2487,7 +2509,6 @@ namespace BLITTEngine.Foundation.STB
                 stbtt__add_point(points, (int)(*num_points), (float)(x3), (float)(y3));
                 *num_points = (int)(*num_points + 1);
             }
-
         }
 
         public static stbtt__point* stbtt_FlattenCurves(stbtt_vertex* vertices, int num_verts, float objspace_flatness,
@@ -2538,11 +2559,13 @@ namespace BLITTEngine.Foundation.STB
                             y = (float)(vertices[i].y);
                             stbtt__add_point(points, (int)(num_points++), (float)(x), (float)(y));
                             break;
+
                         case STBTT_vline:
                             x = (float)(vertices[i].x);
                             y = (float)(vertices[i].y);
                             stbtt__add_point(points, (int)(num_points++), (float)(x), (float)(y));
                             break;
+
                         case STBTT_vcurve:
                             stbtt__tesselate_curve(points, &num_points, (float)(x), (float)(y), (float)(vertices[i].cx),
                                 (float)(vertices[i].cy), (float)(vertices[i].x), (float)(vertices[i].y), (float)(objspace_flatness_squared),
@@ -2550,6 +2573,7 @@ namespace BLITTEngine.Foundation.STB
                             x = (float)(vertices[i].x);
                             y = (float)(vertices[i].y);
                             break;
+
                         case STBTT_vcubic:
                             stbtt__tesselate_cubic(points, &num_points, (float)(x), (float)(y), (float)(vertices[i].cx),
                                 (float)(vertices[i].cy), (float)(vertices[i].cx1), (float)(vertices[i].cy1), (float)(vertices[i].x),
@@ -2564,7 +2588,7 @@ namespace BLITTEngine.Foundation.STB
             }
 
             return points;
-        error:;
+            error:;
             CRuntime.free(points);
             CRuntime.free(*contour_lengths);
             *contour_lengths = null;
@@ -2588,7 +2612,6 @@ namespace BLITTEngine.Foundation.STB
                 CRuntime.free(winding_lengths);
                 CRuntime.free(windings);
             }
-
         }
 
         public static void stbtt_FreeBitmap(byte* bitmap, void* userdata)
@@ -2883,6 +2906,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     case 3:
                         for (i = (int)(0); i <= safe_w; ++i)
                         {
@@ -2892,6 +2916,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     case 4:
                         for (i = (int)(0); i <= safe_w; ++i)
                         {
@@ -2901,6 +2926,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     case 5:
                         for (i = (int)(0); i <= safe_w; ++i)
                         {
@@ -2910,6 +2936,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     default:
                         for (i = (int)(0); i <= safe_w; ++i)
                         {
@@ -2954,6 +2981,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     case 3:
                         for (i = (int)(0); i <= safe_h; ++i)
                         {
@@ -2963,6 +2991,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     case 4:
                         for (i = (int)(0); i <= safe_h; ++i)
                         {
@@ -2972,6 +3001,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     case 5:
                         for (i = (int)(0); i <= safe_h; ++i)
                         {
@@ -2981,6 +3011,7 @@ namespace BLITTEngine.Foundation.STB
                         }
 
                         break;
+
                     default:
                         for (i = (int)(0); i <= safe_h; ++i)
                         {
@@ -3285,7 +3316,6 @@ namespace BLITTEngine.Foundation.STB
                     return (int)(1);
                 }
             }
-
         }
 
         public static int equal(float* a, float* b)
@@ -3412,7 +3442,6 @@ namespace BLITTEngine.Foundation.STB
                 r[2] = (float)(s - u * (m - n));
                 return (int)(3);
             }
-
         }
 
         public static byte* stbtt_GetGlyphSDF(stbtt_fontinfo* info, float scale, int glyph, int padding, byte onedge_value,

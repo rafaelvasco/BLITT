@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace BLITTEngine.Foundation.STB
+namespace BLITTEngine.Core.Foundation.STB
 {
     unsafe partial class STBImage
     {
@@ -450,7 +450,6 @@ namespace BLITTEngine.Foundation.STB
                 s.img_buffer_end = s.buffer_start;
                 s.img_buffer_end += n;
             }
-
         }
 
         public static byte stbi__get8(stbi__context s)
@@ -579,12 +578,14 @@ namespace BLITTEngine.Foundation.STB
                             dest[1] = (byte)(255);
                         }
                         break;
+
                     case ((1) * 8 + (3)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 1, dest += 3)
                         {
                             dest[0] = (byte)(dest[1] = (byte)(dest[2] = (byte)(src[0])));
                         }
                         break;
+
                     case ((1) * 8 + (4)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 1, dest += 4)
                         {
@@ -592,18 +593,21 @@ namespace BLITTEngine.Foundation.STB
                             dest[3] = (byte)(255);
                         }
                         break;
+
                     case ((2) * 8 + (1)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 2, dest += 1)
                         {
                             dest[0] = (byte)(src[0]);
                         }
                         break;
+
                     case ((2) * 8 + (3)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 2, dest += 3)
                         {
                             dest[0] = (byte)(dest[1] = (byte)(dest[2] = (byte)(src[0])));
                         }
                         break;
+
                     case ((2) * 8 + (4)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 2, dest += 4)
                         {
@@ -611,6 +615,7 @@ namespace BLITTEngine.Foundation.STB
                             dest[3] = (byte)(src[1]);
                         }
                         break;
+
                     case ((3) * 8 + (4)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 3, dest += 4)
                         {
@@ -620,12 +625,14 @@ namespace BLITTEngine.Foundation.STB
                             dest[3] = (byte)(255);
                         }
                         break;
+
                     case ((3) * 8 + (1)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 3, dest += 1)
                         {
                             dest[0] = (byte)(stbi__compute_y((int)(src[0]), (int)(src[1]), (int)(src[2])));
                         }
                         break;
+
                     case ((3) * 8 + (2)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 3, dest += 2)
                         {
@@ -633,12 +640,14 @@ namespace BLITTEngine.Foundation.STB
                             dest[1] = (byte)(255);
                         }
                         break;
+
                     case ((4) * 8 + (1)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 4, dest += 1)
                         {
                             dest[0] = (byte)(stbi__compute_y((int)(src[0]), (int)(src[1]), (int)(src[2])));
                         }
                         break;
+
                     case ((4) * 8 + (2)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 4, dest += 2)
                         {
@@ -646,6 +655,7 @@ namespace BLITTEngine.Foundation.STB
                             dest[1] = (byte)(src[3]);
                         }
                         break;
+
                     case ((4) * 8 + (3)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 4, dest += 3)
                         {
@@ -654,6 +664,7 @@ namespace BLITTEngine.Foundation.STB
                             dest[2] = (byte)(src[2]);
                         }
                         break;
+
                     default:
                         return ((byte*)((ulong)((stbi__err("0")) != 0 ? ((byte*)null) : (null))));
                 }
@@ -693,12 +704,14 @@ namespace BLITTEngine.Foundation.STB
                             dest[1] = (ushort)(0xffff);
                         }
                         break;
+
                     case ((1) * 8 + (3)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 1, dest += 3)
                         {
                             dest[0] = (ushort)(dest[1] = (ushort)(dest[2] = (ushort)(src[0])));
                         }
                         break;
+
                     case ((1) * 8 + (4)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 1, dest += 4)
                         {
@@ -706,18 +719,21 @@ namespace BLITTEngine.Foundation.STB
                             dest[3] = (ushort)(0xffff);
                         }
                         break;
+
                     case ((2) * 8 + (1)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 2, dest += 1)
                         {
                             dest[0] = (ushort)(src[0]);
                         }
                         break;
+
                     case ((2) * 8 + (3)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 2, dest += 3)
                         {
                             dest[0] = (ushort)(dest[1] = (ushort)(dest[2] = (ushort)(src[0])));
                         }
                         break;
+
                     case ((2) * 8 + (4)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 2, dest += 4)
                         {
@@ -725,6 +741,7 @@ namespace BLITTEngine.Foundation.STB
                             dest[3] = (ushort)(src[1]);
                         }
                         break;
+
                     case ((3) * 8 + (4)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 3, dest += 4)
                         {
@@ -734,12 +751,14 @@ namespace BLITTEngine.Foundation.STB
                             dest[3] = (ushort)(0xffff);
                         }
                         break;
+
                     case ((3) * 8 + (1)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 3, dest += 1)
                         {
                             dest[0] = (ushort)(stbi__compute_y_16((int)(src[0]), (int)(src[1]), (int)(src[2])));
                         }
                         break;
+
                     case ((3) * 8 + (2)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 3, dest += 2)
                         {
@@ -747,12 +766,14 @@ namespace BLITTEngine.Foundation.STB
                             dest[1] = (ushort)(0xffff);
                         }
                         break;
+
                     case ((4) * 8 + (1)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 4, dest += 1)
                         {
                             dest[0] = (ushort)(stbi__compute_y_16((int)(src[0]), (int)(src[1]), (int)(src[2])));
                         }
                         break;
+
                     case ((4) * 8 + (2)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 4, dest += 2)
                         {
@@ -760,6 +781,7 @@ namespace BLITTEngine.Foundation.STB
                             dest[1] = (ushort)(src[3]);
                         }
                         break;
+
                     case ((4) * 8 + (3)):
                         for (i = (int)(x - 1); (i) >= (0); --i, src += 4, dest += 3)
                         {
@@ -768,6 +790,7 @@ namespace BLITTEngine.Foundation.STB
                             dest[2] = (ushort)(src[2]);
                         }
                         break;
+
                     default:
                         return (ushort*)((byte*)((ulong)((stbi__err("0")) != 0 ? ((byte*)null) : (null))));
                 }
@@ -1486,7 +1509,6 @@ namespace BLITTEngine.Foundation.STB
                     return (int)(1);
                 }
             }
-
         }
 
         public static void stbi__jpeg_dequantize(short* data, ushort* dequant)
@@ -1520,7 +1542,6 @@ namespace BLITTEngine.Foundation.STB
                     }
                 }
             }
-
         }
 
         public static int stbi__process_marker(stbi__jpeg z, int m)
@@ -1530,10 +1551,12 @@ namespace BLITTEngine.Foundation.STB
             {
                 case 0xff:
                     return (int)(stbi__err("expected marker"));
+
                 case 0xDD:
                     if (stbi__get16be(z.s) != 4) return (int)(stbi__err("bad DRI len"));
                     z.restart_interval = (int)(stbi__get16be(z.s));
                     return (int)(1);
+
                 case 0xDB:
                     L = (int)(stbi__get16be(z.s) - 2);
                     while ((L) > (0))
@@ -1552,6 +1575,7 @@ namespace BLITTEngine.Foundation.STB
                         L -= (int)((sixteen) != 0 ? 129 : 65);
                     }
                     return (int)((L) == (0) ? 1 : 0);
+
                 case 0xC4:
                     L = (int)(stbi__get16be(z.s) - 2);
                     while ((L) > (0))
@@ -2210,7 +2234,6 @@ namespace BLITTEngine.Foundation.STB
                 if ((comp) != null) *comp = (int)((z.s.img_n) >= (3) ? 3 : 1);
                 return output;
             }
-
         }
 
         public static void* stbi__jpeg_load(stbi__context s, int* x, int* y, int* comp, int req_comp, stbi__result_info* ri)
@@ -2626,7 +2649,6 @@ namespace BLITTEngine.Foundation.STB
                 CRuntime.free(a.zout_start);
                 return (null);
             }
-
         }
 
         public static sbyte* stbi_zlib_decode_malloc(sbyte* buffer, int len, int* outlen)
@@ -2652,7 +2674,6 @@ namespace BLITTEngine.Foundation.STB
                 CRuntime.free(a.zout_start);
                 return (null);
             }
-
         }
 
         public static int stbi_zlib_decode_buffer(sbyte* obuffer, int olen, sbyte* ibuffer, int ilen)
@@ -2681,7 +2702,6 @@ namespace BLITTEngine.Foundation.STB
                 CRuntime.free(a.zout_start);
                 return (null);
             }
-
         }
 
         public static int stbi_zlib_decode_noheader_buffer(sbyte* obuffer, int olen, sbyte* ibuffer, int ilen)
@@ -2763,21 +2783,27 @@ namespace BLITTEngine.Foundation.STB
                         case STBI__F_none:
                             cur[k] = (byte)(raw[k]);
                             break;
+
                         case STBI__F_sub:
                             cur[k] = (byte)(raw[k]);
                             break;
+
                         case STBI__F_up:
                             cur[k] = ((byte)((raw[k] + prior[k]) & 255));
                             break;
+
                         case STBI__F_avg:
                             cur[k] = ((byte)((raw[k] + (prior[k] >> 1)) & 255));
                             break;
+
                         case STBI__F_paeth:
                             cur[k] = ((byte)((raw[k] + stbi__paeth((int)(0), (int)(prior[k]), (int)(0))) & 255));
                             break;
+
                         case STBI__F_avg_first:
                             cur[k] = (byte)(raw[k]);
                             break;
+
                         case STBI__F_paeth_first:
                             cur[k] = (byte)(raw[k]);
                             break;
@@ -2815,24 +2841,28 @@ namespace BLITTEngine.Foundation.STB
                         case STBI__F_none:
                             CRuntime.memcpy(cur, raw, (ulong)(nk));
                             break;
+
                         case STBI__F_sub:
                             for (k = (int)(0); (k) < (nk); ++k)
                             {
                                 cur[k] = ((byte)((raw[k] + cur[k - filter_bytes]) & 255));
                             }
                             break;
+
                         case STBI__F_up:
                             for (k = (int)(0); (k) < (nk); ++k)
                             {
                                 cur[k] = ((byte)((raw[k] + prior[k]) & 255));
                             }
                             break;
+
                         case STBI__F_avg:
                             for (k = (int)(0); (k) < (nk); ++k)
                             {
                                 cur[k] = ((byte)((raw[k] + ((prior[k] + cur[k - filter_bytes]) >> 1)) & 255));
                             }
                             break;
+
                         case STBI__F_paeth:
                             for (k = (int)(0); (k) < (nk); ++k)
                             {
@@ -2842,12 +2872,14 @@ namespace BLITTEngine.Foundation.STB
                                          255));
                             }
                             break;
+
                         case STBI__F_avg_first:
                             for (k = (int)(0); (k) < (nk); ++k)
                             {
                                 cur[k] = ((byte)((raw[k] + (cur[k - filter_bytes] >> 1)) & 255));
                             }
                             break;
+
                         case STBI__F_paeth_first:
                             for (k = (int)(0); (k) < (nk); ++k)
                             {
@@ -2872,6 +2904,7 @@ namespace BLITTEngine.Foundation.STB
                                 }
                             }
                             break;
+
                         case STBI__F_sub:
                             for (i = (uint)(x - 1);
                                 (i) >= (1);
@@ -2883,6 +2916,7 @@ namespace BLITTEngine.Foundation.STB
                                 }
                             }
                             break;
+
                         case STBI__F_up:
                             for (i = (uint)(x - 1);
                                 (i) >= (1);
@@ -2894,6 +2928,7 @@ namespace BLITTEngine.Foundation.STB
                                 }
                             }
                             break;
+
                         case STBI__F_avg:
                             for (i = (uint)(x - 1);
                                 (i) >= (1);
@@ -2905,6 +2940,7 @@ namespace BLITTEngine.Foundation.STB
                                 }
                             }
                             break;
+
                         case STBI__F_paeth:
                             for (i = (uint)(x - 1);
                                 (i) >= (1);
@@ -2919,6 +2955,7 @@ namespace BLITTEngine.Foundation.STB
                                 }
                             }
                             break;
+
                         case STBI__F_avg_first:
                             for (i = (uint)(x - 1);
                                 (i) >= (1);
@@ -2930,6 +2967,7 @@ namespace BLITTEngine.Foundation.STB
                                 }
                             }
                             break;
+
                         case STBI__F_paeth_first:
                             for (i = (uint)(x - 1);
                                 (i) >= (1);
@@ -3273,7 +3311,6 @@ namespace BLITTEngine.Foundation.STB
                     }
                 }
             }
-
         }
 
         public static int stbi__parse_png_file(stbi__png z, int scan, int req_comp)
@@ -3307,6 +3344,7 @@ namespace BLITTEngine.Foundation.STB
                         is_iphone = (int)(1);
                         stbi__skip(s, (int)(c.length));
                         break;
+
                     case ((('I') << 24) + (('H') << 16) + (('D') << 8) + ('R')):
                         {
                             int comp;
@@ -3963,18 +4001,20 @@ namespace BLITTEngine.Foundation.STB
             {
                 case 8:
                     return (int)(STBI_grey);
+
                 case 15:
                 case 16:
                     if (((bits_per_pixel) == (16)) && ((is_grey) != 0)) return (int)(STBI_grey_alpha);
                     if ((is_rgb16) != null) *is_rgb16 = (int)(1);
                     return (int)(STBI_rgb);
+
                 case 24:
                 case 32:
                     return (int)(bits_per_pixel / 8);
+
                 default:
                     return (int)(0);
             }
-
         }
 
         public static int stbi__tga_info(stbi__context s, int* x, int* y, int* comp)
@@ -4098,7 +4138,7 @@ namespace BLITTEngine.Foundation.STB
             if ((((tga_color_type) == (1)) && (sz != 8)) && (sz != 16)) goto errorEnd;
             if (((((sz != 8) && (sz != 15)) && (sz != 16)) && (sz != 24)) && (sz != 32)) goto errorEnd;
             res = (int)(1);
-        errorEnd:
+            errorEnd:
             ;
             stbi__rewind(s);
             return (int)(res);
@@ -4596,7 +4636,6 @@ namespace BLITTEngine.Foundation.STB
                     --g.parse;
                 }
             }
-
         }
 
         public static byte* stbi__process_gif_raster(stbi__context s, stbi__gif g)
@@ -4727,14 +4766,17 @@ namespace BLITTEngine.Foundation.STB
                 case 0:
                     stbi__fill_gif_background(g, (int)(0), (int)(0), (int)(4 * g.w), (int)(4 * g.w * g.h));
                     break;
+
                 case 1:
                     if ((prev_out) != null) CRuntime.memcpy(g._out_, prev_out, (ulong)(4 * g.w * g.h));
                     g.old_out = prev_out;
                     break;
+
                 case 2:
                     if ((prev_out) != null) CRuntime.memcpy(g._out_, prev_out, (ulong)(4 * g.w * g.h));
                     stbi__fill_gif_background(g, (int)(g.start_x), (int)(g.start_y), (int)(g.max_x), (int)(g.max_y));
                     break;
+
                 case 3:
                     if ((g.old_out) != null)
                     {
@@ -4829,6 +4871,7 @@ namespace BLITTEngine.Foundation.STB
                         }
                     case 0x3B:
                         return null;
+
                     default:
                         return ((byte*)((ulong)((stbi__err("unknown code")) != 0 ? ((byte*)null) : (null))));
                 }

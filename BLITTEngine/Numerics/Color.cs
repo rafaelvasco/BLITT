@@ -160,7 +160,7 @@ namespace BLITTEngine.Numerics
             set => packed_value = value;
         }
 
-        public uint RGBA => ((uint) R << 24) | ((uint) G << 16) | ((uint) B << 8) | A;
+        public uint RGBA => ((uint)R << 24) | ((uint)G << 16) | ((uint)B << 8) | A;
 
         public int RGBAI => (int)RGBA;
 
@@ -177,15 +177,15 @@ namespace BLITTEngine.Numerics
 
             if (((r | g | b) & 0xFFFFFF00) != 0)
             {
-                var clampedR = (uint) Calc.Clamp(r, 0, 255);
-                var clampedG = (uint) Calc.Clamp(g, 0, 255);
-                var clampedB = (uint) Calc.Clamp(b, 0, 255);
+                var clampedR = (uint)Calc.Clamp(r, 0, 255);
+                var clampedG = (uint)Calc.Clamp(g, 0, 255);
+                var clampedB = (uint)Calc.Clamp(b, 0, 255);
 
                 packed_value |= (clampedB << 16) | (clampedG << 8) | clampedR;
             }
             else
             {
-                packed_value |= ((uint) b << 16) | ((uint) g << 8) | ((uint) r);
+                packed_value |= ((uint)b << 16) | ((uint)g << 8) | ((uint)r);
             }
         }
 
@@ -193,31 +193,31 @@ namespace BLITTEngine.Numerics
         {
             if (((r | g | b | alpha) & 0xFFFFFF00) != 0)
             {
-                var clampedR = (uint) Calc.Clamp(r, 0, 255);
-                var clampedG = (uint) Calc.Clamp(g, 0, 255);
-                var clampedB = (uint) Calc.Clamp(b, 0, 255);
-                var clampedA = (uint) Calc.Clamp(alpha, 0, 255);
+                var clampedR = (uint)Calc.Clamp(r, 0, 255);
+                var clampedG = (uint)Calc.Clamp(g, 0, 255);
+                var clampedB = (uint)Calc.Clamp(b, 0, 255);
+                var clampedA = (uint)Calc.Clamp(alpha, 0, 255);
 
                 packed_value = (clampedA << 24) | (clampedB << 16) | (clampedG << 8) | clampedR;
             }
             else
             {
-                packed_value = ((uint) alpha << 24) | ((uint) b << 16) | ((uint) g << 8) | ((uint) r);
+                packed_value = ((uint)alpha << 24) | ((uint)b << 16) | ((uint)g << 8) | ((uint)r);
             }
         }
 
         public Color(byte r, byte g, byte b, byte alpha)
         {
-            packed_value = ((uint) alpha << 24) | ((uint) b << 16) | ((uint) g << 8) | r;
+            packed_value = ((uint)alpha << 24) | ((uint)b << 16) | ((uint)g << 8) | r;
         }
 
         public Color(float r, float g, float b)
-            : this((int) (r * 255), (int) (g * 255), (int) (b * 255))
+            : this((int)(r * 255), (int)(g * 255), (int)(b * 255))
         {
         }
 
         public Color(float r, float g, float b, float alpha)
-            : this((int) (r * 255), (int) (g * 255), (int) (b * 255), (int) (alpha * 255))
+            : this((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255))
         {
         }
 
@@ -227,10 +227,10 @@ namespace BLITTEngine.Numerics
             {
                 unchecked
                 {
-                    return (byte) (packed_value >> 16);
+                    return (byte)(packed_value >> 16);
                 }
             }
-            set => packed_value = (packed_value & 0xff00ffff) | ((uint) value << 16);
+            set => packed_value = (packed_value & 0xff00ffff) | ((uint)value << 16);
         }
 
         [DataMember]
@@ -240,10 +240,10 @@ namespace BLITTEngine.Numerics
             {
                 unchecked
                 {
-                    return (byte) (packed_value >> 8);
+                    return (byte)(packed_value >> 8);
                 }
             }
-            set => packed_value = (packed_value & 0xffff00ff) | ((uint) value << 8);
+            set => packed_value = (packed_value & 0xffff00ff) | ((uint)value << 8);
         }
 
         public byte R
@@ -265,10 +265,10 @@ namespace BLITTEngine.Numerics
             {
                 unchecked
                 {
-                    return (byte) (packed_value >> 24);
+                    return (byte)(packed_value >> 24);
                 }
             }
-            set => packed_value = (packed_value & 0x00ffffff) | ((uint) value << 24);
+            set => packed_value = (packed_value & 0x00ffffff) | ((uint)value << 24);
         }
 
         public static bool operator ==(Color a, Color b)
@@ -300,22 +300,22 @@ namespace BLITTEngine.Numerics
         {
             amount = Calc.Normalize(amount);
             return new Color(
-                (int) Calc.Lerp(value1.R, value2.R, amount),
-                (int) Calc.Lerp(value1.G, value2.G, amount),
-                (int) Calc.Lerp(value1.B, value2.B, amount),
-                (int) Calc.Lerp(value1.A, value2.A, amount));
+                (int)Calc.Lerp(value1.R, value2.R, amount),
+                (int)Calc.Lerp(value1.G, value2.G, amount),
+                (int)Calc.Lerp(value1.B, value2.B, amount),
+                (int)Calc.Lerp(value1.A, value2.A, amount));
         }
 
         public static Color Multiply(Color value, float scale)
         {
-            return new Color((int) (value.R * scale), (int) (value.G * scale), (int) (value.B * scale),
-                (int) (value.A * scale));
+            return new Color((int)(value.R * scale), (int)(value.G * scale), (int)(value.B * scale),
+                (int)(value.A * scale));
         }
 
         public static Color operator *(Color value, float scale)
         {
-            return new Color((int) (value.R * scale), (int) (value.G * scale), (int) (value.B * scale),
-                (int) (value.A * scale));
+            return new Color((int)(value.R * scale), (int)(value.G * scale), (int)(value.B * scale),
+                (int)(value.A * scale));
         }
 
         public override string ToString()
@@ -355,7 +355,7 @@ namespace BLITTEngine.Numerics
 
         public static implicit operator int(Color val)
         {
-            return (int) val.packed_value;
+            return (int)val.packed_value;
         }
 
         public static implicit operator Color(uint val)
@@ -1077,6 +1077,6 @@ namespace BLITTEngine.Numerics
         /// </summary>
         public static Color YellowGreen { get; }
 
-        #endregion
+        #endregion COLOR_BANK
     }
 }

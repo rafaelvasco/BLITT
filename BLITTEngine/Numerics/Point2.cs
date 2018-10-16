@@ -17,15 +17,16 @@ namespace BLITTEngine.Numerics
             X = x;
             Y = y;
         }
+
         public Point2(int val) : this(val, val)
         {
-            
         }
 
         public override bool Equals(object obj)
         {
             return obj is Point2 point2 && Equals(point2);
         }
+
         public bool Equals(Point2 other)
         {
             return X == other.X && Y == other.Y;
@@ -66,6 +67,7 @@ namespace BLITTEngine.Numerics
         {
             return a.X == b.X && a.Y == b.Y;
         }
+
         public static bool operator !=(Point2 a, Point2 b)
         {
             return a.X != b.X || a.Y != b.Y;
@@ -91,12 +93,14 @@ namespace BLITTEngine.Numerics
             a.Y *= b.Y;
             return a;
         }
+
         public static Point2 operator *(Point2 p, int n)
         {
             p.X *= n;
             p.Y *= n;
             return p;
         }
+
         public static Point2 operator *(int n, Point2 p)
         {
             p.X *= n;
@@ -110,12 +114,14 @@ namespace BLITTEngine.Numerics
             a.Y /= b.Y;
             return a;
         }
+
         public static Point2 operator /(Point2 p, int n)
         {
             p.X /= n;
             p.Y /= n;
             return p;
         }
+
         public static Point2 operator /(int n, Point2 p)
         {
             p.X /= n;

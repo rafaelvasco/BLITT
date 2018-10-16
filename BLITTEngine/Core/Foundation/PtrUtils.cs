@@ -2,7 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace BLITTEngine.Foundation
+namespace BLITTEngine.Core.Foundation
 {
     public static class PtrUtils
     {
@@ -11,7 +11,7 @@ namespace BLITTEngine.Foundation
         {
             return Marshal.PtrToStructure<T>(ptr);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IntPtr StructToPtr<T>(T value) where T : struct
         {
@@ -19,7 +19,6 @@ namespace BLITTEngine.Foundation
             Marshal.StructureToPtr(value, ptr, false);
             return ptr;
         }
-
 
         public static byte[] IntPtrToByteArray(IntPtr ptr, int length)
         {

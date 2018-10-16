@@ -1,7 +1,6 @@
+using BLITTEngine.Core.Foundation;
 using System;
 using System.Diagnostics;
-using BLITTEngine.Core.Graphics;
-using BLITTEngine.Foundation;
 
 namespace BLITTEngine.Core.Platform
 {
@@ -30,7 +29,7 @@ namespace BLITTEngine.Core.Platform
 
             var sw = Stopwatch.StartNew();
 
-            SDL.Init((int) initFlags);
+            SDL.Init((int)initFlags);
 
             var windowFlags =
                 SDL.Window.State.Hidden | SDL.Window.State.OpenGL;
@@ -71,7 +70,6 @@ namespace BLITTEngine.Core.Platform
             sw.Stop();
 
             InitKeyboard();
-
         }
 
         public override IntPtr GetRenderSurfaceHandle()
@@ -84,8 +82,10 @@ namespace BLITTEngine.Core.Platform
             {
                 case OS.Windows:
                     return info.info.win.window;
+
                 case OS.Linux:
                     return info.info.x11.window;
+
                 case OS.MacOSX:
                     return info.info.cocoa.window;
             }
@@ -93,7 +93,6 @@ namespace BLITTEngine.Core.Platform
             throw new Exception(
                 "SDLGamePlatform [GetRenderSurfaceHandle]: " +
                 "Invalid OS, could not retrive native renderer surface handle.");
-
         }
 
         public override void Quit()
@@ -105,38 +104,49 @@ namespace BLITTEngine.Core.Platform
 
         public override void PollEvents()
         {
-            while(SDL.PollEvent(out var ev) == 1)
+            while (SDL.PollEvent(out var ev) == 1)
             {
                 switch (ev.Type)
                 {
                     case SDL.EventType.Quit:
                         OnQuit?.Invoke();
                         break;
+
                     case SDL.EventType.KeyDown:
                         AddKey(ev.Key.Keysym.Sym);
                         break;
+
                     case SDL.EventType.KeyUp:
                         RemoveKey(ev.Key.Keysym.Sym);
                         break;
+
                     case SDL.EventType.MouseButtonDown:
                         SetMouseButtonState(ev.Button.Button, down: true);
                         break;
+
                     case SDL.EventType.MouseButtonup:
                         SetMouseButtonState(ev.Button.Button, down: false);
                         break;
+
                     case SDL.EventType.MouseWheel:
-                        TriggerMouseScroll(ev.Wheel.Y*120);
+                        TriggerMouseScroll(ev.Wheel.Y * 120);
                         break;
+
                     case SDL.EventType.JoyDeviceAdded:
                         break;
+
                     case SDL.EventType.JoyDeviceRemoved:
                         break;
+
                     case SDL.EventType.JoyButtonDown:
                         break;
+
                     case SDL.EventType.JoyButtonUp:
                         break;
+
                     case SDL.EventType.JoyAxisMotion:
                         break;
+
                     case SDL.EventType.WindowEvent:
                         switch (ev.Window.EventID)
                         {
@@ -147,6 +157,7 @@ namespace BLITTEngine.Core.Platform
                             case SDL.Window.EventId.Close:
                                 OnQuit?.Invoke();
                                 break;
+
                             case SDL.Window.EventId.SizeChanged:
 
                                 int w = ev.Window.Data1;
@@ -161,10 +172,8 @@ namespace BLITTEngine.Core.Platform
 
                                 OnWinResized?.Invoke(ev.Window.Data1, ev.Window.Data2);
                                 break;
-
                         }
                         break;
-
                 }
             }
         }
@@ -177,7 +186,7 @@ namespace BLITTEngine.Core.Platform
 
         public override void SetScreenSize(int w, int h)
         {
-            if(is_fullscreen)
+            if (is_fullscreen)
             {
                 return;
             }
@@ -208,8 +217,7 @@ namespace BLITTEngine.Core.Platform
         {
             if (is_fullscreen != enabled)
             {
-
-                SDL.Window.SetFullscreen(window, enabled ? SDL.Window.State.FullscreenDesktop :  0);
+                SDL.Window.SetFullscreen(window, enabled ? SDL.Window.State.FullscreenDesktop : 0);
 
                 is_fullscreen = enabled;
 

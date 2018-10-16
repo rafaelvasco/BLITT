@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace BLITTEngine.Foundation.STB
+namespace BLITTEngine.Core.Foundation.STB
 {
     public static unsafe partial class STBImageWrite
     {
@@ -30,6 +30,7 @@ namespace BLITTEngine.Foundation.STB
                 {
                     case ' ':
                         break;
+
                     case '1':
                         {
                             var x = (byte)((int)v[vindex++] & 0xff);

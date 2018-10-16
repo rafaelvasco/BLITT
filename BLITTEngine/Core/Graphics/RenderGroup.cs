@@ -1,4 +1,4 @@
-﻿using BLITTEngine.Foundation;
+﻿using BLITTEngine.Core.Foundation;
 using BLITTEngine.Numerics;
 using System.Numerics;
 
@@ -10,8 +10,5 @@ namespace BLITTEngine.Core.Graphics
         public Matrix4x4 ProjectionMatrix;
         public RectangleI Viewport;
         public RenderState RenderState;
-
-
-
     }
 }

@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace BLITTEngine.Numerics
 {
-     public class Transform2D
+    public class Transform2D
     {
         public event Action OnChanged;
 
@@ -37,7 +37,6 @@ namespace BLITTEngine.Numerics
 
                     MakeDirty();
                 }
-
             }
         }
 
@@ -138,7 +137,6 @@ namespace BLITTEngine.Numerics
             {
                 if (dirty)
                 {
-                    
                     Matrix3x2Ext.CreateTransform(scale, rotation, position, out matrix);
                     if (parent != null)
                         matrix = matrix * parent.Matrix;

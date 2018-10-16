@@ -26,7 +26,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace BLITTEngine.Foundation
+namespace BLITTEngine.Core.Foundation
 {
     /// <summary>
     /// Provides an interface for programs to respond to callbacks from the bgfx library.
@@ -1122,7 +1122,7 @@ namespace BLITTEngine.Foundation
         /// </summary>
         public TextureFormat Format { get; private set; }
 
-        Texture(ushort handle, ref TextureInfo info)
+        private Texture(ushort handle, ref TextureInfo info)
         {
             this.handle = handle;
 
@@ -1562,7 +1562,7 @@ namespace BLITTEngine.Foundation
 
         internal unsafe struct Data
         {
-            const int MaxAttribCount = 16;
+            private const int MaxAttribCount = 16;
 
             public uint Hash;
             public ushort Stride;
@@ -1619,7 +1619,7 @@ namespace BLITTEngine.Foundation
     /// </summary>
     public unsafe struct Capabilities
     {
-        Caps* data;
+        private Caps* data;
 
         /// <summary>
         /// The currently active rendering backend API.
@@ -1705,8 +1705,8 @@ namespace BLITTEngine.Foundation
         /// </summary>
         public unsafe struct AdapterCollection : IReadOnlyList<Adapter>
         {
-            ushort* data;
-            int count;
+            private ushort* data;
+            private int count;
 
             /// <summary>
             /// Accesses the element at the specified index.
@@ -1756,8 +1756,8 @@ namespace BLITTEngine.Foundation
             /// </summary>
             public struct Enumerator : IEnumerator<Adapter>
             {
-                AdapterCollection collection;
-                int index;
+                private AdapterCollection collection;
+                private int index;
 
                 /// <summary>
                 /// The current enumerated item.
@@ -1810,9 +1810,10 @@ namespace BLITTEngine.Foundation
         }
 
 #pragma warning disable 649
+
         internal unsafe struct Caps
         {
-            const int TextureFormatCount = 48;
+            private const int TextureFormatCount = 48;
 
             public RendererBackend Backend;
             public DeviceFeatures Supported;
@@ -1827,6 +1828,7 @@ namespace BLITTEngine.Foundation
             public fixed ushort GPUs[8];
             public fixed byte Formats[TextureFormatCount];
         }
+
 #pragma warning restore 649
     }
 
@@ -2610,6 +2612,7 @@ namespace BLITTEngine.Foundation
         }
 
 #pragma warning disable 649
+
         internal struct NativeStruct
         {
             public IntPtr data;
@@ -2619,6 +2622,7 @@ namespace BLITTEngine.Foundation
             public ushort num;
             public ushort handle;
         }
+
 #pragma warning restore 649
     }
 
@@ -2666,7 +2670,7 @@ namespace BLITTEngine.Foundation
             get { return ptr == null ? 0 : ptr->Size; }
         }
 
-        MemoryBlock(DataPtr* ptr)
+        private MemoryBlock(DataPtr* ptr)
         {
             this.ptr = ptr;
         }
@@ -2823,15 +2827,18 @@ namespace BLITTEngine.Foundation
         }
 
 #pragma warning disable 649
+
         internal struct DataPtr
         {
             public IntPtr Data;
             public int Size;
         }
+
 #pragma warning restore 649
 
-        static ReleaseCallback ReleaseHandleCallback = ReleaseHandle;
-        static void ReleaseHandle(IntPtr userData)
+        private static ReleaseCallback ReleaseHandleCallback = ReleaseHandle;
+
+        private static void ReleaseHandle(IntPtr userData)
         {
             var handle = GCHandle.FromIntPtr(userData);
             handle.Free();
@@ -2858,7 +2865,7 @@ namespace BLITTEngine.Foundation
             get { return NativeMethods.bgfx_get_result(handle); }
         }
 
-        OcclusionQuery(ushort handle)
+        private OcclusionQuery(ushort handle)
         {
             this.handle = handle;
         }
@@ -2969,7 +2976,7 @@ namespace BLITTEngine.Foundation
     /// </summary>
     public unsafe struct PerfStats
     {
-        Stats* data;
+        private Stats* data;
 
         /// <summary>
         /// CPU frame start time.
@@ -3041,6 +3048,7 @@ namespace BLITTEngine.Foundation
         }
 
 #pragma warning disable 649
+
         internal struct Stats
         {
             public long CpuTimeBegin;
@@ -3050,6 +3058,7 @@ namespace BLITTEngine.Foundation
             public long GpuTimeEnd;
             public long GpuTimerFrequency;
         }
+
 #pragma warning restore 649
     }
 
@@ -3205,12 +3214,12 @@ namespace BLITTEngine.Foundation
     /// </summary>
     public struct RenderState : IEquatable<RenderState>
     {
-        const int AlphaRefShift = 40;
-        const int PointSizeShift = 52;
-        const ulong AlphaRefMask = 0x0000ff0000000000;
-        const ulong PointSizeMask = 0x0ff0000000000000;
+        private const int AlphaRefShift = 40;
+        private const int PointSizeShift = 52;
+        private const ulong AlphaRefMask = 0x0000ff0000000000;
+        private const ulong PointSizeMask = 0x0ff0000000000000;
 
-        readonly ulong value;
+        private readonly ulong value;
 
         /// <summary>
         /// No state bits set.
@@ -3694,7 +3703,7 @@ namespace BLITTEngine.Foundation
     /// </summary>
     public unsafe struct Shader : IDisposable, IEquatable<Shader>
     {
-        Uniform[] uniforms;
+        private Uniform[] uniforms;
         internal readonly ushort handle;
 
         /// <summary>
@@ -3818,11 +3827,11 @@ namespace BLITTEngine.Foundation
     /// </summary>
     public struct StencilFlags : IEquatable<StencilFlags>
     {
-        const int ReadMaskShift = 8;
-        const uint RefMask = 0x000000ff;
-        const uint ReadMaskMask = 0x0000ff00;
+        private const int ReadMaskShift = 8;
+        private const uint RefMask = 0x000000ff;
+        private const uint ReadMaskMask = 0x0000ff00;
 
-        readonly uint value;
+        private readonly uint value;
 
         /// <summary>
         /// No state bits set.
@@ -4175,10 +4184,10 @@ namespace BLITTEngine.Foundation
     /// </remarks>
     public unsafe struct TransientIndexBuffer : IEquatable<TransientIndexBuffer>
     {
-        readonly IntPtr data;
-        int size;
-        int startIndex;
-        readonly ushort handle;
+        private readonly IntPtr data;
+        private int size;
+        private int startIndex;
+        private readonly ushort handle;
 
         /// <summary>
         /// Represents an invalid handle.
@@ -4298,12 +4307,12 @@ namespace BLITTEngine.Foundation
     /// </remarks>
     public unsafe struct TransientVertexBuffer : IEquatable<TransientVertexBuffer>
     {
-        readonly IntPtr data;
-        int size;
-        int startVertex;
-        ushort stride;
-        readonly ushort handle;
-        ushort decl;
+        private readonly IntPtr data;
+        private int size;
+        private int startVertex;
+        private ushort stride;
+        private readonly ushort handle;
+        private ushort decl;
 
         /// <summary>
         /// Represents an invalid handle.
@@ -6189,7 +6198,7 @@ namespace BLITTEngine.Foundation
     public delegate void ReleaseCallback(IntPtr userData);
 
     [SuppressUnmanagedCodeSecurity]
-    unsafe static class NativeMethods
+    internal static unsafe class NativeMethods
     {
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void bgfx_update_texture_2d(ushort handle, byte mip, ushort x, ushort y, ushort width, ushort height, MemoryBlock.DataPtr* memory, ushort pitch);
@@ -6589,24 +6598,24 @@ namespace BLITTEngine.Foundation
         public static extern void bgfx_set_condition(ushort handle, [MarshalAs(UnmanagedType.U1)] bool visible);
 
 #if DEBUG
-        const string DllName = "bgfx_debug.dll";
+        private const string DllName = "bgfx_debug.dll";
 #else
         const string DllName = "bgfx.dll";
 #endif
     }
 
-    struct CallbackShim
+    internal struct CallbackShim
     {
-        IntPtr vtbl;
-        IntPtr reportError;
-        IntPtr reportDebug;
-        IntPtr getCachedSize;
-        IntPtr getCacheEntry;
-        IntPtr setCacheEntry;
-        IntPtr saveScreenShot;
-        IntPtr captureStarted;
-        IntPtr captureFinished;
-        IntPtr captureFrame;
+        private IntPtr vtbl;
+        private IntPtr reportError;
+        private IntPtr reportDebug;
+        private IntPtr getCachedSize;
+        private IntPtr getCacheEntry;
+        private IntPtr setCacheEntry;
+        private IntPtr saveScreenShot;
+        private IntPtr captureStarted;
+        private IntPtr captureFinished;
+        private IntPtr captureFrame;
 
         public static unsafe IntPtr CreateShim(ICallbackHandler handler)
         {
@@ -6642,56 +6651,56 @@ namespace BLITTEngine.Foundation
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        delegate void ReportErrorHandler(IntPtr thisPtr, ErrorType errorType, string message);
+        private delegate void ReportErrorHandler(IntPtr thisPtr, ErrorType errorType, string message);
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        delegate void ReportDebugHandler(IntPtr thisPtr, string fileName, ushort line, string format, IntPtr args);
+        private delegate void ReportDebugHandler(IntPtr thisPtr, string fileName, ushort line, string format, IntPtr args);
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate int GetCachedSizeHandler(IntPtr thisPtr, long id);
+        private delegate int GetCachedSizeHandler(IntPtr thisPtr, long id);
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate bool GetCacheEntryHandler(IntPtr thisPtr, long id, IntPtr data, int size);
+        private delegate bool GetCacheEntryHandler(IntPtr thisPtr, long id, IntPtr data, int size);
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate void SetCacheEntryHandler(IntPtr thisPtr, long id, IntPtr data, int size);
+        private delegate void SetCacheEntryHandler(IntPtr thisPtr, long id, IntPtr data, int size);
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        delegate void SaveScreenShotHandler(IntPtr thisPtr, string path, int width, int height, int pitch, IntPtr data, int size, [MarshalAs(UnmanagedType.U1)] bool flipVertical);
+        private delegate void SaveScreenShotHandler(IntPtr thisPtr, string path, int width, int height, int pitch, IntPtr data, int size, [MarshalAs(UnmanagedType.U1)] bool flipVertical);
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate void CaptureStartedHandler(IntPtr thisPtr, int width, int height, int pitch, TextureFormat format, [MarshalAs(UnmanagedType.U1)] bool flipVertical);
+        private delegate void CaptureStartedHandler(IntPtr thisPtr, int width, int height, int pitch, TextureFormat format, [MarshalAs(UnmanagedType.U1)] bool flipVertical);
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate void CaptureFinishedHandler(IntPtr thisPtr);
+        private delegate void CaptureFinishedHandler(IntPtr thisPtr);
 
         [SuppressUnmanagedCodeSecurity]
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        delegate void CaptureFrameHandler(IntPtr thisPtr, IntPtr data, int size);
+        private delegate void CaptureFrameHandler(IntPtr thisPtr, IntPtr data, int size);
 
         // We're creating delegates to a user's interface methods; we're then converting those delegates
         // to native pointers and passing them into native code. If we don't save the references to the
         // delegates in managed land somewhere, the GC will think they're unreferenced and clean them
         // up, leaving native holding a bag of pointers into nowhere land.
-        class DelegateSaver
+        private class DelegateSaver
         {
-            ICallbackHandler handler;
-            ReportErrorHandler reportError;
-            ReportDebugHandler reportDebug;
-            GetCachedSizeHandler getCachedSize;
-            GetCacheEntryHandler getCacheEntry;
-            SetCacheEntryHandler setCacheEntry;
-            SaveScreenShotHandler saveScreenShot;
-            CaptureStartedHandler captureStarted;
-            CaptureFinishedHandler captureFinished;
-            CaptureFrameHandler captureFrame;
+            private ICallbackHandler handler;
+            private ReportErrorHandler reportError;
+            private ReportDebugHandler reportDebug;
+            private GetCachedSizeHandler getCachedSize;
+            private GetCacheEntryHandler getCacheEntry;
+            private SetCacheEntryHandler setCacheEntry;
+            private SaveScreenShotHandler saveScreenShot;
+            private CaptureStartedHandler captureStarted;
+            private CaptureFinishedHandler captureFinished;
+            private CaptureFrameHandler captureFrame;
 
             public unsafe DelegateSaver(ICallbackHandler handler, CallbackShim* shim)
             {
@@ -6717,53 +6726,53 @@ namespace BLITTEngine.Foundation
                 shim->captureFrame = Marshal.GetFunctionPointerForDelegate(captureFrame);
             }
 
-            void ReportError(IntPtr thisPtr, ErrorType errorType, string message)
+            private void ReportError(IntPtr thisPtr, ErrorType errorType, string message)
             {
                 handler.ReportError(errorType, message);
             }
 
-            void ReportDebug(IntPtr thisPtr, string fileName, ushort line, string format, IntPtr args)
+            private void ReportDebug(IntPtr thisPtr, string fileName, ushort line, string format, IntPtr args)
             {
                 handler.ReportDebug(fileName, line, format, args);
             }
 
-            int GetCachedSize(IntPtr thisPtr, long id)
+            private int GetCachedSize(IntPtr thisPtr, long id)
             {
                 return handler.GetCachedSize(id);
             }
 
-            bool GetCacheEntry(IntPtr thisPtr, long id, IntPtr data, int size)
+            private bool GetCacheEntry(IntPtr thisPtr, long id, IntPtr data, int size)
             {
                 return handler.GetCacheEntry(id, data, size);
             }
 
-            void SetCacheEntry(IntPtr thisPtr, long id, IntPtr data, int size)
+            private void SetCacheEntry(IntPtr thisPtr, long id, IntPtr data, int size)
             {
                 handler.SetCacheEntry(id, data, size);
             }
 
-            void SaveScreenShot(IntPtr thisPtr, string path, int width, int height, int pitch, IntPtr data, int size, bool flipVertical)
+            private void SaveScreenShot(IntPtr thisPtr, string path, int width, int height, int pitch, IntPtr data, int size, bool flipVertical)
             {
                 handler.SaveScreenShot(path, width, height, pitch, data, size, flipVertical);
             }
 
-            void CaptureStarted(IntPtr thisPtr, int width, int height, int pitch, TextureFormat format, bool flipVertical)
+            private void CaptureStarted(IntPtr thisPtr, int width, int height, int pitch, TextureFormat format, bool flipVertical)
             {
                 handler.CaptureStarted(width, height, pitch, format, flipVertical);
             }
 
-            void CaptureFinished(IntPtr thisPtr)
+            private void CaptureFinished(IntPtr thisPtr)
             {
                 handler.CaptureFinished();
             }
 
-            void CaptureFrame(IntPtr thisPtr, IntPtr data, int size)
+            private void CaptureFrame(IntPtr thisPtr, IntPtr data, int size)
             {
                 handler.CaptureFrame(data, size);
             }
         }
 
-        static IntPtr shimMemory;
-        static DelegateSaver savedDelegates;
+        private static IntPtr shimMemory;
+        private static DelegateSaver savedDelegates;
     }
 }

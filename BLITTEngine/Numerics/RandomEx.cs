@@ -4,12 +4,12 @@ namespace BLITTEngine.Numerics
 {
     public class RandomEx
     {
-        const double REAL_UNIT_INT = 1.0 / ((double)int.MaxValue + 1.0);
-        const double REAL_UNIT_UINT = 1.0 / ((double)uint.MaxValue + 1.0);
-        const uint Y = 842502087, Z = 3579807591, W = 273326509;
-        
-        uint x, y, z, w;
-        
+        private const double REAL_UNIT_INT = 1.0 / ((double)int.MaxValue + 1.0);
+        private const double REAL_UNIT_UINT = 1.0 / ((double)uint.MaxValue + 1.0);
+        private const uint Y = 842502087, Z = 3579807591, W = 273326509;
+
+        private uint x, y, z, w;
+
         /// <summary>
         /// Initialises a new instance using time dependent seed.
         /// </summary>
@@ -28,7 +28,7 @@ namespace BLITTEngine.Numerics
         {
             Reinitialise(seed);
         }
-        
+
         /// <summary>
         /// Reinitialises using an int value as a seed.
         /// </summary>
@@ -40,7 +40,7 @@ namespace BLITTEngine.Numerics
             z = Z;
             w = W;
         }
-        
+
         public int Next()
         {
             uint t = (x ^ (x << 11));
@@ -52,7 +52,7 @@ namespace BLITTEngine.Numerics
                 return Next();
             return (int)rtn;
         }
-        
+
         public int Next(int upperBound)
         {
             if (upperBound < 0)
@@ -65,7 +65,7 @@ namespace BLITTEngine.Numerics
             // See comments in NextDouble.
             return (int)((REAL_UNIT_INT * (int)(0x7FFFFFFF & (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8))))) * upperBound);
         }
-        
+
         public int Next(int lowerBound, int upperBound)
         {
             if (lowerBound > upperBound)
@@ -79,7 +79,7 @@ namespace BLITTEngine.Numerics
             int range = upperBound - lowerBound;
             if (range < 0)
             {	// If range is <0 then an overflow has occured and must resort to using long integer arithmetic instead (slower).
-                // We also must use all 32 bits of precision, instead of the normal 31, which again is slower.	
+                // We also must use all 32 bits of precision, instead of the normal 31, which again is slower.
                 return lowerBound + (int)((REAL_UNIT_UINT * (double)(w = (w ^ (w >> 19)) ^ (t ^ (t >> 8)))) * (double)((long)upperBound - (long)lowerBound));
             }
 
@@ -87,7 +87,7 @@ namespace BLITTEngine.Numerics
             // a little more performance.
             return lowerBound + (int)((REAL_UNIT_INT * (double)(int)(0x7FFFFFFF & (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8))))) * (double)range);
         }
-        
+
         public double NextDouble()
         {
             uint t = (x ^ (x << 11));
@@ -95,23 +95,23 @@ namespace BLITTEngine.Numerics
 
             return (REAL_UNIT_INT * (int)(0x7FFFFFFF & (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8)))));
         }
-        
+
         public float NextFloat()
         {
-            return (float) this.NextDouble();
+            return (float)this.NextDouble();
         }
 
         public float NextFloat(float lowerBound, float upperBound)
         {
-            return (float) (lowerBound + upperBound*(this.NextDouble()));
+            return (float)(lowerBound + upperBound * (this.NextDouble()));
         }
-        
+
         public void NextBytes(byte[] buffer)
         {
             uint x = this.x, y = this.y, z = this.z, w = this.w;
             int i = 0;
             uint t;
-            for (int bound = buffer.Length - 3; i < bound; )
+            for (int bound = buffer.Length - 3; i < bound;)
             {
                 t = (x ^ (x << 11));
                 x = y; y = z; z = w;
@@ -145,24 +145,24 @@ namespace BLITTEngine.Numerics
             }
             this.x = x; this.y = y; this.z = z; this.w = w;
         }
-        
+
         public uint NextUInt()
         {
             uint t = (x ^ (x << 11));
             x = y; y = z; z = w;
             return (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8)));
         }
-        
+
         public int NextInt()
         {
             uint t = (x ^ (x << 11));
             x = y; y = z; z = w;
             return (int)(0x7FFFFFFF & (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8))));
         }
-        
-        uint bitBuffer;
-        uint bitMask = 1;
-        
+
+        private uint bitBuffer;
+        private uint bitMask = 1;
+
         public bool NextBool()
         {
             if (bitMask == 1)

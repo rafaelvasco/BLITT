@@ -19,19 +19,20 @@ namespace BLITTEngine.Numerics
             Y = y;
             Z = z;
         }
+
         public Point3(int x, int y) : this(x, y, 0)
         {
-            
         }
+
         public Point3(int val) : this(val, val, val)
         {
-
         }
 
         public override bool Equals(object obj)
         {
             return obj is Point3 && Equals((Point3)obj);
         }
+
         public bool Equals(Point3 other)
         {
             return X == other.X && Y == other.Y && Z == other.Z;
@@ -63,6 +64,7 @@ namespace BLITTEngine.Numerics
         {
             return a.X == b.X && a.Y == b.Y && a.Z == b.Z;
         }
+
         public static bool operator !=(Point3 a, Point3 b)
         {
             return a.X != b.X || a.Y != b.Y || a.Z != b.Z;
@@ -91,6 +93,7 @@ namespace BLITTEngine.Numerics
             a.Z *= b.Z;
             return a;
         }
+
         public static Point3 operator *(Point3 p, int n)
         {
             p.X *= n;
@@ -98,6 +101,7 @@ namespace BLITTEngine.Numerics
             p.Z *= n;
             return p;
         }
+
         public static Point3 operator *(int n, Point3 p)
         {
             p.X *= n;
@@ -113,6 +117,7 @@ namespace BLITTEngine.Numerics
             a.Z /= b.Z;
             return a;
         }
+
         public static Point3 operator /(Point3 p, int n)
         {
             p.X /= n;
@@ -120,6 +125,7 @@ namespace BLITTEngine.Numerics
             p.Z /= n;
             return p;
         }
+
         public static Point3 operator /(int n, Point3 p)
         {
             p.X /= n;

@@ -224,7 +224,7 @@ namespace BLITTEngine.Draw
         {
             ready_to_draw = false;
 
-            Renderer.End();
+            Renderer.Flush();
         }
 
         public void Draw(GameObject drawable)

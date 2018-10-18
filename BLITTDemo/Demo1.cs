@@ -104,6 +104,8 @@ namespace BLITTDemo
 
             canvas.Draw(anim_sprite);
 
+            canvas.FillRect(100, 100, 100, 100, Color.Red);
+
             canvas.End();
         }
 

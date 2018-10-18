@@ -257,5 +257,10 @@ namespace BLITTEngine.Draw
         {
             Renderer.AddQuad(texture, x, y, in quad);
         }
+
+        public void FillRect(float x, float y, float w, float h, Color color)
+        {
+            Renderer.AddRect(x, y, w, h, color);
+        }
     }
 }

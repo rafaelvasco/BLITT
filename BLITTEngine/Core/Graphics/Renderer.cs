@@ -119,6 +119,11 @@ namespace BLITTEngine.Core.Graphics
                 FlushTexturedQuads();
             }
 
+            if(shape_vertex_idx > 0)
+            {
+                FlushShapes();
+            }
+
         }
     }
 }

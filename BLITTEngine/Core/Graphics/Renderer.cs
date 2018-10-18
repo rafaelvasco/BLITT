@@ -14,8 +14,9 @@ namespace BLITTEngine.Core.Graphics
     internal static unsafe partial class Renderer
     {
         public static GraphicsInfo Info { get; internal set; }
-        
+
         private static int backbuffer_width;
+
         private static int backbuffer_height;
 
         private static RenderGroup cur_render_group;
@@ -39,8 +40,8 @@ namespace BLITTEngine.Core.Graphics
             Content.LoadEmbededShaders(Info.RendererBackend);
             //Content.LoadEmbededTextures();
 
-            base_texquad_shader = Content.GetBuiltinShader("base_2d");
-            base_texquad_shader.AddTextureUniform("texture_2d");
+            texq_base_shader = Content.GetBuiltinShader("base_2d");
+            texq_base_shader.AddTextureUniform("texture_2d");
 
             Console.WriteLine($"Graphics Backend : {Info.RendererBackend}");
 
@@ -50,14 +51,17 @@ namespace BLITTEngine.Core.Graphics
 
             ResizeBackbuffer(backbuffer_width, backbuffer_height);
 
-            InitializeTexQuadRenderBuffers();
+            InitTexQuadRenderResources();
+
+            InitShapeRenderResources();
+
         }
 
         internal static void Terminate()
         {
             Console.WriteLine(" > Disposing Graphics Device");
 
-            index_buffer.Dispose();
+            texq_idx_buffer.Dispose();
 
             Bgfx.Shutdown();
         }
@@ -67,7 +71,7 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.SetViewClear(0, ClearTargets.Color, color.RGBAI);
         }
 
-        
+
 
         public static void SetupRenderGroup(RenderGroup render_group)
         {
@@ -110,7 +114,7 @@ namespace BLITTEngine.Core.Graphics
 
         public static void Flush()
         {
-            if(vertex_idx > 0)
+            if(texq_vertex_idx > 0)
             {
                 FlushTexturedQuads();
             }

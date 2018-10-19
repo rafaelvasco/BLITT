@@ -61,7 +61,7 @@ namespace BLITTEngine.Core.Graphics
             fixed (byte* p = pd)
             {
                 var len = pd.Length - 4;
-                for (int i = 0; i < len; i += 4)
+                for (int i = 0; i <= len; i += 4)
                 {
                     *(p + i) = b;
                     *(p + i + 1) = g;

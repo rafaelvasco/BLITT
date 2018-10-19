@@ -262,5 +262,18 @@ namespace BLITTEngine.Draw
         {
             Renderer.AddRect(x, y, w, h, color);
         }
+
+        public void DrawRect(float x, float y, float w, float h, int line_width, Color color)
+        {
+            Renderer.AddLine(x, y, x+w, y, line_width, color);
+            Renderer.AddLine(x+w, y, x+w, y+h, line_width, color);
+            Renderer.AddLine(x, y+h, x+w, y+h, line_width, color);
+            Renderer.AddLine(x, y, x, y+h, line_width, color);
+        }
+
+        public void DrawLine(float x1, float y1, float x2, float y2, float line_width, Color color)
+        {
+            Renderer.AddLine(x1, y1, x2, y2, line_width, color);
+        }
     }
 }

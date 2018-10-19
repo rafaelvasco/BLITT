@@ -1,6 +1,5 @@
 ﻿using BLITTEngine.Core.Graphics;
 using BLITTEngine.Numerics;
-using System.Numerics;
 
 namespace BLITTEngine.Draw
 {

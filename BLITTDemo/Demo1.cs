@@ -106,6 +106,20 @@ namespace BLITTDemo
 
             canvas.FillRect(100, 100, 100, 100, Color.Red);
 
+            canvas.DrawLine(-350, -250, 350, 250, 2, Color.Blue);
+
+            canvas.DrawLine(-350, 250, 350, -250, 2, Color.Green);
+
+            canvas.DrawLine(-350, -250, 350, -250, 2, Color.Yellow);
+
+            canvas.DrawLine(-350, -250, -350, 250, 2, Color.Fuchsia);
+
+            canvas.DrawLine(350, -250, 350, 250, 2, Color.HotPink);
+
+            canvas.DrawLine(-350, 250, 350, 250, 2, Color.LawnGreen);
+
+            canvas.DrawRect(0, 0, 100, 100, 2, Color.LightSalmon);
+
             canvas.End();
         }
 

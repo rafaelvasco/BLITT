@@ -1,7 +1,7 @@
 using BLITTEngine.Core.Foundation;
-using BLITTEngine.Numerics;
 using BLITTEngine.Resources;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace BLITTEngine.Core.Graphics
 {
@@ -14,6 +14,22 @@ namespace BLITTEngine.Core.Graphics
     internal static unsafe partial class Renderer
     {
         public static GraphicsInfo Info { get; internal set; }
+
+        private const int MAX_QUADS = 1000;
+
+        private static ShaderProgram base_shader;
+
+        private static Texture2D current_texture;
+
+        private static VertexPCT[] quad_vertices;
+
+        private static ushort[] quad_indices;
+
+        private static IndexBuffer quad_idx_buffer;
+
+        private static int quad_vtx_idx;
+
+        private static int quad_count;
 
         private static int backbuffer_width;
 
@@ -40,12 +56,12 @@ namespace BLITTEngine.Core.Graphics
             Content.LoadEmbededShaders(Info.RendererBackend);
             //Content.LoadEmbededTextures();
 
-            texq_base_shader = Content.GetBuiltinShader("base_2d");
-            texq_base_shader.AddTextureUniform("texture_2d");
+            base_shader = Content.GetBuiltinShader("base_2d");
+            base_shader.AddTextureUniform("texture_2d");
 
             Console.WriteLine($"Graphics Backend : {Info.RendererBackend}");
 
-            Bgfx.SetViewClear(0, ClearTargets.Color, Color.CornflowerBlue.RGBAI);
+            Bgfx.SetViewClear(0, ClearTargets.Color, Color.MidnightBlue.RGBAI);
 
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
 
@@ -61,7 +77,7 @@ namespace BLITTEngine.Core.Graphics
         {
             Console.WriteLine(" > Disposing Graphics Device");
 
-            texq_idx_buffer.Dispose();
+            quad_idx_buffer.Dispose();
 
             Bgfx.Shutdown();
         }
@@ -71,8 +87,6 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.SetViewClear(0, ClearTargets.Color, color.RGBAI);
         }
 
-
-
         public static void SetupRenderGroup(RenderGroup render_group)
         {
             var proj_matrix = render_group.ProjectionMatrix;
@@ -80,6 +94,11 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetViewTransform(render_group.Id, null, &proj_matrix.M11);
             Bgfx.SetViewRect(render_group.Id, viewport.X, viewport.Y, viewport.W, viewport.H);
+        }
+
+        internal static void Begin()
+        {
+            Bgfx.Touch(0);
         }
 
         public static void Begin(RenderGroup render_group)
@@ -114,15 +133,30 @@ namespace BLITTEngine.Core.Graphics
 
         public static void Flush()
         {
-            if(texq_vertex_idx > 0)
+            if(quad_vtx_idx == 0)
             {
-                FlushTexturedQuads();
+                return;
             }
 
-            if(shape_vertex_idx > 0)
+            var vertex_buffer = new TransientVertexBuffer(quad_vtx_idx, VertexPCT.Layout);
+
+            fixed (void* v = quad_vertices)
             {
-                FlushShapes();
+                Unsafe.CopyBlock((void*)vertex_buffer.Data, v, (uint)quad_vtx_idx * 20);
             }
+
+            base_shader.SetTexture(current_texture, "texture_2d");
+
+            Bgfx.SetRenderState(cur_render_group.RenderState);
+
+            Bgfx.SetIndexBuffer(quad_idx_buffer, 0, quad_count * 6);
+
+            Bgfx.SetVertexBuffer(vertex_buffer, 0, quad_vtx_idx);
+
+            Bgfx.Submit(cur_render_group.Id, base_shader.Program);
+
+            quad_vtx_idx = 0;
+            quad_count = 0;
 
         }
     }

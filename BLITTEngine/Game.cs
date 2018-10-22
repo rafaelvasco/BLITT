@@ -160,6 +160,8 @@ namespace BLITTEngine
                     CurrentScene.Update(Clock.DeltaTime);
                 }
 
+                Renderer.Begin();
+
                 CurrentScene.Draw(Canvas);
 
                 Renderer.Flip();

@@ -1,27 +1,15 @@
 ﻿
-using System.Runtime.CompilerServices;
 using BLITTEngine.Core.Foundation;
 
 namespace BLITTEngine.Core.Graphics
 {
     internal static unsafe partial class Renderer
     {
-        private const int MAX_QUADS = 10;
-
-        private static ShaderProgram texq_base_shader;
-        private static Texture2D current_texture;
-        private static VertexPCT[] texq_vertices;
-        private static ushort[] texq_indices;
-        private static IndexBuffer texq_idx_buffer;
-        private static int texq_vertex_idx;
-        private static int texq_count;
-
-
         public static void AddQuad(Texture2D texture, float x, float y, in Quad quad)
         {
             if (current_texture != texture)
             {
-                FlushTexturedQuads();
+                Flush();
 
                 current_texture = texture;
             }
@@ -34,9 +22,9 @@ namespace BLITTEngine.Core.Graphics
             float v2 = quad.V2;
             uint col = quad.Col;
 
-            var vidx = texq_vertex_idx;
+            var vidx = quad_vtx_idx;
 
-            fixed (VertexPCT* vertex_ptr = texq_vertices)
+            fixed (VertexPCT* vertex_ptr = quad_vertices)
             {
                 *(vertex_ptr + vidx++) = new VertexPCT(x, y, u, v, col);
                 *(vertex_ptr + vidx++) = new VertexPCT(x + w, y, u2, v, col);
@@ -46,58 +34,30 @@ namespace BLITTEngine.Core.Graphics
 
             unchecked
             {
-                texq_vertex_idx += 4;
-                texq_count++;
+                quad_vtx_idx += 4;
+                quad_count++;
             }
-        }
-
-        private static void FlushTexturedQuads()
-        {
-            if(texq_vertex_idx == 0)
-            {
-                return;
-            }
-
-            var vertex_buffer = new TransientVertexBuffer(texq_vertex_idx, VertexPCT.Layout);
-
-            fixed (void* v = texq_vertices)
-            {
-                Unsafe.CopyBlock((void*)vertex_buffer.Data, v, (uint)texq_vertex_idx * 20);
-            }
-
-            texq_base_shader.SetTexture(current_texture, "texture_2d");
-
-            Bgfx.SetRenderState(cur_render_group.RenderState);
-
-            Bgfx.SetIndexBuffer(texq_idx_buffer, 0, texq_count * 6);
-
-            Bgfx.SetVertexBuffer(vertex_buffer, 0, texq_vertex_idx);
-
-            Bgfx.Submit(cur_render_group.Id, texq_base_shader.Program);
-
-            texq_vertex_idx = 0;
-            texq_count = 0;
         }
 
         private static void InitTexQuadRenderResources()
         {
-            texq_vertices = new VertexPCT[MAX_QUADS * 4];
+            quad_vertices = new VertexPCT[MAX_QUADS * 4];
 
-            texq_indices = new ushort[MAX_QUADS * 6];
+            quad_indices = new ushort[MAX_QUADS * 6];
 
             ushort indice_i = 0;
 
-            for (int i = 0; i < texq_indices.Length; i += 6, indice_i += 4)
+            for (int i = 0; i < quad_indices.Length; i += 6, indice_i += 4)
             {
-                texq_indices[i + 0] = (ushort)(indice_i + 0);
-                texq_indices[i + 1] = (ushort)(indice_i + 1);
-                texq_indices[i + 2] = (ushort)(indice_i + 2);
-                texq_indices[i + 3] = (ushort)(indice_i + 0);
-                texq_indices[i + 4] = (ushort)(indice_i + 2);
-                texq_indices[i + 5] = (ushort)(indice_i + 3);
+                quad_indices[i + 0] = (ushort)(indice_i + 0);
+                quad_indices[i + 1] = (ushort)(indice_i + 1);
+                quad_indices[i + 2] = (ushort)(indice_i + 2);
+                quad_indices[i + 3] = (ushort)(indice_i + 0);
+                quad_indices[i + 4] = (ushort)(indice_i + 2);
+                quad_indices[i + 5] = (ushort)(indice_i + 3);
             }
 
-            texq_idx_buffer = new IndexBuffer(MemoryBlock.FromArray(texq_indices));
+            quad_idx_buffer = new IndexBuffer(MemoryBlock.FromArray(quad_indices));
         }
     }
 }

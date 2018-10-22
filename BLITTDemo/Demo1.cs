@@ -1,8 +1,8 @@
 using BLITTEngine;
+using BLITTEngine.Core.Graphics;
 using BLITTEngine.Draw;
 using BLITTEngine.Input;
 using BLITTEngine.Input.Keyboard;
-using BLITTEngine.Numerics;
 using BLITTEngine.Resources;
 
 namespace BLITTDemo
@@ -14,12 +14,18 @@ namespace BLITTDemo
         private SpriteSheet sprite_sheet;
         private AnimatedSprite anim_sprite;
         private float direction = 1;
+        private Gradient gradient;
+        private Font font;
 
         private float sx = 0.0f;
 
 
         public override void Init()
         {
+            gradient = new Gradient();
+
+            gradient.SetHorizontal(Color.Gold, Color.GreenYellow);
+
             sprite1 = new Sprite(Content.GetTexture2D("ship"))
             {
                 ColorTint = Color.Red,
@@ -45,6 +51,8 @@ namespace BLITTDemo
                 .AddAnimation("walk_down", 0, 1, 2, 3)
 
                 .SetAnimation("idle_right");
+
+            font = Content.GetFont("04b03.font");
 
         }
 
@@ -100,25 +108,31 @@ namespace BLITTDemo
         {
             canvas.Begin();
 
+
+
+            // canvas.FillRect(-400, -300, 100, 100, Color.Red);
+
+            canvas.DrawLine(-350, -250, 350, 250, 4, Color.Blue);
+
+            canvas.DrawLine(-350, 250, 350, -250, 4, Color.Green);
+
+            canvas.DrawLine(-350, -250, 350, -250, 4, Color.Yellow);
+
+            canvas.DrawLine(-350, -250, -350, 250, 4, Color.Fuchsia);
+
+            canvas.DrawLine(350, -250, 350, 250, 4, Color.HotPink);
+
+            canvas.DrawLine(-350, 250, 350, 250, 4, Color.LawnGreen);
+
+            canvas.DrawRect(0, 0, 100, 100, 2, Color.LightSalmon);
+
+            canvas.FillGradient(0, 0, 200, 200, gradient);
+
             canvas.Draw(sprite1);
 
             canvas.Draw(anim_sprite);
 
-            canvas.FillRect(100, 100, 100, 100, Color.Red);
-
-            canvas.DrawLine(-350, -250, 350, 250, 2, Color.Blue);
-
-            canvas.DrawLine(-350, 250, 350, -250, 2, Color.Green);
-
-            canvas.DrawLine(-350, -250, 350, -250, 2, Color.Yellow);
-
-            canvas.DrawLine(-350, -250, -350, 250, 2, Color.Fuchsia);
-
-            canvas.DrawLine(350, -250, 350, 250, 2, Color.HotPink);
-
-            canvas.DrawLine(-350, 250, 350, 250, 2, Color.LawnGreen);
-
-            canvas.DrawRect(0, 0, 100, 100, 2, Color.LightSalmon);
+            canvas.DrawText(@" !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_abcdefghijklmnopqrstuvwxyz{|}~", -400, -200, font);
 
             canvas.End();
         }

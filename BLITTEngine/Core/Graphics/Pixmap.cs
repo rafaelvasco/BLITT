@@ -1,4 +1,5 @@
-﻿using BLITTEngine.Numerics;
+﻿using BLITTEngine.Draw;
+using BLITTEngine.Numerics;
 using BLITTEngine.Resources;
 using System;
 using System.Runtime.InteropServices;
@@ -22,7 +23,7 @@ namespace BLITTEngine.Core.Graphics
         private readonly IntPtr data_ptr;
         private int size;
 
-        internal Pixmap(byte[] src_data, int width, int height)
+        public Pixmap(byte[] src_data, int width, int height)
         {
             this.width = width;
             this.height = height;
@@ -37,7 +38,7 @@ namespace BLITTEngine.Core.Graphics
             data_ptr = Marshal.UnsafeAddrOfPinnedArrayElement(this.data, 0);
         }
 
-        internal Pixmap(int width, int height)
+        public Pixmap(int width, int height)
         {
             this.width = width;
             this.height = height;

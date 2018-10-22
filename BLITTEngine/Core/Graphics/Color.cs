@@ -1,9 +1,10 @@
+using BLITTEngine.Numerics;
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace BLITTEngine.Numerics
+namespace BLITTEngine.Core.Graphics
 {
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Color : IEquatable<Color>

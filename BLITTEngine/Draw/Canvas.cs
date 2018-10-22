@@ -239,6 +239,11 @@ namespace BLITTEngine.Draw
 
         public void DrawTexture(Texture2D texture, float x, float y, Color color)
         {
+            if (!ready_to_draw)
+            {
+                return;
+            }
+
             var quad = new Quad()
             {
                 U = 0,
@@ -255,16 +260,46 @@ namespace BLITTEngine.Draw
 
         public void DrawTexture(Texture2D texture, float x, float y, Quad quad)
         {
+            if (!ready_to_draw)
+            {
+                return;
+            }
+
             Renderer.AddQuad(texture, x, y, in quad);
         }
 
         public void FillRect(float x, float y, float w, float h, Color color)
         {
+            if (!ready_to_draw)
+            {
+                return;
+            }
+
             Renderer.AddRect(x, y, w, h, color);
+        }
+
+        public void FillGradient(float x, float y, float w, float h, Gradient gradient)
+        {
+            if (!ready_to_draw)
+            {
+                return;
+            }
+
+            uint col1 = gradient.TopLeftCol;
+            uint col2 = gradient.TopRightCol;
+            uint col3 = gradient.BottomLeftCol;
+            uint col4 = gradient.BottomRightCol;
+
+            Renderer.AddRect(x, y, w, h, col1, col2, col3, col4);
         }
 
         public void DrawRect(float x, float y, float w, float h, int line_width, Color color)
         {
+            if (!ready_to_draw)
+            {
+                return;
+            }
+
             Renderer.AddLine(x, y, x+w, y, line_width, color);
             Renderer.AddLine(x+w, y, x+w, y+h, line_width, color);
             Renderer.AddLine(x, y+h, x+w, y+h, line_width, color);
@@ -273,7 +308,29 @@ namespace BLITTEngine.Draw
 
         public void DrawLine(float x1, float y1, float x2, float y2, float line_width, Color color)
         {
+            if (!ready_to_draw)
+            {
+                return;
+            }
+
             Renderer.AddLine(x1, y1, x2, y2, line_width, color);
+        }
+
+        public void DrawText(string text, float x, float y, Font font, float scale = 1.0f)
+        {
+            if (!ready_to_draw)
+            {
+                return;
+            }
+
+            for(var i = 0; i < text.Length; ++i)
+            {
+                Quad quad = font[text[i]];
+
+                Renderer.AddQuad(font.Texture, x + (i * quad.W) + quad.U * font.Texture.Width, y, in quad);
+            }
+
+
         }
     }
 }

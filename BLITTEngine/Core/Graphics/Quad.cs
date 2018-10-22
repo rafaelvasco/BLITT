@@ -12,5 +12,19 @@ namespace BLITTEngine.Core.Graphics
         public float W;
         public float H;
         public uint Col;
+
+        public Quad(Texture2D texture, float x, float y, float w, float h)
+        {
+            float tw = texture.Width;
+            float th = texture.Height;
+
+            this.U = x/tw;
+            this.V = y/th;
+            this.U2 = (x+w)/tw;
+            this.V2 = (y+h)/th;
+            this.W = w;
+            this.H = h;
+            this.Col = 0xFFFFFFFF;
+        }
     }
 }

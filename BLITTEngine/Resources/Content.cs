@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using BLITTEngine.Draw;
 
 namespace BLITTEngine.Resources
 {
@@ -76,6 +77,45 @@ namespace BLITTEngine.Resources
                     loaded_assets.Add(key, texture);
 
                     return texture;
+                }
+            }
+            catch (FileNotFoundException e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        public static Font GetFont(string asset_name)
+        {
+            if (loaded_assets.TryGetValue(asset_name, out var asset))
+            {
+                return (Font)asset;
+            }
+
+            var id = new StringBuilder(asset_name);
+
+            if (!asset_name.Contains(".png"))
+            {
+                id.Append(".png");
+            }
+
+            string path = Path.Combine(content_path, id.ToString());
+
+            try
+            {
+                using (var stream = File.OpenRead(path))
+                {
+                    var loaded_image = image_reader.Read(stream);
+
+                    var pixmap = new Pixmap(loaded_image.Data, loaded_image.Width, loaded_image.Height);
+
+                    var font = new Font(pixmap);
+
+                    var key = Path.GetFileNameWithoutExtension(path);
+
+                    loaded_assets.Add(key, font);
+
+                    return font;
                 }
             }
             catch (FileNotFoundException e)

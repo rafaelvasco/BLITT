@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace BLITTEngine.Numerics
@@ -9,12 +8,11 @@ namespace BLITTEngine.Numerics
     public static class Calc
     {
         public const float E = (float)Math.E;
-        public const float PI = (float)Math.PI;
-        public const float PI_OVER2 = (PI / 2.0f);
-        public const float PI_OVER3 = (PI / 3.0f);
-        public const float PI_OVER4 = (PI / 4.0f);
-        public const float PI_OVER6 = (PI / 6.0f);
-        public const float TWO_PI = (PI * 2.0f);
+        public const float PI = 3.14159265358979323846f;
+        public const float PI_OVER2 = 1.57079632679489661923f;
+        public const float PI_OVER4 = 0.785398163397448309616f;
+        public const float PI_OVER6 = 0.523598775598299f;
+        public const float TWO_PI = 6.28318530717959f;
 
         public const float RAD_ANGLE30 = PI_OVER6;
         public const float RAD_ANGLE45 = PI_OVER4;

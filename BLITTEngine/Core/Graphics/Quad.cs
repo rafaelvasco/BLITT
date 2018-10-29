@@ -2,29 +2,16 @@
 
 namespace BLITTEngine.Core.Graphics
 {
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct Quad
     {
-        public float U;
-        public float V;
-        public float U2;
-        public float V2;
-        public float W;
-        public float H;
-        public uint Col;
+        public Vertex2D V0;
+        public Vertex2D V1;
+        public Vertex2D V2;
+        public Vertex2D V3;
 
-        public Quad(Texture2D texture, float x, float y, float w, float h)
-        {
-            float tw = texture.Width;
-            float th = texture.Height;
-
-            this.U = x/tw;
-            this.V = y/th;
-            this.U2 = (x+w)/tw;
-            this.V2 = (y+h)/th;
-            this.W = w;
-            this.H = h;
-            this.Col = 0xFFFFFFFF;
-        }
+        //public Vertex2D[] Vertices;
+        public Texture2D Tex;
+        public BlendMode Blend;
     }
 }

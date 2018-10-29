@@ -44,6 +44,8 @@ namespace BLITTEngine.Resources
             image_reader = new ImageReader();
         }
 
+
+
         public static Texture2D GetTexture2D(string asset_name)
         {
             if (loaded_assets.TryGetValue(asset_name, out var asset))
@@ -85,44 +87,44 @@ namespace BLITTEngine.Resources
             }
         }
 
-        public static Font GetFont(string asset_name)
-        {
-            if (loaded_assets.TryGetValue(asset_name, out var asset))
-            {
-                return (Font)asset;
-            }
+        //public static Font GetFont(string asset_name)
+        //{
+        //    if (loaded_assets.TryGetValue(asset_name, out var asset))
+        //    {
+        //        return (Font)asset;
+        //    }
 
-            var id = new StringBuilder(asset_name);
+        //    var id = new StringBuilder(asset_name);
 
-            if (!asset_name.Contains(".png"))
-            {
-                id.Append(".png");
-            }
+        //    if (!asset_name.Contains(".png"))
+        //    {
+        //        id.Append(".png");
+        //    }
 
-            string path = Path.Combine(content_path, id.ToString());
+        //    string path = Path.Combine(content_path, id.ToString());
 
-            try
-            {
-                using (var stream = File.OpenRead(path))
-                {
-                    var loaded_image = image_reader.Read(stream);
+        //    try
+        //    {
+        //        using (var stream = File.OpenRead(path))
+        //        {
+        //            var loaded_image = image_reader.Read(stream);
 
-                    var pixmap = new Pixmap(loaded_image.Data, loaded_image.Width, loaded_image.Height);
+        //            var pixmap = new Pixmap(loaded_image.Data, loaded_image.Width, loaded_image.Height);
 
-                    var font = new Font(pixmap);
+        //            var font = new Font(pixmap);
 
-                    var key = Path.GetFileNameWithoutExtension(path);
+        //            var key = Path.GetFileNameWithoutExtension(path);
 
-                    loaded_assets.Add(key, font);
+        //            loaded_assets.Add(key, font);
 
-                    return font;
-                }
-            }
-            catch (FileNotFoundException e)
-            {
-                throw new Exception(e.Message);
-            }
-        }
+        //            return font;
+        //        }
+        //    }
+        //    catch (FileNotFoundException e)
+        //    {
+        //        throw new Exception(e.Message);
+        //    }
+        //}
 
         public static ShaderProgram GetBuiltinShader(string name)
         {
@@ -318,7 +320,7 @@ namespace BLITTEngine.Resources
                 throw new Exception($"Failed to load embeded Fragment Shader {fs_shader_path} : {e.Message}");
             }
 
-            var shader_program = Renderer.CreateShaderProgram(name, vs_file_buffer, fs_file_buffer);
+            var shader_program = Canvas.CreateShaderProgram(name, vs_file_buffer, fs_file_buffer);
 
             builtin_shaders.Add(name, shader_program);
         }

@@ -170,6 +170,14 @@ namespace BLITTEngine.Core.Graphics
             }
         }
 
+        public void SetTexture(Texture texture, string uniformName, byte tex_unit = 0)
+        {
+            if (texture_uniforms.TryGetValue(uniformName, out var uniform))
+            {
+                Bgfx.SetTexture(tex_unit, uniform, texture);
+            }
+        }
+
         public void SetParameter(string name, float value)
         {
             if (shader_param_map.TryGetValue(name, out var index))

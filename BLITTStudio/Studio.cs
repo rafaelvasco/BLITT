@@ -74,12 +74,12 @@ namespace BLITTStudio
 
         }
 
-        public override void Draw(Canvas canvas)
+        public override void Draw()
         {
-            canvas.Begin();
+            /*canvas.Begin();
             canvas.DrawRect(-400, -300, TEX_W, TEX_H, 1, Color.White);
             canvas.DrawTexture(font_texture, -400, -300, Color.White);
-            canvas.End();
+            canvas.End();*/
         }
 
         public override void Update(float dt)

@@ -3,31 +3,26 @@ using System.Runtime.InteropServices;
 
 namespace BLITTEngine.Core.Graphics
 {
-    [StructLayout(LayoutKind.Explicit)]
-    internal struct VertexPCT
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Vertex2D
     {
-        [FieldOffset(0)]
         public float X;
 
-        [FieldOffset(4)]
         public float Y;
 
-        [FieldOffset(8)]
-        public float U;
+        public float Tx;
 
-        [FieldOffset(12)]
-        public float V;
+        public float Ty;
 
-        [FieldOffset(16)]
-        public uint Abgr;
+        public uint Col;
 
-        public VertexPCT(float x, float y, float u, float v, uint abgr)
+        public Vertex2D(float x, float y, float tx, float ty, uint abgr)
         {
             this.X = x;
             this.Y = y;
-            this.U = u;
-            this.V = v;
-            this.Abgr = abgr;
+            this.Tx = tx;
+            this.Ty = ty;
+            this.Col = abgr;
         }
 
         public static int Stride => 20;

@@ -1,6 +1,5 @@
 using BLITTEngine;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Draw;
 using BLITTEngine.Input;
 using BLITTEngine.Input.Keyboard;
 using BLITTEngine.Resources;
@@ -9,133 +8,133 @@ namespace BLITTDemo
 {
     public class Demo1 : Scene
     {
+        private Quad quad;
 
-        private Sprite sprite1;
-        private SpriteSheet sprite_sheet;
-        private AnimatedSprite anim_sprite;
-        private float direction = 1;
-        private Gradient gradient;
-        private Font font;
+        private float x = 100.0f, y = 100.0f, dx, dy;
 
-        private float sx = 0.0f;
-
+        private float speed = 5;
+        private float friction = 0.98f;
 
         public override void Init()
         {
-            gradient = new Gradient();
+            quad.Tex = Content.GetTexture2D("particles");
+            quad.Blend = BlendMode.AlphaBlend;
 
-            gradient.SetHorizontal(Color.Gold, Color.GreenYellow);
+            quad.V0.X = x - 16;
+            quad.V0.Y = y - 16;
+            quad.V1.X = x + 16;
+            quad.V1.Y = y - 16;
+            quad.V2.X = x + 16;
+            quad.V2.Y = y + 16;
+            quad.V3.X = x - 16;
+            quad.V3.Y = y + 16;
 
-            sprite1 = new Sprite(Content.GetTexture2D("ship"))
-            {
-                ColorTint = Color.Red,
-                Scale = 4.0f
-            };
-
-            sprite_sheet = SpriteSheet.FromGrid(Content.GetTexture2D("spritesheet"), 4, 4);
-
-            anim_sprite = new AnimatedSprite(sprite_sheet)
-            {
-                Scale = 8.0f
-            };
-
-            anim_sprite
-                .AddAnimation("idle_left", 12)
-                .AddAnimation("idle_right", 4)
-                .AddAnimation("idle_up", 8)
-                .AddAnimation("idle_down", 0)
-
-                .AddAnimation("walk_left", 12, 13, 14, 15)
-                .AddAnimation("walk_right", 4, 5, 6, 7)
-                .AddAnimation("walk_up", 8, 9, 10, 11)
-                .AddAnimation("walk_down", 0, 1, 2, 3)
-
-                .SetAnimation("idle_right");
-
-            font = Content.GetFont("04b03.font");
-
+            quad.V0.Tx = 96.0f / 128.0f;
+            quad.V0.Ty = 64.0f / 128.0f;
+            quad.V0.Col = 0xFFFFFFFF;
+            quad.V1.Tx = 128.0f / 128.0f;
+            quad.V1.Ty = 64.0f / 128.0f;
+            quad.V1.Col = 0xFFFFFFFF;
+            quad.V2.Tx = 128.0f / 128.0f;
+            quad.V2.Ty = 96.0f / 128.0f;
+            quad.V2.Col = 0xFFFFFFFF;
+            quad.V3.Tx = 96.0f / 128.0f;
+            quad.V3.Ty = 96.0f / 128.0f;
+            quad.V3.Col = 0xFFFFFFFF;
         }
 
         public override void Update(float dt)
         {
-            if(Control.KeyDown(Key.A))
+            if(Control.KeyDown(Key.Escape))
             {
-                sprite1.X -= 5.0f;
+                Game.Quit();
             }
 
-            if(Control.KeyDown(Key.D))
+            if(Control.KeyPressed(Key.F11))
             {
-                sprite1.X += 5.0f;
+                Game.ToggleFullscreen();
             }
 
-
-            if(Control.KeyPressed(Key.Left))
+            if(Control.KeyDown(Key.Left))
             {
-                direction = -1;
-                sx = 5.0f;
-                anim_sprite.SetAnimation("walk_left");
-            }
-            else if(Control.KeyPressed(Key.Right))
-            {
-                direction = 1;
-                sx = 5.0f;
-                anim_sprite.SetAnimation("walk_right");
-
+                dx -= speed;
             }
 
-            if(Control.KeyReleased(Key.Left) || Control.KeyReleased(Key.Right))
+            if(Control.KeyDown(Key.Right))
             {
-                sx = 0.0f;
-
-                if(direction == -1)
-                {
-                    anim_sprite.SetAnimation("idle_left");
-                }
-                else if (direction == 1)
-                {
-                    anim_sprite.SetAnimation("idle_right");
-                }
+                dx += speed;
             }
 
+            if(Control.KeyDown(Key.Up))
+            {
+                dy -= speed;
+            }
+
+            if(Control.KeyDown(Key.Down))
+            {
+                dy += speed;
+            }
+
+            dx *= friction;
+            dy *= friction;
+
+            if((dx > 0 && dx < 0.1f) || (dx < 0 && dx > -0.1f))
+            {
+                dx = 0;
+            }
+
+            if((dy > 0 && dy < 0.1f) || (dy < 0 && dy > -0.1f))
+            {
+                dy = 0;
+            }
+
+            x += dx;
+            y += dy;
 
 
-            anim_sprite.X += sx * direction;
 
-            anim_sprite.Update();
+            if(x > Canvas.Width - 16)
+            {
+                x = Canvas.Width - 16 - (x - Canvas.Width - 16);
+                dx = -dx;
+            }
+            else if(x < 16)
+            {
+                x = 16 + 16 - x;
+                dx = -dx;
+            }
+
+            if(y > Canvas.Height - 16)
+            {
+                y = Canvas.Height - 16 - (y - Canvas.Height - 16);
+                dy = -dy;
+            }
+            else if(y < 16)
+            {
+                y = 16 + 16 - y;
+                dy = -dy;
+            }
+
+            quad.V0.X = x - 16;
+            quad.V0.Y = y - 16;
+            quad.V1.X = x + 16;
+            quad.V1.Y = y - 16;
+            quad.V2.X = x + 16;
+            quad.V2.Y = y + 16;
+            quad.V3.X = x - 16;
+            quad.V3.Y = y + 16;
+
         }
 
-        public override void Draw(Canvas canvas)
+        public override void Draw()
         {
-            canvas.Begin();
+            Canvas.Begin();
 
+            Canvas.Clear(0);
 
+            Canvas.RenderQuad(ref quad);
 
-            // canvas.FillRect(-400, -300, 100, 100, Color.Red);
-
-            canvas.DrawLine(-350, -250, 350, 250, 4, Color.Blue);
-
-            canvas.DrawLine(-350, 250, 350, -250, 4, Color.Green);
-
-            canvas.DrawLine(-350, -250, 350, -250, 4, Color.Yellow);
-
-            canvas.DrawLine(-350, -250, -350, 250, 4, Color.Fuchsia);
-
-            canvas.DrawLine(350, -250, 350, 250, 4, Color.HotPink);
-
-            canvas.DrawLine(-350, 250, 350, 250, 4, Color.LawnGreen);
-
-            canvas.DrawRect(0, 0, 100, 100, 2, Color.LightSalmon);
-
-            canvas.FillGradient(0, 0, 200, 200, gradient);
-
-            canvas.Draw(sprite1);
-
-            canvas.Draw(anim_sprite);
-
-            canvas.DrawText(@" !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_abcdefghijklmnopqrstuvwxyz{|}~", -400, -200, font);
-
-            canvas.End();
+            Canvas.End();
         }
-
     }
 }

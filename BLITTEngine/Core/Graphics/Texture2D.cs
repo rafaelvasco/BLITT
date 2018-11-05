@@ -6,9 +6,11 @@ namespace BLITTEngine.Core.Graphics
 {
     public class Texture2D : Resource
     {
-        public int Width => InternalTexture.Width;
+        internal readonly int Handle;
 
-        public int Height => InternalTexture.Height;
+        public readonly int Width;
+
+        public readonly int Height;
 
         internal readonly Texture InternalTexture;
 

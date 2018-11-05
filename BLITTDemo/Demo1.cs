@@ -130,7 +130,7 @@ namespace BLITTDemo
 
         }
 
-        public override void Draw(Canvas canvas)
+        public override void Draw(Renderer2D canvas)
         {
             canvas.Begin();
 

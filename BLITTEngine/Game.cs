@@ -26,7 +26,7 @@ namespace BLITTEngine
 
         public readonly Content Content;
 
-        public readonly Canvas Canvas;
+        public readonly Renderer2D Canvas;
 
         public Scene CurrentScene { get; private set; }
 
@@ -99,8 +99,8 @@ namespace BLITTEngine
 
             Console.WriteLine($" > Platform Init took: {timer.Elapsed.TotalSeconds}");
 
-            Canvas.Content = Content;
-            this.Canvas = new Canvas(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight, 2048);
+            Renderer2D.Content = Content;
+            this.Canvas = new Renderer2D(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight, 2048);
 
             Console.WriteLine($" > Graphics Init took: {timer.Elapsed.TotalSeconds}");
 

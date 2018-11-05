@@ -17,7 +17,7 @@ namespace BLITTDemo
             particle = new Sprite(Content.GetTexture2D("particles"), 0, 0, 32, 32 );
         }
 
-        public override void Draw(Canvas canvas)
+        public override void Draw(Renderer2D canvas)
         {
             throw new NotImplementedException();
         }

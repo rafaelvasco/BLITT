@@ -316,7 +316,7 @@ namespace BLITTEngine.Resources
                 throw new Exception($"Failed to load embeded Fragment Shader {fs_shader_path} : {e.Message}");
             }
 
-            var shader_program = Canvas.CreateShaderProgram(name, vs_file_buffer, fs_file_buffer);
+            var shader_program = Renderer2D.CreateShaderProgram(name, vs_file_buffer, fs_file_buffer);
 
             builtin_shaders.Add(name, shader_program);
         }

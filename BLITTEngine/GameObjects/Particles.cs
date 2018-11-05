@@ -98,7 +98,7 @@ namespace BLITTEngine.GameObjects
             random = new RandomEx();
         }
 
-        public void Render(Canvas canvas)
+        public void Render(Renderer2D canvas)
         {
             Particle* par = (Particle*)particles.NativePointer;
             Sprite spr = Info.ParticleSprite;

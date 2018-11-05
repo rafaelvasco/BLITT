@@ -8,19 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace BLITTEngine.Core.Graphics
 {
-    public struct GraphicsInfo
-    {
-        public RendererBackend RendererBackend;
-        public int MaxTextureSize;
-
-        public GraphicsInfo(RendererBackend backend, int max_tex_size)
-        {
-            this.RendererBackend = backend;
-            this.MaxTextureSize = max_tex_size;
-        }
-    }
-
-    public enum CanvasFullscreeStretchMode
+    public enum CanvasFullscreenStretchMode
     {
         PixelPerfect,
         LetterBox,
@@ -28,22 +16,18 @@ namespace BLITTEngine.Core.Graphics
         Fit
     }
 
-    public unsafe class Canvas
+    public unsafe class Renderer2D
     {
         internal static Content Content;
 
         // PASS 0 -> RENDER TO RENDERTARGET
         // PASS 1 -> RENDER RENDERTARGET TEXTURE TO BACKBUFFER
 
-        public GraphicsInfo Info { get; private set; }
-
         public int Width => canvas_width;
 
         public int Height => canvas_height;
 
         private int vertex_max_count;
-
-        private ShaderProgram base_shader;
 
         private Texture2D current_texture;
 
@@ -75,12 +59,12 @@ namespace BLITTEngine.Core.Graphics
 
         private List<RenderTarget> render_targets;
 
-        private CanvasFullscreeStretchMode stretch_mode = CanvasFullscreeStretchMode.PixelPerfect;
+        private CanvasFullscreenStretchMode stretch_mode = CanvasFullscreenStretchMode.PixelPerfect;
 
         private RenderState canvas_target_state = RenderState.None | RenderState.WriteRGB;
 
 
-        internal Canvas(IntPtr surface_handle, int width, int height, int max_vertex_count)
+        internal Renderer2D(IntPtr surface_handle, int width, int height, int max_vertex_count)
         {
             render_targets = new List<RenderTarget>();
 
@@ -277,7 +261,7 @@ namespace BLITTEngine.Core.Graphics
 
             switch (stretch_mode)
             {
-                case CanvasFullscreeStretchMode.PixelPerfect:
+                case CanvasFullscreenStretchMode.PixelPerfect:
 
                     if (width > canvas_w || height > canvas_h)
                     {
@@ -307,7 +291,7 @@ namespace BLITTEngine.Core.Graphics
                     }
 
                     break;
-                case CanvasFullscreeStretchMode.LetterBox:
+                case CanvasFullscreenStretchMode.LetterBox:
 
                     if (width > canvas_w || height > canvas_h)
                     {
@@ -338,12 +322,12 @@ namespace BLITTEngine.Core.Graphics
                     }
 
                     break;
-                case CanvasFullscreeStretchMode.Stretch:
+                case CanvasFullscreenStretchMode.Stretch:
 
                     render_area = IntRect.FromBox(0, 0, width, height);
 
                     break;
-                case CanvasFullscreeStretchMode.Fit:
+                case CanvasFullscreenStretchMode.Fit:
 
 
 

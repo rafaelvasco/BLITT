@@ -289,10 +289,36 @@ namespace BLITTEngine.Numerics
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Min(float a, float b, float c)
+        {
+            return a < b ? (a < c ? a : c) : (b < c ? b : c);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Min(float a, float b, float c, float d)
+        {
+            return Min(d, Min(a, Min(b, c)));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Max(float a, float b)
         {
             return a > b ? a : b;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Max(float a, float b, float c)
+        {
+            return a < b ? (b < c ? c : b) : (a < c ? c : b);
+        }
+
+         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Max(float a, float b, float c, float d)
+        {
+            return Max(d, Max(a, Max(b, c)));
+        }
+
+        //
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Min(int a, int b)
@@ -301,9 +327,33 @@ namespace BLITTEngine.Numerics
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Min(int a, int b, int c)
+        {
+            return a < b ? (a < c ? a : c) : (b < c ? b : c);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Min(int a, int b, int c, int d)
+        {
+            return Min(d, Min(a, Min(b, c)));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Max(int a, int b)
         {
             return a > b ? a : b;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Max(int a, int b, int c)
+        {
+            return a < b ? (b < c ? c : b) : (a < c ? c : b);
+        }
+
+         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Max(int a, int b, int c, int d)
+        {
+            return Max(d, Max(a, Max(b, c)));
         }
 
         /// <summary>
@@ -347,10 +397,20 @@ namespace BLITTEngine.Numerics
             return sinBuffer[(int)(rad * RAD_TO_INDEX) & SIN_MASK];
         }
 
+        public static float ASin(float v)
+        {
+            return (float) Math.Asin(v);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Cos(float rad)
         {
             return cosBuffer[(int)(rad * RAD_TO_INDEX) & SIN_MASK];
+        }
+
+        public static float ACos(float v)
+        {
+            return (float) Math.Acos(v);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

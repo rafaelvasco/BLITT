@@ -1,5 +1,4 @@
 using System;
-using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace BLITTEngine.Numerics
@@ -8,7 +7,7 @@ namespace BLITTEngine.Numerics
     public struct Rect : IEquatable<Rect>
     {
         private static Rect _empty = new Rect(0, 0, 0, 0);
-        public ref readonly Rect Empty => ref _empty;
+        public static ref readonly Rect Empty => ref _empty;
 
         public float X1;
         public float Y1;

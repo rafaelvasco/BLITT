@@ -46,14 +46,9 @@ namespace BLITTEngine.Core.Graphics
 
         private bool smooth;
 
-        internal Texture2D(Pixmap pixmap, bool render_target=false)
+        internal Texture2D(Pixmap pixmap)
         {
             UpdateTextureFlags();
-
-            if(render_target)
-            {
-                Flags |= TextureFlags.RenderTarget;
-            }
 
             MemoryBlock image_memory = MemoryBlock.FromArray(pixmap.PixelData);
 
@@ -61,7 +56,7 @@ namespace BLITTEngine.Core.Graphics
                 width: pixmap.Width,
                 height: pixmap.Height,
                 hasMips: false,
-                arrayLayers: 1,
+                arrayLayers: 0,
                 format: TextureFormat.BGRA8,
                 flags: Flags,
                 memory: image_memory
@@ -83,7 +78,7 @@ namespace BLITTEngine.Core.Graphics
                 width: width,
                 height: height,
                 hasMips: false,
-                arrayLayers: 1,
+                arrayLayers: 0,
                 format: TextureFormat.BGRA8,
                 flags: Flags,
                 memory: null

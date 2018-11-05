@@ -5,24 +5,19 @@ namespace BLITTEngine.Core.Graphics
     public class RenderTarget
     {
         internal FrameBuffer Handle => handle;
-        //public Texture2D[] Textures => textures;
-        //public Texture2D Texture => textures[0];
+        internal Texture2D Texture => texture;
 
-        //private Texture2D[] textures;
+        private Texture2D texture;
         private FrameBuffer handle;
 
-        internal RenderTarget(/*Texture2D[] textures*/ int width, int height)
+        internal RenderTarget(int width, int height)
         {
-            /*this.textures = textures;
 
-            var attachments = new Texture[textures.Length];
+            this.texture = new Texture2D(width, height, render_target: true);
 
-            for(var i = 0; i < textures.Length; ++i)
-            {
-                attachments[i] = textures[i].InternalTexture;
-            }*/
+            Attachment[] attachments = { new Attachment() { Texture = this.texture.InternalTexture, Mip = 0, Layer = 0 } };
 
-            this.handle = new FrameBuffer(width, height, TextureFormat.BGRA8);
+            this.handle = new FrameBuffer(attachments, destroyTextures: true);
         }
     }
 }

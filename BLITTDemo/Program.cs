@@ -8,15 +8,15 @@ namespace BLITTDemo
         {
             var props = new GameProps()
             {
-                Title = "BLITT DEMO",
-                CanvasWidth = 800,
-                CanvasHeight = 600,
+                Title = "BLITT DEMOS",
+                CanvasWidth = 640,
+                CanvasHeight = 480,
                 Fullscreen = false,
             };
 
             using (var game = new Game(props))
             {
-                game.Start(new Demo1());
+                game.Start(new Demo2());
             }
         }
     }

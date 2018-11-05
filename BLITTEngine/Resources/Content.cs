@@ -1,40 +1,38 @@
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Foundation;
 using BLITTEngine.Core.Foundation.STB;
-using BLITTEngine.Numerics;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using BLITTEngine.Draw;
 
 namespace BLITTEngine.Resources
 {
-    public static class Content
+    public class Content
     {
         private const string EMBEDED_SHADERS_PATH = "BLITTEngine.EngineResources.Shaders.bin";
         private const string EMBEDED_TEXTURES_PATH = "BLITTEngine.EngineResources.Images";
 
-        private static string content_path;
+        private string content_path;
 
-        private static Dictionary<string, Resource> loaded_assets;
-        private static List<Resource> runtime_assets;
-        private static Dictionary<string, ShaderProgram> builtin_shaders;
-        private static Dictionary<string, Texture2D> builtin_textures;
-        private static ImageReader image_reader;
+        private Dictionary<string, Resource> loaded_assets;
+        private List<Resource> runtime_assets;
+        private Dictionary<string, ShaderProgram> builtin_shaders;
+        private Dictionary<string, Texture2D> builtin_textures;
+        private ImageReader image_reader;
 
-        private static List<string> embeded_shaders_names = new List<string>
+        private List<string> embeded_shaders_names = new List<string>
         {
             "base_2d"
         };
 
-        private static List<string> embeded_textures_names = new List<string>
+        private List<string> embeded_textures_names = new List<string>
         {
             "sprite"
         };
 
-        internal static void Init(string root_path)
+        internal Content(string root_path)
         {
             content_path = root_path;
             loaded_assets = new Dictionary<string, Resource>();
@@ -44,9 +42,7 @@ namespace BLITTEngine.Resources
             image_reader = new ImageReader();
         }
 
-
-
-        public static Texture2D GetTexture2D(string asset_name)
+        public Texture2D GetTexture2D(string asset_name)
         {
             if (loaded_assets.TryGetValue(asset_name, out var asset))
             {
@@ -126,17 +122,17 @@ namespace BLITTEngine.Resources
         //    }
         //}
 
-        public static ShaderProgram GetBuiltinShader(string name)
+        public ShaderProgram GetBuiltinShader(string name)
         {
             return builtin_shaders[name];
         }
 
-        public static Texture2D GetBuiltinTexture(string name)
+        public Texture2D GetBuiltinTexture(string name)
         {
             return builtin_textures[name];
         }
 
-        public static Pixmap CreatePixmap(byte[] data, int width, int height)
+        public Pixmap CreatePixmap(byte[] data, int width, int height)
         {
             var pixmap = new Pixmap(data, width, height);
 
@@ -145,7 +141,7 @@ namespace BLITTEngine.Resources
             return pixmap;
         }
 
-        public static Pixmap CreatePixmap(int width, int height)
+        public Pixmap CreatePixmap(int width, int height)
         {
             var pixmap = new Pixmap(width, height);
 
@@ -154,7 +150,7 @@ namespace BLITTEngine.Resources
             return pixmap;
         }
 
-        public static Texture2D CreateTexture(Pixmap pixmap)
+        public Texture2D CreateTexture(Pixmap pixmap)
         {
             var texture = new Texture2D(pixmap);
 
@@ -163,7 +159,7 @@ namespace BLITTEngine.Resources
             return texture;
         }
 
-        public static Texture2D CreateTexture(int width, int height, Color color)
+        public Texture2D CreateTexture(int width, int height, Color color)
         {
             var texture = new Texture2D(width, height);
 
@@ -180,12 +176,12 @@ namespace BLITTEngine.Resources
             return texture;
         }
 
-        internal static void Register(Resource resource)
+        internal void Register(Resource resource)
         {
             runtime_assets.Add(resource);
         }
 
-        internal static void UnloadAll()
+        internal void Free()
         {
             Console.WriteLine($" > Diposing {loaded_assets.Count} loaded assets.");
 
@@ -221,7 +217,7 @@ namespace BLITTEngine.Resources
             builtin_textures.Clear();
         }
 
-        internal static void LoadEmbededShaders(RendererBackend renderer_backend)
+        internal void LoadEmbededShaders(RendererBackend renderer_backend)
         {
             string shaders_path;
 
@@ -246,7 +242,7 @@ namespace BLITTEngine.Resources
             }
         }
 
-        internal static void LoadEmbededTextures()
+        internal void LoadEmbededTextures()
         {
             try
             {
@@ -278,7 +274,7 @@ namespace BLITTEngine.Resources
             }
         }
 
-        private static void LoadEmbededShaderProgram(string root_path, string name)
+        private void LoadEmbededShaderProgram(string root_path, string name)
         {
             byte[] vs_file_buffer = { };
             byte[] fs_file_buffer = { };

@@ -1,4 +1,5 @@
-using BLITTEngine.Draw;
+
+using BLITTEngine.Core.Graphics;
 
 namespace BLITTEngine
 {
@@ -12,7 +13,7 @@ namespace BLITTEngine
         {
         }
 
-        public override void Draw()
+        public override void Draw(Canvas canvas)
         {
         }
     }

@@ -20,54 +20,68 @@ namespace BLITTEngine.Core.Graphics
         }
     }
 
-    public static unsafe class Canvas
+    public enum CanvasFullscreeStretchMode
     {
-        public static GraphicsInfo Info { get; private set; }
+        PixelPerfect,
+        LetterBox,
+        Stretch,
+        Fit
+    }
+
+    public unsafe class Canvas
+    {
+        internal static Content Content;
+
+        // PASS 0 -> RENDER TO RENDERTARGET
+        // PASS 1 -> RENDER RENDERTARGET TEXTURE TO BACKBUFFER
+
+        public GraphicsInfo Info { get; private set; }
+
+        public int Width => canvas_width;
+
+        public int Height => canvas_height;
+
+        private int vertex_max_count;
+
+        private ShaderProgram base_shader;
+
+        private Texture2D current_texture;
+
+        private BlendMode current_blend_mode;
+
+        private Vertex2D[] vertex_array;
+
+        private ushort[] index_array;
+
+        private IndexBuffer index_buffer;
+
+        private int vertex_index;
+
+        private int quad_count;
+
+        private int canvas_width;
+
+        private int canvas_height;
+
+        private IntRect render_area;
+
+        private bool ready_to_draw = false;
+
+        private RenderState render_state;
+
+        private RenderTarget renderer_surface;
+
+        private RenderTarget current_target;
+
+        private List<RenderTarget> render_targets;
+
+        private CanvasFullscreeStretchMode stretch_mode = CanvasFullscreeStretchMode.PixelPerfect;
+
+        private RenderState canvas_target_state = RenderState.None | RenderState.WriteRGB;
 
 
-        public static int Width => render_surface_width;
-
-        public static int Height => render_surface_height;
-
-        private static int vertex_max_count;
-
-        private static Matrix4x4 projection_matrix;
-
-        private static ShaderProgram base_shader;
-
-        private static Texture2D current_texture;
-
-        private static BlendMode current_blend_mode;
-
-        private static Vertex2D[] vertex_array;
-
-        private static ushort[] index_array;
-
-        private static IndexBuffer index_buffer;
-
-        private static int vertex_index;
-
-        private static int quad_count;
-
-        private static int render_surface_width;
-
-        private static int render_surface_height;
-
-        private static IntRect render_area;
-
-        private static bool ready_to_draw = false;
-
-        private static RenderState render_state;
-
-        private static RenderTarget renderer_surface;
-
-        private static RenderTarget current_target;
-
-        private static List<RenderTarget> render_targets;
-
-        internal static void Init(IntPtr surface_handle, int width, int height, int max_vertex_count)
+        internal Canvas(IntPtr surface_handle, int width, int height, int max_vertex_count)
         {
-
             render_targets = new List<RenderTarget>();
 
             vertex_max_count = max_vertex_count;
@@ -81,7 +95,17 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
 
-            Bgfx.SetViewClear(0, ClearTargets.Color, 0);
+            canvas_width = width;
+
+            canvas_height = height;
+
+            renderer_surface = CreateTarget(canvas_width, canvas_height);
+
+            // RENDERTARGET CLEAR
+            Bgfx.SetViewClear(0, ClearTargets.Color, 0x0000FF);
+
+            // BACKBUFFER CLEAR
+            Bgfx.SetViewClear(1, ClearTargets.Color,0x000000FF);
 
             OnScreenResized(width, height);
 
@@ -98,15 +122,9 @@ namespace BLITTEngine.Core.Graphics
 
             Console.WriteLine($"Graphics Backend : {Info.RendererBackend}");
 
-            render_surface_width = width;
-
-            render_surface_height = height;
-
-            renderer_surface = CreateTarget(render_surface_width, render_surface_height);
-
         }
 
-        internal static void Terminate()
+        internal void Free()
         {
             Console.WriteLine(" > Disposing Graphics Device");
 
@@ -122,55 +140,40 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.Shutdown();
         }
 
-        public static RenderTarget CreateTarget(int width, int height/*, int layers = 1*/)
-        {/*
-            if (layers < 1)
-            {
-                layers = 1;
-            }
+        public RenderTarget CreateTarget(int width, int height)
+        {
 
-            var textures = new Texture2D[layers];
-
-            for (var i = 0; i < layers; ++i)
-            {
-                textures[i] = new Texture2D(width, height, render_target: true);
-            }*/
-
-            var render_target = new RenderTarget(/*textures*/width, height);
+            var render_target = new RenderTarget(width, height);
 
             render_targets.Add(render_target);
 
             return render_target;
         }
 
-        public static void FreeTarget(RenderTarget target)
+        public void FreeTarget(RenderTarget target)
         {
             target.Handle.Dispose();
 
             render_targets.Remove(target);
         }
 
-        public static void Clear(int color)
+        public void Clear(int color)
         {
             Bgfx.SetViewClear(0, ClearTargets.Color, color);
         }
 
-        public static void Begin(RenderTarget target = null)
+        public void Begin(RenderTarget target = null)
         {
             ready_to_draw = true;
 
             current_target = target ?? renderer_surface;
 
             Bgfx.SetViewFrameBuffer(0, current_target.Handle);
-
-
         }
 
-        public static void End()
+        public void End()
         {
             RenderBatch();
-
-            Bgfx.SetViewFrameBuffer(0, FrameBuffer.Invalid);
 
             _DrawScreenSurface();
 
@@ -179,7 +182,7 @@ namespace BLITTEngine.Core.Graphics
 
         }
 
-        public static void RenderQuad(ref Quad quad)
+        public void RenderQuad(ref Quad quad)
         {
             if (ready_to_draw)
             {
@@ -224,7 +227,7 @@ namespace BLITTEngine.Core.Graphics
             }
         }
 
-        public static void RenderBatch()
+        public void RenderBatch()
         {
             if (vertex_index == 0)
             {
@@ -252,40 +255,130 @@ namespace BLITTEngine.Core.Graphics
             quad_count = 0;
         }
 
-        public static void SaveScreenShot(string path)
+        public void SaveScreenShot(string path)
         {
             Bgfx.RequestScreenShot(path);
         }
 
-        internal static void Flip()
+        internal void Flip()
         {
             Bgfx.Touch(0);
             Bgfx.Frame();
         }
 
-        internal static void OnScreenResized(int width, int height)
+        internal void OnScreenResized(int width, int height)
         {
-            render_area = IntRect.FromBox(0, 0, width, height);
+            Console.WriteLine($"CANVAS : ON SCREEN RESIZED: {width}, {height}");
 
-            Bgfx.Reset(render_area.Width, render_area.Height, ResetFlags.Vsync);
+            Bgfx.Reset(width, height, ResetFlags.Vsync);
 
-            Bgfx.SetViewRect(0, render_area.X1, render_area.Y1, render_area.Width, render_area.Height);
+            var canvas_w = canvas_width;
+            var canvas_h = canvas_height;
 
-            projection_matrix = Matrix4x4.CreateOrthographicOffCenter(
-                left: render_area.X1,
-                right: render_area.X2,
-                bottom: render_area.Y2,
-                top: render_area.Y1,
+            switch (stretch_mode)
+            {
+                case CanvasFullscreeStretchMode.PixelPerfect:
+
+                    if (width > canvas_w || height > canvas_h)
+                    {
+                        var ar_origin = (float)canvas_w / canvas_h;
+                        var ar_new = (float)width / height;
+
+                        var scale_w = Calc.FloorToInt((float)width / canvas_w);
+                        var scale_h = Calc.FloorToInt((float)height / canvas_h);
+
+                        if (ar_new > ar_origin)
+                        {
+                            scale_w = scale_h;
+                        }
+                        else
+                        {
+                            scale_h = scale_w;
+                        }
+
+                        var margin_x = (width - canvas_w * scale_w) / 2;
+                        var margin_y = (height - canvas_h * scale_h) / 2;
+
+                        render_area = IntRect.FromBox(margin_x, margin_y, canvas_w * scale_w, canvas_h * scale_h);
+                    }
+                    else
+                    {
+                        render_area = IntRect.FromBox(0, 0, canvas_w, canvas_h);
+                    }
+
+                    break;
+                case CanvasFullscreeStretchMode.LetterBox:
+
+                    if (width > canvas_w || height > canvas_h)
+                    {
+                        var ar_origin = (float)canvas_w / canvas_h;
+                        var ar_new = (float)width / height;
+
+                        var scale_w = ((float)width / canvas_w);
+                        var scale_h = ((float)height / canvas_h);
+
+                        if (ar_new > ar_origin)
+                        {
+                            scale_w = scale_h;
+                        }
+                        else
+                        {
+                            scale_h = scale_w;
+                        }
+
+                        var margin_x = (int)((width - canvas_w * scale_w) / 2);
+                        var margin_y = (int)((height - canvas_h * scale_h) / 2);
+
+                        render_area = IntRect.FromBox(margin_x, margin_y, (int)(canvas_w * scale_w), (int)(canvas_h * scale_h));
+
+                    }
+                    else
+                    {
+                        render_area = IntRect.FromBox(0, 0, canvas_w, canvas_h);
+                    }
+
+                    break;
+                case CanvasFullscreeStretchMode.Stretch:
+
+                    render_area = IntRect.FromBox(0, 0, width, height);
+
+                    break;
+                case CanvasFullscreeStretchMode.Fit:
+
+
+
+                    break;
+            }
+
+            Console.WriteLine($"Render Area: {render_area.X1}, {render_area.Y1}, {render_area.Width}, {render_area.Height}");
+
+            Bgfx.SetViewRect(0, 0, 0, render_area.Width, render_area.Height);
+            Bgfx.SetViewRect(1, 0, 0, width, height);
+
+            Matrix4x4 projection_matrix = Matrix4x4.CreateOrthographicOffCenter(
+                left: 0,
+                right: render_area.Width,
+                bottom: render_area.Height,
+                top: 0,
                 zNearPlane: 0.0f,
                 zFarPlane: 1000.0f
             );
 
-            var proj_m = projection_matrix;
+            Matrix4x4 projection_matrix2 = Matrix4x4.CreateOrthographicOffCenter(
+                left: 0,
+                right: width,
+                bottom: height,
+                top: 0,
+                zNearPlane: 0.0f,
+                zFarPlane: 1.0f
+            );
 
-            Bgfx.SetViewTransform(0, null, &proj_m.M11);
+            Bgfx.SetViewTransform(0, null, &projection_matrix.M11);
+            Bgfx.SetViewTransform(1, null, &projection_matrix2.M11);
+
         }
 
-        internal static ShaderProgram CreateShaderProgram(string name, byte[] vertex_shader_src, byte[] frag_shader_src)
+        internal ShaderProgram CreateShaderProgram(string name, byte[] vertex_shader_src, byte[] frag_shader_src)
         {
             if (vertex_shader_src.Length == 0 || frag_shader_src.Length == 0)
             {
@@ -298,7 +391,7 @@ namespace BLITTEngine.Core.Graphics
             return new ShaderProgram(vertex_shader, frag_shader);
         }
 
-        private static void _SetBlendMode(BlendMode mode)
+        private void _SetBlendMode(BlendMode mode)
         {
             current_blend_mode = mode;
 
@@ -306,13 +399,13 @@ namespace BLITTEngine.Core.Graphics
             {
                 case BlendMode.AlphaBlend:
 
-                    render_state = RenderState.WriteR | RenderState.WriteG | RenderState.WriteB | RenderState.WriteA | RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha);
+                    render_state = RenderState.WriteRGB | RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha);
 
                     break;
 
                 case BlendMode.AlphaAdd:
 
-                    render_state = RenderState.WriteR | RenderState.WriteG | RenderState.WriteB | RenderState.WriteA | RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendOne);
+                    render_state = RenderState.WriteRGB | RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendOne);
 
                     break;
 
@@ -324,7 +417,7 @@ namespace BLITTEngine.Core.Graphics
             }
         }
 
-        private static void _InitRenderBuffers()
+        private void _InitRenderBuffers()
         {
             vertex_array = new Vertex2D[vertex_max_count];
 
@@ -345,7 +438,7 @@ namespace BLITTEngine.Core.Graphics
             index_buffer = new IndexBuffer(MemoryBlock.FromArray(index_array));
         }
 
-        private static void _DrawScreenSurface()
+        private void _DrawScreenSurface()
         {
             var rx = render_area.X1;
             var ry = render_area.Y1;
@@ -354,22 +447,22 @@ namespace BLITTEngine.Core.Graphics
 
             var vertex_buffer = new TransientVertexBuffer(4, Vertex2D.Layout);
 
-            Vertex2D* v = (Vertex2D*)vertex_buffer.Data;
+            Vertex2D* v = (Vertex2D*) vertex_buffer.Data;
 
             *(v + 0) = new Vertex2D(rx, ry, 0, 0, 0xFFFFFFFF);
-            *(v + 1) = new Vertex2D(rx, ry, 0, 0, 0xFFFFFFFF);
-            *(v + 2) = new Vertex2D(rx, ry, 0, 0, 0xFFFFFFFF);
-            *(v + 3) = new Vertex2D(rx, ry, 0, 0, 0xFFFFFFFF);
+            *(v + 1) = new Vertex2D(rx2, ry, 1, 0, 0xFFFFFFFF);
+            *(v + 2) = new Vertex2D(rx2, ry2, 1, 1, 0xFFFFFFFF);
+            *(v + 3) = new Vertex2D(rx, ry2, 0, 1, 0xFFFFFFFF);
 
-            base_shader.SetTexture(renderer_surface.Handle.GetTexture(), "texture_2d");
+            base_shader.SetTexture(renderer_surface.Texture, "texture_2d");
 
-            Bgfx.SetRenderState(render_state);
+            Bgfx.SetRenderState(canvas_target_state);
 
             Bgfx.SetIndexBuffer(index_buffer, 0, 6);
 
             Bgfx.SetVertexBuffer(0, vertex_buffer, 0, 4);
 
-            Bgfx.Submit(0, base_shader.Program);
+            Bgfx.Submit(1, base_shader.Program);
         }
     }
 }

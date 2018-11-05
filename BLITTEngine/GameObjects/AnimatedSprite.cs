@@ -1,9 +1,9 @@
-﻿//using BLITTEngine.Core.Graphics;
+//using BLITTEngine.Core.Graphics;
 //using BLITTEngine.Numerics;
 //using System.Collections.Generic;
 //using System.Runtime.InteropServices;
 
-//namespace BLITTEngine.Draw
+//namespace BLITTEngine.GameObjects
 //{
 //    public class AnimatedSprite : GameObject
 //    {

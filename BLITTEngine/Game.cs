@@ -24,6 +24,10 @@ namespace BLITTEngine
 
         public readonly Clock Clock;
 
+        public readonly Content Content;
+
+        public readonly Canvas Canvas;
+
         public Scene CurrentScene { get; private set; }
 
         public bool Running { get; internal set; }
@@ -36,7 +40,30 @@ namespace BLITTEngine
                 if (full_screen != value)
                 {
                     full_screen = value;
-                    Platform.SetFullscreen(full_screen);
+
+                    toggle_fullscreen_requested = true;
+                }
+            }
+        }
+
+        public Size ScreenSize
+        {
+            get
+            {
+                Platform.GetScreenSize(out int w, out int h);
+
+                return new Size(w, h);
+            }
+            set
+            {
+                Platform.GetScreenSize(out int w, out int h);
+
+                if(value.W != w || value.H != h)
+                {
+                    screen_resize_requested = true;
+
+                    requested_screen_w = value.W;
+                    requested_screen_h = value.H;
                 }
             }
         }
@@ -44,6 +71,10 @@ namespace BLITTEngine
         private bool error;
         private string error_msg;
         private bool full_screen;
+        private bool toggle_fullscreen_requested;
+        private bool screen_resize_requested;
+        private int requested_screen_w;
+        private int requested_screen_h;
 
         /* ========================================================================================================== */
 
@@ -64,11 +95,12 @@ namespace BLITTEngine
 
             Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, fullscreen: props.Fullscreen);
 
-            Content.Init(root_path: "Assets");
+            Content = new Content(root_path: "Assets");
 
             Console.WriteLine($" > Platform Init took: {timer.Elapsed.TotalSeconds}");
 
-            Canvas.Init(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight, 2048);
+            Canvas.Content = Content;
+            this.Canvas = new Canvas(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight, 2048);
 
             Console.WriteLine($" > Graphics Init took: {timer.Elapsed.TotalSeconds}");
 
@@ -83,8 +115,8 @@ namespace BLITTEngine
 
         public void Dispose()
         {
-            Content.UnloadAll();
-            Canvas.Terminate();
+            Content.Free();
+            Canvas.Free();
             Platform.Quit();
         }
 
@@ -126,7 +158,7 @@ namespace BLITTEngine
             error_msg = string.Format(message, args);
         }
 
-        private static void _OnScreenResized(int w, int h)
+        private void _OnScreenResized(int w, int h)
         {
             Canvas.OnScreenResized(w, h);
         }
@@ -154,9 +186,22 @@ namespace BLITTEngine
                     CurrentScene.Update(Clock.DeltaTime);
                 }
 
-                CurrentScene.Draw();
+                CurrentScene.Draw(Canvas);
 
                 Canvas.Flip();
+
+                if(toggle_fullscreen_requested)
+                {
+                    toggle_fullscreen_requested = false;
+
+                    Platform.SetFullscreen(full_screen);
+                }
+                else if(screen_resize_requested)
+                {
+                    screen_resize_requested = false;
+
+                    Platform.SetScreenSize(requested_screen_w, requested_screen_h);
+                }
             }
 
 #if DEBUG

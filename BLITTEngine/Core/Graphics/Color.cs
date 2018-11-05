@@ -17,14 +17,14 @@ namespace BLITTEngine.Core.Graphics
         private static Color _yellow = new Color(0xFF00FFFF);
         private static Color _fuschia = new Color(0xFFFF00FF);
 
-        public ref readonly Color Transparent => ref _transparent;
-        public ref readonly Color Black => ref _black;
-        public ref readonly Color White => ref _white;
-        public ref readonly Color Red => ref _red;
-        public ref readonly Color Green => ref _green;
-        public ref readonly Color Blue => ref _blue;
-        public ref readonly Color Yellow => ref _yellow;
-        public ref readonly Color Fuschia => ref _fuschia;
+        public static ref readonly Color Transparent => ref _transparent;
+        public static ref readonly Color Black => ref _black;
+        public static ref readonly Color White => ref _white;
+        public static ref readonly Color Red => ref _red;
+        public static ref readonly Color Green => ref _green;
+        public static ref readonly Color Blue => ref _blue;
+        public static ref readonly Color Yellow => ref _yellow;
+        public static ref readonly Color Fuschia => ref _fuschia;
 
         public int RGBA => (int)(((uint)R << 24) | ((uint)G << 16) | ((uint)B << 8) | A);
 
@@ -223,7 +223,7 @@ namespace BLITTEngine.Core.Graphics
 
         public static implicit operator int(Color val)
         {
-            return (int)val.packed_value;
+            return val.RGBA;
         }
 
         public static implicit operator Color(uint val)

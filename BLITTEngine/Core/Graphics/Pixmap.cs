@@ -1,5 +1,4 @@
-﻿using BLITTEngine.Draw;
-using BLITTEngine.Numerics;
+﻿using BLITTEngine.Numerics;
 using BLITTEngine.Resources;
 using System;
 using System.Runtime.InteropServices;

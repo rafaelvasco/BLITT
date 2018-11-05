@@ -1,9 +1,9 @@
-﻿//using BLITTEngine.Core.Graphics;
+//using BLITTEngine.Core.Graphics;
 //using BLITTEngine.Resources;
 //using System;
 //using System.Collections.Generic;
 
-//namespace BLITTEngine.Draw
+//namespace BLITTEngine.GameObjects
 //{
 //    public class Font : Resource
 //    {

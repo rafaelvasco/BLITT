@@ -1,7 +1,6 @@
 ﻿using BLITTEngine;
 using BLITTEngine.Core.Foundation.STB;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Draw;
 using BLITTEngine.Resources;
 using System.IO;
 using System.Linq;
@@ -74,7 +73,7 @@ namespace BLITTStudio
 
         }
 
-        public override void Draw()
+        public override void Draw(Canvas canvas)
         {
             /*canvas.Begin();
             canvas.DrawRect(-400, -300, TEX_W, TEX_H, 1, Color.White);

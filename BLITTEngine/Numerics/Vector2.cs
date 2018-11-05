@@ -66,6 +66,22 @@ namespace BLITTEngine.Numerics
             }
         }
 
+        public void Normalize()
+        {
+            float len = this.Length;
+
+            if(len < 1e-15f)
+            {
+                this.X = 0.0f;
+                this.Y = 0.0f;
+            }
+
+            float scale = 1.0f/  len;
+
+            X *= scale;
+            Y *= scale;
+        }
+
         public static void Add(in Vector2 a, in Vector2 b, out Vector2 result)
 		{
 			result = new Vector2(a.X + b.X, a.Y + b.Y);

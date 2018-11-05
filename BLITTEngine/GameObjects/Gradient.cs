@@ -1,7 +1,7 @@
-﻿
+
 using BLITTEngine.Core.Graphics;
 
-namespace BLITTEngine.Draw
+namespace BLITTEngine.GameObjects
 {
     public class Gradient
     {

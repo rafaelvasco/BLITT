@@ -16,12 +16,11 @@ namespace BLITTEngine.Core.Graphics
         Fit
     }
 
-    public unsafe class Renderer2D
+    public unsafe class Canvas
     {
         internal static Content Content;
 
-        // PASS 0 -> RENDER TO RENDERTARGET
-        // PASS 1 -> RENDER RENDERTARGET TEXTURE TO BACKBUFFER
+
 
         public int Width => canvas_width;
 
@@ -64,20 +63,12 @@ namespace BLITTEngine.Core.Graphics
         private RenderState canvas_target_state = RenderState.None | RenderState.WriteRGB;
 
 
-        internal Renderer2D(IntPtr surface_handle, int width, int height, int max_vertex_count)
+        internal Canvas(GraphicsContext graphics_context, int width, int height, int max_vertex_count)
         {
             render_targets = new List<RenderTarget>();
 
             vertex_max_count = max_vertex_count;
 
-            Bgfx.SetPlatformData(new PlatformData() { WindowHandle = surface_handle });
-
-            Bgfx.Init();
-
-            Capabilities caps = Bgfx.GetCaps();
-            Info = new GraphicsInfo(caps.Backend, caps.MaxTextureSize);
-
-            Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
 
             canvas_width = width;
 
@@ -85,15 +76,9 @@ namespace BLITTEngine.Core.Graphics
 
             renderer_surface = CreateTarget(canvas_width, canvas_height);
 
-            // RENDERTARGET CLEAR
-            Bgfx.SetViewClear(0, ClearTargets.Color, 0x0000FF);
-
-            // BACKBUFFER CLEAR
-            Bgfx.SetViewClear(1, ClearTargets.Color,0x000000FF);
-
             OnScreenResized(width, height);
 
-            Content.LoadEmbededShaders(Info.RendererBackend);
+            Content.LoadEmbededShaders(graphics_context.Info.RendererBackend);
             base_shader = Content.GetBuiltinShader("base_2d");
             base_shader.AddTextureUniform("texture_2d");
 

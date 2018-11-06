@@ -6,15 +6,18 @@ namespace BLITTEngine.Core.Graphics
 {
     public class Texture2D : Resource
     {
+        internal static GraphicsContext GraphicsContext;
+
         internal readonly int Handle;
 
         public readonly int Width;
 
         public readonly int Height;
 
-        internal readonly Texture InternalTexture;
+        internal Texture2D(int handle, int width, int height)
+        {
 
-        internal TextureFlags Flags { get; private set; }
+        }
 
         public bool Tiled
         {

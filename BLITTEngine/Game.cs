@@ -22,11 +22,13 @@ namespace BLITTEngine
     {
         internal readonly GamePlatform Platform;
 
+        internal readonly GraphicsContext GraphicsContext;
+
         public readonly Clock Clock;
 
         public readonly Content Content;
 
-        public readonly Renderer2D Canvas;
+        public readonly Renderer2D Renderer2D;
 
         public Scene CurrentScene { get; private set; }
 
@@ -100,7 +102,7 @@ namespace BLITTEngine
             Console.WriteLine($" > Platform Init took: {timer.Elapsed.TotalSeconds}");
 
             Renderer2D.Content = Content;
-            this.Canvas = new Renderer2D(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight, 2048);
+            this.Renderer2D = new Renderer2D(Platform.GetRenderSurfaceHandle(), props.CanvasWidth, props.CanvasHeight, 2048);
 
             Console.WriteLine($" > Graphics Init took: {timer.Elapsed.TotalSeconds}");
 
@@ -116,7 +118,7 @@ namespace BLITTEngine
         public void Dispose()
         {
             Content.Free();
-            Canvas.Free();
+            Renderer2D.Free();
             Platform.Quit();
         }
 

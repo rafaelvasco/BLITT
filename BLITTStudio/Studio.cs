@@ -73,7 +73,7 @@ namespace BLITTStudio
 
         }
 
-        public override void Draw(Renderer2D canvas)
+        public override void Draw(Canvas canvas)
         {
             /*canvas.Begin();
             canvas.DrawRect(-400, -300, TEX_W, TEX_H, 1, Color.White);

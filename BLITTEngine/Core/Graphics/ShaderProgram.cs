@@ -1,289 +1,94 @@
-using BLITTEngine.Core.Foundation;
+﻿using BLITTEngine.Core.Foundation;
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 
 namespace BLITTEngine.Core.Graphics
 {
-    public enum ShaderParameterType
-    {
-        Vector,
-        Matrix
-    }
-
     public class ShaderParameter
     {
-        private Vector4 value_vector;
-        private Matrix4x4 value_matrix;
+        internal Uniform Uniform;
 
-        public ShaderParameterType Type { get; private set; }
+        private Vector4 value;
 
-        public string Name { get; }
-
-        internal Uniform InternalUniform { get; private set; }
-
-        public ShaderParameter(string name, ShaderParameterType type)
+        internal ShaderParameter(string name)
         {
-            Type = type;
-            Name = name;
-
-            switch (type)
-            {
-                case ShaderParameterType.Vector:
-                    value_vector = new Vector4();
-                    break;
-
-                case ShaderParameterType.Matrix:
-                    value_matrix = Matrix4x4.Identity;
-                    break;
-            }
-
-            ChangeUniform(type);
+            this.Uniform = new Uniform(name, UniformType.Vector4);
         }
 
-        private void ChangeUniform(ShaderParameterType type)
+        public void SetValue(float v)
         {
-            if (this.Type == type)
-            {
-                return;
-            }
-
-            switch (type)
-            {
-                case ShaderParameterType.Matrix:
-                    this.InternalUniform.Dispose();
-                    this.InternalUniform = new Uniform(this.Name, UniformType.Matrix4x4);
-                    this.Type = type;
-                    break;
-
-                case ShaderParameterType.Vector:
-                    this.InternalUniform.Dispose();
-                    this.InternalUniform = new Uniform(this.Name, UniformType.Vector4);
-                    this.Type = type;
-                    break;
-            }
+            value.X = v;
+            value.Y = 0;
+            value.Z = 0;
+            value.W = 0;
         }
 
-        public void SetValue(float value)
+        public void SetValue(Vector2 v)
         {
-            value_vector.X = value;
+            value.X = v.X;
+            value.Y = v.Y;
+            value.Z = 0;
+            value.W = 0;
         }
 
-        public void SetValue(bool value)
+        public void SetValue(Vector3 v)
         {
-            value_vector.X = value ? 1.0f : 0.0f;
+            value.X = v.X;
+            value.Y = v.Y;
+            value.Z = v.Z;
+            value.W = 0;
         }
 
-        public void SetValue(ref Vector4 value)
+        public void SetValue(Vector4 v)
         {
-            value_vector.X = value.X;
-            value_vector.Y = value.Y;
-            value_vector.Z = value.Z;
-            value_vector.W = value.W;
+            value = v;
         }
 
-        public void SetValue(ref Vector3 value)
+        public void SetValue(Color color)
         {
-            value_vector.X = value.X;
-            value_vector.Y = value.Y;
-            value_vector.Z = value.Z;
-            value_vector.W = 0.0f;
-        }
-
-        public void SetValue(ref Vector2 value)
-        {
-            value_vector.X = value.X;
-            value_vector.Y = value.Y;
-            value_vector.Z = 0.0f;
-            value_vector.W = 0.0f;
-        }
-
-        public void SetValue(float value1, float value2, float value3, float value4)
-        {
-            value_vector.X = value1;
-            value_vector.Y = value2;
-            value_vector.Z = value3;
-            value_vector.W = value4;
-        }
-
-        public void SetValue(Matrix4x4 value)
-        {
-            this.value_matrix = value;
-        }
-
-        public unsafe void Submit()
-        {
-            switch (Type)
-            {
-                case ShaderParameterType.Vector:
-                    {
-                        var value = value_vector;
-                        Bgfx.SetUniform(InternalUniform, &value);
-                    }
-                    break;
-
-                case ShaderParameterType.Matrix:
-                    {
-                        var value = value_matrix;
-                        Bgfx.SetUniform(InternalUniform, &value);
-                    }
-                    break;
-            }
+            value.X = color.R / 255;
+            value.Y = color.G / 255;
+            value.Z = color.B / 255;
+            value.W = color.A / 255;
         }
     }
 
-    public class ShaderProgram
+    public class ShaderProgram : IDisposable
     {
-        internal Program Program { get; }
+        internal static GraphicsContext GraphicsContext;
 
-        private readonly Dictionary<string, int> shader_param_map;
-        private readonly List<ShaderParameter> shader_params;
-        private readonly Dictionary<string, Uniform> texture_uniforms;
+        internal Program Program;
 
-        internal ShaderProgram(Shader vertexShader, Shader fragShader)
+        internal ShaderParameter[] Parameters;
+
+        internal Uniform[] Samplers;
+
+        private int param_idx;
+        private int sample_idx;
+
+        internal ShaderProgram(Program program)
         {
-            shader_param_map = new Dictionary<string, int>();
-            shader_params = new List<ShaderParameter>();
-
-            texture_uniforms = new Dictionary<string, Uniform>();
-
-            Program = new Program(vertexShader, fragShader, destroyShaders: true);
+            this.Program = program;
+            Parameters = new ShaderParameter[16];
         }
 
-        public void AddTextureUniform(string name)
+        public ShaderParameter CreateParameter(string name)
         {
-            if (texture_uniforms.ContainsKey(name))
-            {
-                throw new InvalidOperationException("ShaderProgram already contains a Texture Uniform with this name!");
-            }
+            var parameter = new ShaderParameter(name);
 
-            var textureUniform = new Uniform(name, UniformType.Int1);
+            Parameters[param_idx++] = parameter;
 
-            texture_uniforms.Add(name, textureUniform);
+            return parameter;
         }
 
-        public void SetTexture(Texture2D texture, string uniformName, byte tex_unit = 0)
+        public void AddTexture(string name)
         {
-            if (texture_uniforms.TryGetValue(uniformName, out var uniform))
-            {
-                Bgfx.SetTexture(tex_unit, uniform, texture.InternalTexture);
-            }
-        }
-
-        public void SetTexture(Texture texture, string uniformName, byte tex_unit = 0)
-        {
-            if (texture_uniforms.TryGetValue(uniformName, out var uniform))
-            {
-                Bgfx.SetTexture(tex_unit, uniform, texture);
-            }
-        }
-
-        public void SetParameter(string name, float value)
-        {
-            if (shader_param_map.TryGetValue(name, out var index))
-            {
-                shader_params[index].SetValue(value);
-            }
-            else
-            {
-                var param = new ShaderParameter(name, ShaderParameterType.Vector);
-
-                param.SetValue(value);
-
-                shader_param_map.Add(name, shader_params.Count);
-                shader_params.Add(param);
-            }
-        }
-
-        public void SetParameter(string name, Vector2 value)
-        {
-            if (shader_param_map.TryGetValue(name, out var index))
-            {
-                shader_params[index].SetValue(ref value);
-            }
-            else
-            {
-                var param = new ShaderParameter(name, ShaderParameterType.Vector);
-
-                param.SetValue(ref value);
-
-                shader_param_map.Add(name, shader_params.Count);
-                shader_params.Add(param);
-            }
-        }
-
-        public void SetParameter(string name, Vector3 value)
-        {
-            if (shader_param_map.TryGetValue(name, out var index))
-            {
-                shader_params[index].SetValue(ref value);
-            }
-            else
-            {
-                var param = new ShaderParameter(name, ShaderParameterType.Vector);
-
-                param.SetValue(ref value);
-
-                shader_param_map.Add(name, shader_params.Count);
-                shader_params.Add(param);
-            }
-        }
-
-        public void SetParameter(string name, Vector4 value)
-        {
-            if (shader_param_map.TryGetValue(name, out var index))
-            {
-                shader_params[index].SetValue(ref value);
-            }
-            else
-            {
-                var param = new ShaderParameter(name, ShaderParameterType.Vector);
-
-                param.SetValue(ref value);
-
-                shader_param_map.Add(name, shader_params.Count);
-                shader_params.Add(param);
-            }
-        }
-
-        public void SetParameter(string name, Matrix4x4 value)
-        {
-            if (shader_param_map.TryGetValue(name, out var index))
-            {
-                shader_params[index].SetValue(value);
-            }
-            else
-            {
-                var param = new ShaderParameter(name, ShaderParameterType.Matrix);
-
-                param.SetValue(value);
-
-                shader_param_map.Add(name, shader_params.Count);
-                shader_params.Add(param);
-            }
-        }
-
-        internal void SubmitUniforms()
-        {
-            foreach (var param in shader_params)
-            {
-                param.Submit();
-            }
+            Samplers[sample_idx++] = new Uniform(name, UniformType.Int1);
         }
 
         public void Dispose()
         {
-            foreach (var param in shader_params)
-            {
-                param.InternalUniform.Dispose();
-            }
-
-            foreach (var textureUniform in texture_uniforms)
-            {
-                textureUniform.Value.Dispose();
-            }
-
-            Program.Dispose();
+            GraphicsContext.FreeShaderProgram(this);
         }
     }
 }

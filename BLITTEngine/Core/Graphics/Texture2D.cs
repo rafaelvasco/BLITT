@@ -8,16 +8,13 @@ namespace BLITTEngine.Core.Graphics
     {
         internal static GraphicsContext GraphicsContext;
 
-        internal readonly int Handle;
+        internal Texture Texture;
 
         public readonly int Width;
 
         public readonly int Height;
 
-        internal Texture2D(int handle, int width, int height)
-        {
-
-        }
+        public readonly bool RenderTarget;
 
         public bool Tiled
         {
@@ -28,104 +25,46 @@ namespace BLITTEngine.Core.Graphics
                 {
                     tiled = value;
 
-                    UpdateTextureFlags();
+                    GraphicsContext.UpdateTextureAttributes(this);
                 }
             }
         }
 
-        public bool Smooth
+        public bool Filtered
         {
-            get => smooth;
+            get => filtered;
             set
             {
-                if (smooth != value)
+                if (filtered != value)
                 {
-                    smooth = value;
+                    filtered = value;
 
-                    UpdateTextureFlags();
+                    GraphicsContext.UpdateTextureAttributes(this);
                 }
             }
         }
 
         private bool tiled;
 
-        private bool smooth;
+        private bool filtered;
 
-        internal Texture2D(Pixmap pixmap)
+        internal Texture2D(Texture texture, bool render_target)
         {
-            UpdateTextureFlags();
+            this.Texture = texture;
+            this.Width = texture.Width;
+            this.Height = texture.Height;
+            this.RenderTarget = render_target;
 
-            MemoryBlock image_memory = MemoryBlock.FromArray(pixmap.PixelData);
-
-            InternalTexture = Texture.Create2D(
-                width: pixmap.Width,
-                height: pixmap.Height,
-                hasMips: false,
-                arrayLayers: 0,
-                format: TextureFormat.BGRA8,
-                flags: Flags,
-                memory: image_memory
-            );
-        }
-
-        internal Texture2D(int width, int height, bool render_target=false)
-        {
-
-
-            UpdateTextureFlags();
-
-            if(render_target)
-            {
-                Flags |= TextureFlags.RenderTarget;
-            }
-
-            InternalTexture = Texture.Create2D(
-                width: width,
-                height: height,
-                hasMips: false,
-                arrayLayers: 0,
-                format: TextureFormat.BGRA8,
-                flags: Flags,
-                memory: null
-            );
         }
 
         public void SetData(Pixmap pixmap)
         {
-            var memory = MemoryBlock.MakeRef(pixmap.PixelDataPtr, pixmap.SizeBytes, IntPtr.Zero);
-
-            InternalTexture.Update2D(0, 0, 0, 0, pixmap.Width, pixmap.Height, memory, pixmap.Stride);
-        }
-
-        private void UpdateTextureFlags()
-        {
-            if (!tiled)
-            {
-                Flags = TextureFlags.ClampU | TextureFlags.ClampV;
-            }
-            else
-            {
-                Flags = TextureFlags.MirrorU | TextureFlags.MirrorV;
-            }
-
-            if (!smooth)
-            {
-                Flags |= TextureFlags.MinFilterPoint | TextureFlags.MagFilterPoint;
-            }
-            else
-            {
-                Flags |= TextureFlags.MinFilterAnisotropic | TextureFlags.MagFilterAnisotropic;
-            }
-
-            if (InternalTexture != null)
-            {
-                InternalTexture.OverrideInternal(Width, Height, InternalTexture.MipLevels, InternalTexture.Format, Flags);
-            }
+            GraphicsContext.UpdateTextureData(this, pixmap);
         }
 
         internal override void Dispose()
         {
-            InternalTexture?.Dispose();
+            GraphicsContext.FreeTexture(this);
 
             GC.SuppressFinalize(this);
         }

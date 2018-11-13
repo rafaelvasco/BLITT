@@ -16,19 +16,17 @@ namespace BLITTEngine.Core.Graphics
         Fit
     }
 
+    // PASS 0 -> RENDER TO RENDERTARGET
+    // PASS 1 -> RENDER RENDERTARGET TEXTURE TO BACKBUFFER
+
     public unsafe class Canvas
     {
-        internal static Content Content;
-
-
 
         public int Width => canvas_width;
 
         public int Height => canvas_height;
 
         private int vertex_max_count;
-
-        private Texture2D current_texture;
 
         private BlendMode current_blend_mode;
 
@@ -60,11 +58,12 @@ namespace BLITTEngine.Core.Graphics
 
         private CanvasFullscreenStretchMode stretch_mode = CanvasFullscreenStretchMode.PixelPerfect;
 
-        private RenderState canvas_target_state = RenderState.None | RenderState.WriteRGB;
-
+        private GraphicsContext gfx;
 
         internal Canvas(GraphicsContext graphics_context, int width, int height, int max_vertex_count)
         {
+            gfx = graphics_context;
+
             render_targets = new List<RenderTarget>();
 
             vertex_max_count = max_vertex_count;

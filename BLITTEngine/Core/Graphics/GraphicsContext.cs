@@ -1,6 +1,7 @@
 ﻿using BLITTEngine.Core.Foundation;
 using System;
 using System.Runtime.CompilerServices;
+using BLITTEngine.Resources;
 
 namespace BLITTEngine.Core.Graphics
 {
@@ -16,65 +17,68 @@ namespace BLITTEngine.Core.Graphics
         }
     }
 
-
-    internal unsafe class GraphicsContext
+    public unsafe class GraphicsContext
     {
+        private readonly IndexBuffer[] index_buffers;
+
+        private int index_buffers_idx;
+
         public readonly GraphicsInfo Info;
 
-
-        private RenderState render_state;
-
-        private RenderState base_render_state;
-
-
-        public GraphicsContext(IntPtr graphics_surface_ptr, int width, int height)
+        internal GraphicsContext(IntPtr graphics_surface_ptr, int width, int height)
         {
-            Bgfx.SetPlatformData(new PlatformData() { WindowHandle = graphics_surface_ptr });
+            Bgfx.SetPlatformData(new PlatformData() {WindowHandle = graphics_surface_ptr});
 
             Bgfx.Init();
 
             Capabilities caps = Bgfx.GetCaps();
             Info = new GraphicsInfo(caps.Backend, caps.MaxTextureSize);
 
+            Console.WriteLine($"Graphics Backend : {Info.RendererBackend}");
+
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
+
+            ResizeBackBuffer(width, height);
 
             // RENDERTARGET CLEAR
             Bgfx.SetViewClear(0, ClearTargets.Color, 0x0000FF);
 
             // BACKBUFFER CLEAR
-            Bgfx.SetViewClear(1, ClearTargets.Color,0x000000FF);
+            Bgfx.SetViewClear(1, ClearTargets.Color, 0x000000FF);
 
-            base_render_state = RenderState.WriteRGB;
+            Content.GraphicsContext = this;
+            RenderTarget.GraphicsContext = this;
+            Texture2D.GraphicsContext = this;
+            ShaderProgram.GraphicsContext = this;
+
+            Content.LoadEmbededShaders(Info.RendererBackend);
+
+            index_buffers = new IndexBuffer[16];
         }
 
-        public void SetBlendMode(BlendMode blend_mode)
+        public void Clear(ushort view, int color)
         {
-            switch (blend_mode)
-            {
-                case BlendMode.AlphaBlend:
-
-                    render_state = base_render_state | RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendInverseSourceAlpha);
-
-                    break;
-
-                case BlendMode.AlphaAdd:
-
-                    render_state = base_render_state | RenderState.BlendFunction(RenderState.BlendSourceAlpha, RenderState.BlendOne);
-
-                    break;
-
-                case BlendMode.ColorMul:
-
-                    render_state = base_render_state | RenderState.BlendDarken;
-
-                    break;
-            }
+            Bgfx.SetViewClear(view, ClearTargets.Color, color);
         }
 
-
-        public void Submit(ShaderProgram shader)
+        public void Submit(
+            ushort view,
+            int vertex_count, 
+            ShaderProgram shader, 
+            IndexBuffer index_buffer, 
+            TransientVertexBuffer vertex_buffer, 
+            Texture2D texture, 
+            RenderState render_state)
         {
+            Bgfx.SetTexture(0, shader.Samplers[0], texture.Texture);
 
+            Bgfx.SetRenderState(render_state);
+
+            Bgfx.SetIndexBuffer(index_buffer, 0, (vertex_count/4) * 6);
+
+            Bgfx.SetVertexBuffer(0, vertex_buffer, 0, vertex_count);
+
+            Bgfx.Submit(view, shader.Program);
         }
 
         public void SwapBuffers()
@@ -82,15 +86,16 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.Frame();
         }
 
-
-        public void StreamVertices2D(Vertex2D[] vertices, int count)
+        public TransientVertexBuffer StreamVertices2D(Vertex2D[] vertices, int count)
         {
             var vertex_buffer = new TransientVertexBuffer(count, Vertex2D.Layout);
 
             fixed (void* v = vertices)
             {
-                Unsafe.CopyBlock((void*)vertex_buffer.Data, v, (uint)(count * Vertex2D.Stride));
+                Unsafe.CopyBlock((void*) vertex_buffer.Data, v, (uint) (count * Vertex2D.Stride));
             }
+
+            return vertex_buffer;
         }
 
         public void ResizeBackBuffer(int width, int height)
@@ -98,7 +103,53 @@ namespace BLITTEngine.Core.Graphics
             Bgfx.Reset(width, height, ResetFlags.Vsync);
         }
 
-        public Texture2D CreateTexture(byte[] data, int width, int height, bool tiled=false, bool filtered=false, bool render_target=false)
+        public void SetRenderTarget(ushort view, RenderTarget render_target)
+        {
+            Bgfx.SetViewFrameBuffer(view, render_target.FrameBuffer);
+        }
+
+        public void SetViewport(ushort view, int x, int y, int w, int h)
+        {
+            Bgfx.SetViewRect(view, x, y, w, h);
+        }
+
+        public void SetTransform(ushort view, float* matrix)
+        {
+            Bgfx.SetViewTransform(view, null, matrix);
+        }
+
+        public void TakeScreenShot(string file_path)
+        {
+            Bgfx.RequestScreenShot(file_path);
+        }
+
+        internal void Shutdown()
+        {
+            FreeInternalResources();
+
+            Bgfx.Shutdown();
+        }
+
+        internal void SubmitShaderAttributes(ShaderProgram program)
+        {
+        }
+
+        internal void UpdateTextureAttributes(Texture2D texture)
+        {
+            TextureFlags tex_flags = BuildTexFlags(texture.Tiled, texture.Filtered, texture.RenderTarget);
+
+            texture.Texture.OverrideInternal(texture.Width, texture.Height, 0, TextureFormat.BGRA8, tex_flags);
+        }
+
+        internal void UpdateTextureData(Texture2D texture, Pixmap pixmap)
+        {
+            MemoryBlock memory = MemoryBlock.MakeRef(pixmap.PixelDataPtr, pixmap.SizeBytes, IntPtr.Zero);
+
+            texture.Texture.Update2D(0, 0, 0, 0, pixmap.Width, pixmap.Height, memory, pixmap.Stride);
+        }
+
+        internal Texture2D CreateTexture(byte[] data, int width, int height, bool tiled = false, bool filtered = false,
+                                       bool render_target = false)
         {
             MemoryBlock image_memory = MemoryBlock.FromArray(data);
 
@@ -117,7 +168,35 @@ namespace BLITTEngine.Core.Graphics
             return new Texture2D(tex_object, render_target);
         }
 
-        public ShaderProgram CreateShader(byte[] vertex_src, byte[] frag_src)
+        internal Texture2D CreateTexture(int width, int height, bool tiled = false, bool filtered = false,
+                                       bool render_target = false)
+        {
+            TextureFlags tex_flags = BuildTexFlags(tiled, filtered, render_target);
+
+            var tex_object = Texture.Create2D(
+                width: width,
+                height: height,
+                hasMips: false,
+                arrayLayers: 0,
+                format: TextureFormat.BGRA8,
+                flags: tex_flags
+            );
+
+            return new Texture2D(tex_object, render_target);
+        }
+
+        internal RenderTarget CreateRenderTarget(int width, int height)
+        {
+            Texture2D texture = CreateTexture(width, height, filtered: false, tiled: false, render_target: true);
+
+            Attachment[] attachments = { new Attachment() { Texture = texture.Texture, Mip = 0, Layer = 0 } };
+
+            var frame_buffer = new FrameBuffer(attachments, destroyTextures: true);
+
+            return new RenderTarget(frame_buffer, texture);
+        }
+
+        internal ShaderProgram CreateShader(byte[] vertex_src, byte[] frag_src)
         {
             if (vertex_src.Length == 0 || frag_src.Length == 0)
             {
@@ -132,57 +211,22 @@ namespace BLITTEngine.Core.Graphics
             var shader_program = new ShaderProgram(program);
 
             return shader_program;
-
         }
 
-        public void FreeShaderProgram(ShaderProgram shader)
+        internal IndexBuffer CreateIndexBuffer(ushort[] indices) 
         {
-            foreach(var shader_param in shader.Parameters)
-            {
-                shader_param.Uniform.Dispose();
-            }
+            var index_buffer = new IndexBuffer(MemoryBlock.FromArray(indices));
 
-            shader.Program.Dispose();
+            index_buffers[index_buffers_idx++] = index_buffer;
+
+            return index_buffer;
         }
 
-        public void SubmitShaderAttributes(ShaderProgram program)
-        {
-
-        }
-
-
-        public void UpdateTextureAttributes(Texture2D texture)
-        {
-            TextureFlags tex_flags = BuildTexFlags(texture.Tiled, texture.Filtered, texture.RenderTarget);
-
-            var tex = textures[texture.TextureHandle];
-
-            tex.OverrideInternal(texture.Width, texture.Height, 0, TextureFormat.BGRA8, tex_flags);
-        }
-
-        public void UpdateTextureData(Texture2D texture, Pixmap pixmap)
-        {
-            var memory = MemoryBlock.MakeRef(pixmap.PixelDataPtr, pixmap.SizeBytes, IntPtr.Zero);
-
-            var tex = textures[texture.TextureHandle];
-
-            tex.Update2D(0, 0, 0, 0, pixmap.Width, pixmap.Height, memory, pixmap.Stride);
-        }
-
-        public void FreeTexture(Texture2D texture)
-        {
-            var tex = textures[texture.TextureHandle];
-
-            tex.Dispose();
-
-            textures[texture.TextureHandle] = null;
-        }
-
-        private TextureFlags BuildTexFlags(bool tiled, bool filtered, bool render_target)
+        private static TextureFlags BuildTexFlags(bool tiled, bool filtered, bool render_target)
         {
             TextureFlags tex_flags;
 
-            if(!tiled)
+            if (!tiled)
             {
                 tex_flags = TextureFlags.ClampU | TextureFlags.ClampV;
             }
@@ -191,7 +235,7 @@ namespace BLITTEngine.Core.Graphics
                 tex_flags = TextureFlags.MirrorU | TextureFlags.MirrorV;
             }
 
-            if(!filtered)
+            if (!filtered)
             {
                 tex_flags |= TextureFlags.MinFilterPoint | TextureFlags.MagFilterPoint;
             }
@@ -200,7 +244,7 @@ namespace BLITTEngine.Core.Graphics
                 tex_flags |= TextureFlags.MinFilterAnisotropic | TextureFlags.MagFilterAnisotropic;
             }
 
-            if(render_target)
+            if (render_target)
             {
                 tex_flags |= TextureFlags.RenderTarget;
             }
@@ -208,6 +252,12 @@ namespace BLITTEngine.Core.Graphics
             return tex_flags;
         }
 
-
+        private void FreeInternalResources()
+        {
+            while (index_buffers_idx > 0)
+            {
+                index_buffers[--index_buffers_idx].Dispose();
+            }
+        }
     }
 }

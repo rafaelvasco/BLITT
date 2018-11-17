@@ -46,10 +46,10 @@ namespace BLITTEngine.Core.Graphics
 
         public void SetValue(Color color)
         {
-            value.X = color.R / 255;
-            value.Y = color.G / 255;
-            value.Z = color.B / 255;
-            value.W = color.A / 255;
+            value.X = color.R / 255f;
+            value.Y = color.G / 255f;
+            value.Z = color.B / 255f;
+            value.W = color.A / 255f;
         }
     }
 
@@ -70,6 +70,7 @@ namespace BLITTEngine.Core.Graphics
         {
             this.Program = program;
             Parameters = new ShaderParameter[16];
+            Samplers = new Uniform[8];
         }
 
         public ShaderParameter CreateParameter(string name)
@@ -81,14 +82,25 @@ namespace BLITTEngine.Core.Graphics
             return parameter;
         }
 
-        public void AddTexture(string name)
+        public void AddTextureUniform(string name)
         {
             Samplers[sample_idx++] = new Uniform(name, UniformType.Int1);
         }
 
         public void Dispose()
         {
-            GraphicsContext.FreeShaderProgram(this);
+            while (sample_idx > 0)
+            {
+                Samplers[--sample_idx].Dispose();
+            }
+
+            while (param_idx > 0)
+            {
+                Parameters[--param_idx].Uniform.Dispose();
+               
+            }
+
+            Program.Dispose();
         }
     }
 }

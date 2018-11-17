@@ -26,8 +26,6 @@ namespace BLITTEngine
 
         public readonly Clock Clock;
 
-        public readonly Content Content;
-
         public readonly Canvas Canvas;
 
         public Scene CurrentScene { get; private set; }
@@ -39,12 +37,11 @@ namespace BLITTEngine
             get => full_screen;
             set
             {
-                if (full_screen != value)
-                {
-                    full_screen = value;
+                if (full_screen == value) return;
 
-                    toggle_fullscreen_requested = true;
-                }
+                full_screen = value;
+
+                toggle_fullscreen_requested = true;
             }
         }
 
@@ -60,13 +57,12 @@ namespace BLITTEngine
             {
                 Platform.GetScreenSize(out int w, out int h);
 
-                if(value.W != w || value.H != h)
-                {
-                    screen_resize_requested = true;
+                if (value.W == w && value.H == h) return;
 
-                    requested_screen_w = value.W;
-                    requested_screen_h = value.H;
-                }
+                screen_resize_requested = true;
+
+                requested_screen_w = value.W;
+                requested_screen_h = value.H;
             }
         }
 
@@ -89,15 +85,15 @@ namespace BLITTEngine
 
             Console.WriteLine(":: Blit Engine Start ::");
 
-            var timer = Stopwatch.StartNew();
+            Stopwatch timer = Stopwatch.StartNew();
 
             Platform = new SDLGamePlatform();
             Platform.OnQuit += _OnPlatformQuit;
             Platform.OnWinResized += _OnScreenResized;
 
-            Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, fullscreen: props.Fullscreen);
+            Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, props.Fullscreen);
 
-            Content = new Content(root_path: "Assets");
+            Content.Init(root_path:"Assets");
 
             Console.WriteLine($" > Platform Init took: {timer.Elapsed.TotalSeconds}");
 
@@ -105,9 +101,9 @@ namespace BLITTEngine
 
             GraphicsContext = new GraphicsContext(Platform.GetRenderSurfaceHandle(), screen_w, screen_h);
 
-            this.Canvas = new Canvas(GraphicsContext, props.CanvasWidth, props.CanvasHeight, 2048);;
-
             Console.WriteLine($" > Graphics Init took: {timer.Elapsed.TotalSeconds}");
+
+            Canvas = new Canvas(GraphicsContext, props.CanvasWidth, props.CanvasHeight, 2048);;
 
             Control.Init(Platform);
 
@@ -116,12 +112,13 @@ namespace BLITTEngine
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
             Scene.Game = this;
+            Scene.Canvas = Canvas;
         }
 
         public void Dispose()
         {
-            Content.Free();
-            Renderer2D.Free();
+            Content.FreeEverything();;
+            GraphicsContext.Shutdown();
             Platform.Quit();
         }
 
@@ -136,7 +133,9 @@ namespace BLITTEngine
             CurrentScene.Init();
 
             Running = true;
+            
             Platform.ShowScreen(true);
+            GraphicsContext.SwapBuffers();
 
             _Tick();
         }
@@ -193,7 +192,7 @@ namespace BLITTEngine
 
                 CurrentScene.Draw(Canvas);
 
-                Canvas.Flip();
+                GraphicsContext.SwapBuffers();
 
                 if(toggle_fullscreen_requested)
                 {

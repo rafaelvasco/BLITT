@@ -2,8 +2,7 @@
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.GameObjects;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using BLITTEngine.Resources;
 
 namespace BLITTDemo
 {

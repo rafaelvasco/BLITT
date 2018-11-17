@@ -21,12 +21,11 @@ namespace BLITTEngine.Core.Graphics
             get => tiled;
             set
             {
-                if (tiled != value)
-                {
-                    tiled = value;
+                if (tiled == value) return;
 
-                    GraphicsContext.UpdateTextureAttributes(this);
-                }
+                tiled = value;
+
+                GraphicsContext.UpdateTextureAttributes(this);
             }
         }
 
@@ -35,12 +34,11 @@ namespace BLITTEngine.Core.Graphics
             get => filtered;
             set
             {
-                if (filtered != value)
-                {
-                    filtered = value;
+                if (filtered == value) return;
 
-                    GraphicsContext.UpdateTextureAttributes(this);
-                }
+                filtered = value;
+
+                GraphicsContext.UpdateTextureAttributes(this);
             }
         }
 
@@ -64,9 +62,7 @@ namespace BLITTEngine.Core.Graphics
 
         internal override void Dispose()
         {
-            GraphicsContext.FreeTexture(this);
-
-            GC.SuppressFinalize(this);
+            this.Texture.Dispose();
         }
     }
 }

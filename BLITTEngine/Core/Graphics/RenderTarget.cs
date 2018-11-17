@@ -1,23 +1,25 @@
 ﻿using BLITTEngine.Core.Foundation;
+using BLITTEngine.Resources;
 
 namespace BLITTEngine.Core.Graphics
 {
-    public class RenderTarget
+    public class RenderTarget : Resource 
     {
-        internal FrameBuffer Handle => handle;
-        internal Texture2D Texture => texture;
+        internal static GraphicsContext GraphicsContext;
 
-        private Texture2D texture;
-        private FrameBuffer handle;
+        internal FrameBuffer FrameBuffer { get; }
 
-        internal RenderTarget(int width, int height)
+        internal Texture2D Texture { get; }
+
+        internal RenderTarget(FrameBuffer frame_buffer, Texture2D texture)
         {
+            FrameBuffer = frame_buffer;
+            this.Texture = texture;
+        }
 
-            this.texture = new Texture2D(width, height, render_target: true);
-
-            Attachment[] attachments = { new Attachment() { Texture = this.texture.InternalTexture, Mip = 0, Layer = 0 } };
-
-            this.handle = new FrameBuffer(attachments, destroyTextures: true);
+        internal override void Dispose()
+        {
+            FrameBuffer.Dispose();
         }
     }
 }

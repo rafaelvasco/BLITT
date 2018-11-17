@@ -16,7 +16,7 @@ namespace BLITTDemo
 
             using (var game = new Game(props))
             {
-                game.Start(new Demo2());
+                game.Start(new Demo1());
             }
         }
     }

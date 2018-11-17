@@ -59,7 +59,7 @@ namespace BLITTEngine.GameObjects
 
         }
 
-        public void Render(Renderer2D canvas, float x, float y)
+        public void Render(Canvas canvas, float x, float y)
         {
             float tx1 = x - origin_x;
             float ty1 = y - origin_y;
@@ -81,7 +81,7 @@ namespace BLITTEngine.GameObjects
 
         }
 
-        public void RenderEx(Renderer2D canvas, float x, float y, float rot, float hscale, float vscale = 0)
+        public void RenderEx(Canvas canvas, float x, float y, float rot, float hscale, float vscale = 0)
         {
             if(vscale == 0)
             {
@@ -124,7 +124,7 @@ namespace BLITTEngine.GameObjects
             canvas.RenderQuad(ref q);
         }
 
-        public void RenderStretch(Renderer2D canvas, float x1, float y1, float x2, float y2)
+        public void RenderStretch(Canvas canvas, float x1, float y1, float x2, float y2)
         {
             ref Quad q = ref quad;
 
@@ -142,7 +142,7 @@ namespace BLITTEngine.GameObjects
 
         public void Render4V
             (
-                Renderer2D canvas,
+                Canvas canvas,
                 float x0, float y0,
                 float x1, float y1,
                 float x2, float y2,

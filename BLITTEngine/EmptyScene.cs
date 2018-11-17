@@ -13,7 +13,7 @@ namespace BLITTEngine
         {
         }
 
-        public override void Draw(Renderer2D canvas)
+        public override void Draw(Canvas canvas)
         {
         }
     }

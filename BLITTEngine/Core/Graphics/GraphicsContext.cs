@@ -40,12 +40,6 @@ namespace BLITTEngine.Core.Graphics
 
             ResizeBackBuffer(width, height);
 
-            // RENDERTARGET CLEAR
-            Bgfx.SetViewClear(0, ClearTargets.Color, 0x0000FF);
-
-            // BACKBUFFER CLEAR
-            Bgfx.SetViewClear(1, ClearTargets.Color, 0x000000FF);
-
             Content.GraphicsContext = this;
             RenderTarget.GraphicsContext = this;
             Texture2D.GraphicsContext = this;
@@ -56,7 +50,7 @@ namespace BLITTEngine.Core.Graphics
             index_buffers = new IndexBuffer[16];
         }
 
-        public void Clear(ushort view, int color)
+        public void SetClearColor(ushort view, int color)
         {
             Bgfx.SetViewClear(view, ClearTargets.Color, color);
         }
@@ -128,10 +122,6 @@ namespace BLITTEngine.Core.Graphics
             FreeInternalResources();
 
             Bgfx.Shutdown();
-        }
-
-        internal void SubmitShaderAttributes(ShaderProgram program)
-        {
         }
 
         internal void UpdateTextureAttributes(Texture2D texture)

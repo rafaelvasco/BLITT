@@ -36,15 +36,18 @@ namespace BLITTDemo
 
             sprite = new Sprite(Content.GetTexture2D("particles"), 96, 64, 32, 32);
 
-            sprite.SetColor(0xFF00A0FF);
+            sprite.SetColor(Color.Cyan);
             sprite.SetOrigin(0.5f, 0.5f);
 
-            trail = new Sprite(Content.GetTexture2D("particles"), 32, 32, 32, 32);
-            trail.BlendMode = BlendMode.AlphaAdd;
+            trail = new Sprite(Content.GetTexture2D("particles"), 32, 32, 32, 32)
+            {
+                BlendMode = BlendMode.AlphaAdd
+            };
+
             trail.SetOrigin(0.5f, 0.5f);
             trail.SetColor(Color.White);
 
-            ParticleEmitterInfo particles_info = new ParticleEmitterInfo()
+            var particles_info = new ParticleEmitterInfo()
             {
                 MaxParticles = 500,
                 Emission = 30,
@@ -58,7 +61,7 @@ namespace BLITTDemo
                 RadialAccelMax = 0,
                 RadialAccelMin = 0,
                 Relative = false,
-                SizeStart = 0.5f,
+                SizeStart = 1f,
                 SizeEnd = 0.0f,
                 SizeVariation = 0,
                 SpeedMax = 0,
@@ -68,6 +71,9 @@ namespace BLITTDemo
                 SpinVariation = 0,
                 TangentialAccelMax = 0,
                 TangentialAccelMin = 0,
+                ColorStart = Color.Red,
+                ColorEnd = Color.Green.WithAlpha(0.0f),
+                ColorVariation = 00f
             };
 
             emitter = new ParticleEmitter(particles_info, trail);

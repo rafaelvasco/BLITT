@@ -346,10 +346,10 @@ namespace BLITTEngine.GameObjects
         {
             switch(corner)
             {
-                case 0: return quad.V0.Col;
-                case 1: return quad.V1.Col;
-                case 2: return quad.V2.Col;
-                case 3: return quad.V3.Col;
+                case 0: return new Color(quad.V0.Col);
+                case 1: return new Color(quad.V1.Col);
+                case 2: return new Color(quad.V2.Col);
+                case 3: return new Color(quad.V3.Col);
             }
 
             return default;

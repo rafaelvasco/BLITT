@@ -83,6 +83,10 @@ namespace BLITTEngine.Core.Graphics
 
             SetBlendMode(BlendMode.AlphaBlend);
 
+            gfx.SetClearColor(view: 0, 0x000000FF);
+
+            gfx.SetClearColor(view: 1, 0x000000FF);
+
             _InitRenderBuffers();
 
         }
@@ -122,9 +126,9 @@ namespace BLITTEngine.Core.Graphics
             }
         }
 
-        public void Clear(ref Color color)
+        public void Clear(Color color)
         {
-            gfx.Clear(0, color);
+            gfx.SetClearColor(0, color.GetIntRgba());
         }
 
         public void Begin(RenderTarget target = null)
@@ -211,8 +215,8 @@ namespace BLITTEngine.Core.Graphics
 
             gfx.ResizeBackBuffer(width, height);
 
-            int canvas_w = width;
-            int canvas_h = height;
+            int canvas_w = this.Width;
+            int canvas_h = this.Height;
 
             switch (stretch_mode)
             {

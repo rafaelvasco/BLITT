@@ -52,10 +52,10 @@ namespace BLITTEngine.Core.Graphics
         public void Fill(Color color)
         {
             var pd = data;
-            byte r = color.R;
-            byte g = color.G;
-            byte b = color.B;
-            byte a = color.A;
+            byte r = (byte) (color.R*255);
+            byte g = (byte) (color.G*255);
+            byte b = (byte) (color.B*255);
+            byte a = (byte) (color.A*255);
 
             fixed (byte* p = pd)
             {

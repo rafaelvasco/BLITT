@@ -1,21 +1,21 @@
-using BLITTEngine.Numerics;
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace BLITTEngine.Core.Graphics
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct Color : IEquatable<Color>
     {
-        private static Color _transparent = new Color(0);
-        private static Color _black = new Color(0xFF000000);
-        private static Color _white = new Color(0xFFFFFFFF);
-        private static Color _red = new Color(0xFF0000FF);
-        private static Color _green = new Color(0xFF00FF00);
-        private static Color _blue = new Color(0xFFFF0000);
-        private static Color _yellow = new Color(0xFF00FFFF);
-        private static Color _fuschia = new Color(0xFFFF00FF);
+        private static readonly Color _transparent = new Color(0);
+        private static readonly Color _black = new Color(0xFF000000);
+        private static readonly Color _white = new Color(0xFFFFFFFF);
+        private static readonly Color _red = new Color(0xFF0000FF);
+        private static readonly Color _green = new Color(0xFF00FF00);
+        private static readonly Color _blue = new Color(0xFFFF0000);
+        private static readonly Color _yellow = new Color(0xFF00FFFF);
+        private static readonly Color _fuschia = new Color(0xFFFF00FF);
+        private static readonly Color _cyan = new Color(0xFFFFFF00);
+
 
         public static ref readonly Color Transparent => ref _transparent;
         public static ref readonly Color Black => ref _black;
@@ -25,205 +25,134 @@ namespace BLITTEngine.Core.Graphics
         public static ref readonly Color Blue => ref _blue;
         public static ref readonly Color Yellow => ref _yellow;
         public static ref readonly Color Fuschia => ref _fuschia;
+        public static ref readonly Color Cyan => ref _cyan;
 
-        public int RGBA => (int)(((uint)R << 24) | ((uint)G << 16) | ((uint)B << 8) | A);
 
-        // ABGR
-        private uint packed_value;
+        public float R, G, B, A;
 
-        public Color(uint packedValue)
+        public Color(float r, float g, float b, float a = 1.0f)
         {
-            packed_value = packedValue;
+            R = r;
+            G = g;
+            B = b;
+            A = a;
         }
 
-        public Color(int r, int g, int b)
+        public Color(uint col)
         {
-            packed_value = 0xFF000000; // A = 255
-
-            if (((r | g | b) & 0xFFFFFF00) != 0)
-            {
-                var clampedR = (uint)Calc.Clamp(r, 0, 255);
-                var clampedG = (uint)Calc.Clamp(g, 0, 255);
-                var clampedB = (uint)Calc.Clamp(b, 0, 255);
-
-                packed_value |= (clampedB << 16) | (clampedG << 8) | clampedR;
-            }
-            else
-            {
-                packed_value |= ((uint)b << 16) | ((uint)g << 8) | ((uint)r);
-            }
+            R = (col & 0xFF) / 255.0f;
+            G = ((col >> 8) & 0xFF)/ 255.0f ;
+            B = ((col >> 16) & 0xFF)/ 255.0f;
+            A = 1.0f;
+        }
+        
+        public static Color operator -(Color c1, Color c2)
+        {
+            return new Color(c1.R - c2.R, c1.G - c2.G, c1.B - c2.B, c1.A - c2.A);
         }
 
-        public Color(int r, int g, int b, int alpha)
+        public static Color operator +(Color c1, Color c2)
         {
-            if (((r | g | b | alpha) & 0xFFFFFF00) != 0)
-            {
-                var clampedR = (uint)Calc.Clamp(r, 0, 255);
-                var clampedG = (uint)Calc.Clamp(g, 0, 255);
-                var clampedB = (uint)Calc.Clamp(b, 0, 255);
-                var clampedA = (uint)Calc.Clamp(alpha, 0, 255);
-
-                packed_value = (clampedA << 24) | (clampedB << 16) | (clampedG << 8) | clampedR;
-            }
-            else
-            {
-                packed_value = ((uint)alpha << 24) | ((uint)b << 16) | ((uint)g << 8) | ((uint)r);
-            }
+            return new Color(c1.R + c2.R, c1.G + c2.G, c1.B + c2.B, c1.A + c2.A);
         }
 
-        public Color(byte r, byte g, byte b, byte alpha)
+        public static Color operator *(Color c1, Color c2)
         {
-            packed_value = ((uint)alpha << 24) | ((uint)b << 16) | ((uint)g << 8) | r;
+            return new Color(c1.R * c2.R, c1.G * c2.G, c1.B * c2.B, c1.A * c2.A);
         }
 
-        public Color(float r, float g, float b)
-            : this((int)(r * 255), (int)(g * 255), (int)(b * 255))
+        public static Color operator *(Color c1, float sc)
         {
+            return new Color(c1.R * sc, c1.G * sc, c1.B * sc, c1.A * sc);
         }
 
-        public Color(float r, float g, float b, float alpha)
-            : this((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(alpha * 255))
+        public static bool operator ==(Color c1, Color c2)
         {
+            return c1.R == c2.R &&
+                   c1.G == c2.G &&
+                   c1.B == c2.B &&
+                   c1.A == c2.A;
         }
 
-        public byte R
+        public static bool operator !=(Color c1, Color c2)
         {
-            get
-            {
-                unchecked
-                {
-                    return (byte)packed_value;
-                }
-            }
-
-            set => this.packed_value = (this.packed_value & 0xffffff00) | value;
-        }
-
-        public byte G
-        {
-            get
-            {
-                unchecked
-                {
-                    return (byte)(packed_value >> 8);
-                }
-            }
-
-            set => this.packed_value = (this.packed_value & 0xffff00ff) | ((uint) value << 8);
-        }
-
-        public byte B
-        {
-            get
-            {
-                unchecked
-                {
-                    return (byte)(packed_value >> 16);
-                }
-            }
-
-            set => this.packed_value = (this.packed_value & 0xff00ffff) | ((uint) value << 16);
-        }
-
-        public byte A
-        {
-            get
-            {
-                unchecked
-                {
-                    return (byte)(packed_value >> 24);
-                }
-            }
-
-            set => this.packed_value = (this.packed_value & 0x00ffffff) | ((uint) value << 24);
-        }
-
-        public static bool operator ==(Color a, Color b)
-        {
-            return a.packed_value == b.packed_value;
-        }
-
-        public static bool operator !=(Color a, Color b)
-        {
-            return a.packed_value != b.packed_value;
+            return c1.R != c2.R ||
+                   c1.G != c2.G ||
+                   c1.B != c2.B ||
+                   c1.A != c2.A;
         }
 
         public bool Equals(Color other)
         {
-            return packed_value == other.packed_value;
+            return R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);
         }
 
         public override bool Equals(object obj)
         {
-            return (obj is Color color) && this.Equals(color);
+            if (obj is null) return false;
+            return obj is Color other && Equals(other);
         }
 
         public override int GetHashCode()
         {
-            return packed_value.GetHashCode();
+            unchecked
+            {
+                int hashCode = R.GetHashCode();
+                hashCode = (hashCode * 397) ^ G.GetHashCode();
+                hashCode = (hashCode * 397) ^ B.GetHashCode();
+                hashCode = (hashCode * 397) ^ A.GetHashCode();
+                return hashCode;
+            }
         }
 
-        public static Color Lerp(Color value1, Color value2, float amount)
+        public void SetPackedColor(uint col)
         {
-            amount = Calc.Normalize(amount);
 
-            return new Color(
-                (int)Calc.Lerp(value1.R, value2.R, amount),
-                (int)Calc.Lerp(value1.G, value2.G, amount),
-                (int)Calc.Lerp(value1.B, value2.B, amount),
-                (int)Calc.Lerp(value1.A, value2.A, amount));
+            R = (col & 0xFF);
+            G = ((col >> 8) & 0xFF) ;
+            B = ((col >> 16) & 0xFF);
+            A = col >= 0xFF000000 ? (col >> 24) : 255;
         }
 
-        public static Color Multiply(Color value, float scale)
+        public uint GetPackedColor()
         {
-            return new Color((int)(value.R * scale), (int)(value.G * scale), (int)(value.B * scale),
-                (int)(value.A * scale));
+            return ((uint) (A * 255.0f) << 24) | ((uint) (B * 255.0f) << 16) | ((uint) (G * 255.0f) << 8) |
+                   ((uint) (R * 255.0f));
         }
 
-        public static Color operator *(Color value, float scale)
+        public int GetIntRgba()
         {
-            return new Color((int)(value.R * scale), (int)(value.G * scale), (int)(value.B * scale),
-                (int)(value.A * scale));
+            return (int) (((uint) (R * 255) << 24) | ((uint) (G * 255) << 16) | ((uint) (B * 255) << 8) | (uint)(A * 255));
         }
 
-        public override string ToString()
+        public void Clamp()
         {
-            StringBuilder sb = new StringBuilder(25);
-            sb.Append("{R:");
-            sb.Append(R);
-            sb.Append(" G:");
-            sb.Append(G);
-            sb.Append(" B:");
-            sb.Append(B);
-            sb.Append(" A:");
-            sb.Append(A);
-            sb.Append("}");
-            return sb.ToString();
+            if (R < 0.0f) R = 0.0f;
+            else if (R > 1.0f) R = 1.0f;
+
+            if (G < 0.0f) G = 0.0f;
+            else if (G > 1.0f) G = 1.0f;
+
+            if (B < 0.0f) B = 0.0f;
+            else if (B > 1.0f) B = 1.0f;
+
+            if (A < 0.0f) A = 0.0f;
+            else if (A > 1.0f) A = 1.0f;
         }
 
-        public void Deconstruct(out float r, out float g, out float b)
+        public Color WithAlpha(float a)
         {
-            r = R;
-            g = G;
-            b = B;
-        }
-
-        public void Deconstruct(out float r, out float g, out float b, out float a)
-        {
-            r = R;
-            g = G;
-            b = B;
-            a = A;
+            return new Color(R, G, B, a);
         }
 
         public static implicit operator uint(Color val)
         {
-            return val.packed_value;
+            return val.GetPackedColor();
         }
 
         public static implicit operator int(Color val)
         {
-            return val.RGBA;
+            return val.GetIntRgba();
         }
 
         public static implicit operator Color(uint val)

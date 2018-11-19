@@ -125,10 +125,7 @@ namespace BLITTEngine.Numerics
             if (value < 0f)
                 return 0f;
 
-            if (value > 1f)
-                return 1f;
-
-            return value;
+            return value > 1f ? 1f : value;
         }
 
         public static float Pow(float x, float y)

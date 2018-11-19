@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 namespace BLITTEngine.GameObjects
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe struct Particle
+    public struct Particle
     {
         public Vector2 Loc;
         public Vector2 Vel;
@@ -17,8 +17,8 @@ namespace BLITTEngine.GameObjects
         public float SpinDelta;
         public float Size;
         public float SizeDelta;
-        public uint Color;
-        public uint ColorDelta;
+        public Color Color;
+        public Color ColorDelta;
         public float Age;
         public float TerminalAge;
 
@@ -60,8 +60,8 @@ namespace BLITTEngine.GameObjects
         public float SpinEnd;
         public float SpinVariation;
 
-        public uint ColorStart;
-        public uint ColorEnd;
+        public Color ColorStart;
+        public Color ColorEnd;
 
         public float ColorVariation;
         public float AlphaVariation;
@@ -100,11 +100,13 @@ namespace BLITTEngine.GameObjects
 
         public void Render(Canvas canvas)
         {
-            Particle* par = (Particle*)particles.NativePointer;
+            var par = (Particle*)particles.NativePointer;
             Sprite spr = Info.ParticleSprite;
 
             for(var i = 0; i < particles_alive; ++i)
             {
+                spr.SetColor(par->Color);
+
                 spr.RenderEx(
                     canvas,
                     par->Loc.X * scale + tx,
@@ -160,7 +162,7 @@ namespace BLITTEngine.GameObjects
                 float dx = x - loc.X;
                 float dy = y - loc.Y;
 
-                Particle* particle = (Particle*)particles.NativePointer;
+                var particle = (Particle*)particles.NativePointer;
 
                 for(var i = 0; i < particles_alive; ++i)
                 {
@@ -194,9 +196,8 @@ namespace BLITTEngine.GameObjects
             int i;
             float angle;
             float rand_val;
-            var inf = Info;
-            var part_size = Particle.SizeInBytes;
-            var pi2 = Calc.PI_OVER2;
+            ParticleEmitterInfo inf = Info;
+            int part_size = Particle.SizeInBytes;
 
             if (age >= 0)
             {
@@ -251,7 +252,9 @@ namespace BLITTEngine.GameObjects
                 particle->Spin += particle->SpinDelta * dt;
                 particle->Size += particle->SizeDelta * dt;
 
-                // Color TODO
+                particle->Color += particle->ColorDelta * dt;
+
+                particle->Color.Clamp();
 
                 particle++;
             }
@@ -271,7 +274,7 @@ namespace BLITTEngine.GameObjects
                 }*/
 
                 float particles_needed = inf.Emission * dt + emission_residue;
-                int particles_created = (int) particles_needed;
+                var particles_created = (int) particles_needed;
 
                 emission_residue = particles_needed - particles_created;
 
@@ -293,11 +296,11 @@ namespace BLITTEngine.GameObjects
                     particle->Loc.X = prev_loc.X + ((loc.X - prev_loc.X) * rand_val) + random.NextFloat(-2.0f, 2.0f);
                     particle->Loc.Y = prev_loc.Y + ((loc.Y - prev_loc.Y) * rand_val) + random.NextFloat(-2.0f, 2.0f);
 
-                    angle = inf.Direction - pi2 + random.NextFloat(0, inf.Spread) - inf.Spread / 2.0f;
+                    angle = inf.Direction - Calc.PI_OVER2 + random.NextFloat(0, inf.Spread) - inf.Spread / 2.0f;
 
                     if (inf.Relative)
                     {
-                        angle += (prev_loc - loc).Angle + pi2;
+                        angle += (prev_loc - loc).Angle + Calc.PI_OVER2;
                     }
 
                     particle->Vel.X = Calc.Cos(angle);
@@ -324,7 +327,28 @@ namespace BLITTEngine.GameObjects
 
                     particle->SpinDelta = (inf.SpinEnd - particle->Spin) / particle->TerminalAge;
 
-                    // Color TODO
+                    particle->Color.R = random.NextFloat(inf.ColorStart.R,
+                                                         inf.ColorStart.R + (inf.ColorEnd.R - inf.ColorStart.R) *
+                                                         inf.ColorVariation);
+
+                    particle->Color.G = random.NextFloat(inf.ColorStart.G,
+                                                         inf.ColorStart.G + (inf.ColorEnd.G - inf.ColorStart.G) *
+                                                         inf.ColorVariation);
+
+                    particle->Color.B = random.NextFloat(inf.ColorStart.B,
+                                                         inf.ColorStart.B + (inf.ColorEnd.B - inf.ColorStart.B) *
+                                                         inf.ColorVariation);
+
+                    particle->Color.A = random.NextFloat(inf.ColorStart.A,
+                                                         inf.ColorStart.A + (inf.ColorEnd.A - inf.ColorStart.A) *
+                                                         inf.ColorVariation);
+
+                    particle->Color.Clamp();
+
+                    particle->ColorDelta.R = (inf.ColorEnd.R - particle->Color.R) / particle->TerminalAge;
+                    particle->ColorDelta.G = (inf.ColorEnd.G - particle->Color.G) / particle->TerminalAge;
+                    particle->ColorDelta.B = (inf.ColorEnd.B - particle->Color.B) / particle->TerminalAge;
+                    particle->ColorDelta.A = (inf.ColorEnd.A - particle->Color.A) / particle->TerminalAge;
 
                     particles_alive++;
 
@@ -348,13 +372,13 @@ namespace BLITTEngine.GameObjects
         private float ty;
         private float scale;
         private int particles_alive;
-        private ParticleBuffer particles;
-        private RandomEx random;
+        private readonly ParticleBuffer particles;
+        private readonly RandomEx random;
 
 
     }
 
-    internal unsafe class ParticleBuffer : IDisposable
+    internal class ParticleBuffer : IDisposable
     {
 
         public Particle[] Particles;

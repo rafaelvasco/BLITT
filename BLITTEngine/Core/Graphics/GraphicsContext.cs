@@ -2,6 +2,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using BLITTEngine.Resources;
+using System.Diagnostics;
 
 namespace BLITTEngine.Core.Graphics
 {
@@ -27,9 +28,21 @@ namespace BLITTEngine.Core.Graphics
 
         internal GraphicsContext(IntPtr graphics_surface_ptr, int width, int height)
         {
+            Stopwatch timer = Stopwatch.StartNew();
+
             Bgfx.SetPlatformData(new PlatformData() {WindowHandle = graphics_surface_ptr});
 
-            Bgfx.Init();
+            InitSettings settings = new InitSettings() {
+                Backend = RendererBackend.Default,
+                ResetFlags = ResetFlags.Vsync,
+                Width = width,
+                Height = height
+                
+            };
+
+            Bgfx.Init(settings);
+
+            Console.WriteLine($" > GFX INIT 1: {timer.Elapsed.TotalSeconds}");
 
             Capabilities caps = Bgfx.GetCaps();
             Info = new GraphicsInfo(caps.Backend, caps.MaxTextureSize);
@@ -38,7 +51,9 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
 
-            ResizeBackBuffer(width, height);
+            //ResizeBackBuffer(width, height);
+
+            Console.WriteLine($" > GFX INIT 2: {timer.Elapsed.TotalSeconds}");
 
             Content.GraphicsContext = this;
             RenderTarget.GraphicsContext = this;
@@ -47,7 +62,11 @@ namespace BLITTEngine.Core.Graphics
 
             Content.LoadEmbededShaders(Info.RendererBackend);
 
+            Console.WriteLine($" > GFX INIT 3: {timer.Elapsed.TotalSeconds}");
+
             index_buffers = new IndexBuffer[16];
+
+            Console.WriteLine($" > GFX INIT 4: {timer.Elapsed.TotalSeconds}");
         }
 
         public void SetClearColor(ushort view, int color)

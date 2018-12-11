@@ -1,6 +1,5 @@
-using BLITTEngine.Core.Foundation;
-using BLITTEngine.Input.Mouse;
 using System.Runtime.CompilerServices;
+using BLITTEngine.Core.Input.Mouse;
 
 namespace BLITTEngine.Core.Platform
 {
@@ -9,19 +8,19 @@ namespace BLITTEngine.Core.Platform
         private MouseState mouse_state;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private MouseButton TranslatePlatformMouseButton(SDL.Mouse.Button button)
+        private MouseButton TranslatePlatformMouseButton(byte button)
         {
             switch (button)
             {
-                case SDL.Mouse.Button.Left:
+                case 0:
 
                     return MouseButton.Left;
 
-                case SDL.Mouse.Button.Middle:
+                case 2:
 
                     return MouseButton.Middle;
 
-                case SDL.Mouse.Button.Right:
+                case 1:
 
                     return MouseButton.Right;
             }
@@ -29,7 +28,7 @@ namespace BLITTEngine.Core.Platform
             return MouseButton.None;
         }
 
-        private void SetMouseButtonState(SDL.Mouse.Button sdl_button, bool down)
+        private void SetMouseButtonState(byte sdl_button, bool down)
         {
             MouseButton button = TranslatePlatformMouseButton(sdl_button);
             mouse_state[button] = down;

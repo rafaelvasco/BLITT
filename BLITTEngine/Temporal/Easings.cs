@@ -1,5 +1,5 @@
-﻿using BLITTEngine.Numerics;
-using System;
+﻿using System;
+using BLITTEngine.Core.Numerics;
 
 namespace BLITTEngine.Temporal
 {

@@ -1,5 +1,5 @@
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Numerics;
+using BLITTEngine.Core.Numerics;
 
 namespace BLITTEngine.GameObjects
 {

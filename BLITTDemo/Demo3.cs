@@ -1,9 +1,9 @@
-
+﻿using BLITTEngine;
 using BLITTEngine.Core.Graphics;
 
-namespace BLITTEngine
+namespace BLITTDemo
 {
-    public class EmptyScene : Scene
+    public class Demo3 : Scene
     {
         public override void Load()
         {

@@ -1,6 +1,6 @@
 using BLITTEngine.Core.Foundation;
-using BLITTEngine.Resources;
 using System;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Graphics
 {

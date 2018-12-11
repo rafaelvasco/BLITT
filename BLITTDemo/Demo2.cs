@@ -1,10 +1,10 @@
 ﻿using BLITTEngine;
 using BLITTEngine.Core.Graphics;
+using BLITTEngine.Core.Input;
+using BLITTEngine.Core.Input.Keyboard;
+using BLITTEngine.Core.Numerics;
+using BLITTEngine.Core.Resources;
 using BLITTEngine.GameObjects;
-using BLITTEngine.Input;
-using BLITTEngine.Input.Keyboard;
-using BLITTEngine.Numerics;
-using BLITTEngine.Resources;
 using BLITTEngine.Temporal;
 
 namespace BLITTDemo
@@ -27,11 +27,15 @@ namespace BLITTDemo
         private RandomEx random;
         private int color_task;
 
+        public override void Load()
+        {
+        }
+
         public override void Init()
         {
             random = new RandomEx();
 
-            // BLITT DEMO 1 - Using Game Objects and Utils
+            // BLITT DEMO 1 - Using Game Objects
             size = Game.ScreenSize;
 
             sprite = new Sprite(Content.GetTexture2D("particles"), 96, 64, 32, 32);
@@ -82,6 +86,10 @@ namespace BLITTDemo
             timer = new Timer();
 
             //color_task = timer.Every(0.5f, () => sprite.SetColor(random.NextColor()));
+        }
+
+        public override void End()
+        {
         }
 
         public override void Update(float dt)

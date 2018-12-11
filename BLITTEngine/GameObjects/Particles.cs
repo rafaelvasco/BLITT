@@ -1,7 +1,7 @@
 ﻿using BLITTEngine.Core.Graphics;
-using BLITTEngine.Numerics;
 using System;
 using System.Runtime.InteropServices;
+using BLITTEngine.Core.Numerics;
 
 namespace BLITTEngine.GameObjects
 {

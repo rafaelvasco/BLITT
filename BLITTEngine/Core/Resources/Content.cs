@@ -1,13 +1,13 @@
-using BLITTEngine.Core.Graphics;
-using BLITTEngine.Core.Foundation.STB;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using BLITTEngine.Core.Foundation;
+using BLITTEngine.Core.Foundation.STB;
+using BLITTEngine.Core.Graphics;
 
-namespace BLITTEngine.Resources
+namespace BLITTEngine.Core.Resources
 {
     public static class Content
     {

@@ -1,8 +1,8 @@
 ﻿using BLITTEngine.Core.Foundation;
 using System;
 using System.Runtime.CompilerServices;
-using BLITTEngine.Resources;
 using System.Diagnostics;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Graphics
 {
@@ -67,6 +67,8 @@ namespace BLITTEngine.Core.Graphics
             index_buffers = new IndexBuffer[16];
 
             Console.WriteLine($" > GFX INIT 4: {timer.Elapsed.TotalSeconds}");
+
+            
         }
 
         public void SetClearColor(ushort view, int color)

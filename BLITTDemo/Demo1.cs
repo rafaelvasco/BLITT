@@ -1,24 +1,30 @@
+using System;
 using BLITTEngine;
+using BLITTEngine.Core.Foundation.SDL;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Input;
-using BLITTEngine.Input.Keyboard;
-using BLITTEngine.Numerics;
-using BLITTEngine.Resources;
+using BLITTEngine.Core.Input;
+using BLITTEngine.Core.Input.Keyboard;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTDemo
 {
+    // BLITT DEMO 1 - Using input, sound and rendering
     public class Demo1 : Scene
     {
         private Quad quad;
+        private IntPtr wav;
+        private IntPtr mus;
+        
 
         private float x = 100.0f, y = 100.0f, dx, dy;
 
         private float speed = 10;
         private float friction = 0.87f;
 
-        public override void Init()
+        public override void Load()
         {
-            // BLITT DEMO 1 - Using input, sound and rendering
+            wav = SDL_mixer.Mix_LoadWAV(@"Assets\menu.wav");
+            mus = SDL_mixer.Mix_LoadMUS(@"Assets\mus1.ogg");
 
             quad.Tex = Content.GetTexture2D("particles");
             quad.Blend = BlendMode.AlphaBlend;
@@ -46,11 +52,44 @@ namespace BLITTDemo
             quad.V3.Col = 0xFF00A0FF;
         }
 
+        public override void Init()
+        {
+        }
+
+        public override void End()
+        {
+            SDL_mixer.Mix_FreeChunk(wav);
+            SDL_mixer.Mix_FreeMusic(mus);
+
+        }
+
         public override void Update(float dt)
         {
             if(Control.KeyDown(Key.Escape))
             {
                 Game.Quit();
+            }
+
+            if (Control.KeyPressed(Key.Space))
+            {
+                if (SDL_mixer.Mix_PlayingMusic() == 0)
+                {
+                    SDL_mixer.Mix_PlayMusic(mus, -1);   
+                }
+                else
+                {
+                    if (SDL_mixer.Mix_PausedMusic() == 1)
+                    {
+                        //SDL_mixer.Mix_ResumeMusic();
+                        SDL_mixer.Mix_FadeInMusic(wav, -1, 1000);
+
+                    }
+                    else
+                    {
+                        SDL_mixer.Mix_FadeOutMusic(1000);
+                    }
+                }
+                
             }
 
             if(Control.KeyPressed(Key.F11))
@@ -98,22 +137,26 @@ namespace BLITTDemo
             {
                 x = Canvas.Width - 16;
                 dx = -dx;
+                PlayAudio();
             }
             else if(x < 16)
             {
                 x = 16;
                 dx = -dx;
+                PlayAudio();
             }
 
             if(y > Canvas.Height - 16)
             {
                 y = Canvas.Height - 16;
                 dy = -dy;
+                PlayAudio();
             }
             else if(y < 16)
             {
                 y = 16;
                 dy = -dy;
+                PlayAudio();
             }
 
             //x = Calc.Floor(x);
@@ -128,6 +171,11 @@ namespace BLITTDemo
             quad.V3.X = x - 16;
             quad.V3.Y = y + 16;
 
+        }
+
+        private void PlayAudio()
+        {
+            SDL_mixer.Mix_PlayChannel(-1, wav, 0);
         }
 
         public override void Draw(Canvas canvas)

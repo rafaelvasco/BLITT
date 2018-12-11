@@ -1,11 +1,10 @@
 ﻿using BLITTEngine;
 using BLITTEngine.Core.Graphics;
+using BLITTEngine.Core.Input;
+using BLITTEngine.Core.Input.Keyboard;
+using BLITTEngine.Core.Numerics;
+using BLITTEngine.Core.Resources;
 using BLITTEngine.GameObjects;
-using BLITTEngine.Input;
-using BLITTEngine.Input.Keyboard;
-using BLITTEngine.Numerics;
-using BLITTEngine.Resources;
-using BLITTEngine.Temporal;
 
 namespace BLITTDemo
 {
@@ -18,7 +17,10 @@ namespace BLITTDemo
         private float x = 100.0f, y = 100.0f, dx, dy;
         private const float speed = 130;
         private const float friction = 0.98f;
-        private RandomEx random;
+
+        public override void Load()
+        {
+        }
 
         public override void Init()
         {
@@ -64,6 +66,10 @@ namespace BLITTDemo
             emitter.MoveTo(x, y);
             emitter.Fire();
 
+        }
+
+        public override void End()
+        {
         }
 
         public override void Update(float dt)

@@ -1,12 +1,13 @@
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Platform;
-using BLITTEngine.Input;
-using BLITTEngine.Numerics;
-using BLITTEngine.Resources;
 using BLITTEngine.Temporal;
 using System;
 using System.Diagnostics;
 using System.Runtime;
+using BLITTEngine.Core.Foundation;
+using BLITTEngine.Core.Input;
+using BLITTEngine.Core.Numerics;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine
 {
@@ -111,13 +112,17 @@ namespace BLITTEngine
 
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
+            /* GLOBAL REFERENCES */
+
             Scene.Game = this;
             Scene.Canvas = Canvas;
+            
         }
 
         public void Dispose()
         {
-            Content.FreeEverything();;
+            CurrentScene.End();
+            Content.FreeEverything();
             GraphicsContext.Shutdown();
             Platform.Quit();
         }
@@ -130,6 +135,7 @@ namespace BLITTEngine
             }
 
             CurrentScene = scene ?? new EmptyScene();
+            CurrentScene.Load();
             CurrentScene.Init();
 
             Running = true;
@@ -142,6 +148,7 @@ namespace BLITTEngine
 
         public void Quit()
         {
+            
             Running = false;
         }
 

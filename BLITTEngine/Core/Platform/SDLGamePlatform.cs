@@ -1,6 +1,9 @@
 using BLITTEngine.Core.Foundation;
 using System;
 using System.Diagnostics;
+using BLITTEngine.Core.Foundation.SDL;
+using static BLITTEngine.Core.Foundation.SDL.SDL;
+
 
 namespace BLITTEngine.Core.Platform
 {
@@ -22,44 +25,58 @@ namespace BLITTEngine.Core.Platform
             prev_win_h = height;
             is_fullscreen = fullscreen;
 
-            var initFlags = SDL.InitFlags.Video
-                            | SDL.InitFlags.Joystick;
+            const uint init_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK;
 
-            SDL.SetHint("SDL_WINDOWS_DISABLE_THREAD_NAMING", "1");
+            SDL_SetHint("SDL_WINDOWS_DISABLE_THREAD_NAMING", "1");
 
             var sw = Stopwatch.StartNew();
 
-            SDL.Init((int)initFlags);
+            SDL_Init(init_flags);
+
+            if (SDL_mixer.Mix_OpenAudio(SDL_mixer.MIX_DEFAULT_FREQUENCY, SDL_mixer.MIX_DEFAULT_FORMAT, 2, 1024) == -1)
+            {
+                SDL_Quit();
+                throw new Exception("Error on initializing SDL_mixer");
+            }
 
             var windowFlags =
-                SDL.Window.State.Hidden | SDL.Window.State.OpenGL;
+                SDL_WindowFlags.SDL_WINDOW_HIDDEN;
+
+            if (CurrentPlatform.OS != OS.Windows)
+            {
+                windowFlags |= SDL_WindowFlags.SDL_WINDOW_OPENGL;
+
+                SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 3);
+            }
 
             if (fullscreen)
             {
-                windowFlags |= SDL.Window.State.FullscreenDesktop;
+                windowFlags |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
             }
 
-            SDL.GL.SetAttribute(SDL.GL.Attribute.ContextMajorVersion, 3);
-            SDL.GL.SetAttribute(SDL.GL.Attribute.ContextMinorVersion, 3);
-
-            window = SDL.Window.Create(
+            window = SDL_CreateWindow(
                 title,
-                SDL.Window.PosCentered,
-                SDL.Window.PosCentered,
-                width, height, windowFlags);
+                SDL_WINDOWPOS_CENTERED_MASK,
+                SDL_WINDOWPOS_CENTERED_MASK,
+                width, 
+                height,
+                windowFlags
+            );
 
+          
             if (window == IntPtr.Zero)
             {
-                SDL.Quit();
-                throw new Exception(SDL.GetError());
+                SDL_Quit();
+                throw new Exception(SDL_GetError());
             }
 
             if (fullscreen)
             {
-                SDL.Display.GetDisplayMode(0, 0, out SDL.Display.Mode dm);
+                SDL_GetDisplayMode(0, 0, out SDL_DisplayMode mode);
 
-                screen_w = dm.Width;
-                screen_h = dm.Height;
+                screen_w = mode.w;
+                screen_h = mode.h;
             }
             else
             {
@@ -74,9 +91,10 @@ namespace BLITTEngine.Core.Platform
 
         public override IntPtr GetRenderSurfaceHandle()
         {
-            var info = new SDL.Window.SDL_SysWMinfo();
+            var info = new SDL_SysWMinfo();
 
-            SDL.Window.GetWindowWMInfo(window, ref info);
+
+            SDL_GetWindowWMInfo(window, ref info);
 
             switch (CurrentPlatform.OS)
             {
@@ -99,69 +117,70 @@ namespace BLITTEngine.Core.Platform
         {
             Console.WriteLine($" > Closing GamePlatform");
 
-            SDL.Quit();
+            SDL_mixer.Mix_CloseAudio();
+
+            SDL_Quit();
         }
 
         public override void PollEvents()
         {
-            while (SDL.PollEvent(out var ev) == 1)
+            while (SDL_PollEvent(out SDL_Event ev) == 1)
             {
-                switch (ev.Type)
+                switch (ev.type)
                 {
-                    case SDL.EventType.Quit:
+                    case SDL_EventType.SDL_QUIT:
                         OnQuit?.Invoke();
                         break;
 
-                    case SDL.EventType.KeyDown:
-                        AddKey(ev.Key.Keysym.Sym);
+                    case SDL_EventType.SDL_KEYDOWN:
+                        AddKey((int) ev.key.keysym.sym);
                         break;
 
-                    case SDL.EventType.KeyUp:
-                        RemoveKey(ev.Key.Keysym.Sym);
+                    case SDL_EventType.SDL_KEYUP:
+                        RemoveKey((int) ev.key.keysym.sym);
                         break;
 
-                    case SDL.EventType.MouseButtonDown:
-                        SetMouseButtonState(ev.Button.Button, down: true);
+                    case SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                        SetMouseButtonState(ev.button.button, down: true);
                         break;
 
-                    case SDL.EventType.MouseButtonup:
-                        SetMouseButtonState(ev.Button.Button, down: false);
+                    case SDL_EventType.SDL_MOUSEBUTTONUP:
+                        SetMouseButtonState(ev.button.button, down: false);
                         break;
 
-                    case SDL.EventType.MouseWheel:
-                        TriggerMouseScroll(ev.Wheel.Y * 120);
+                    case SDL_EventType.SDL_MOUSEWHEEL:
+                        TriggerMouseScroll(ev.wheel.y * 120);
                         break;
 
-                    case SDL.EventType.JoyDeviceAdded:
+                    case SDL_EventType.SDL_JOYDEVICEADDED:
                         break;
 
-                    case SDL.EventType.JoyDeviceRemoved:
+                    case SDL_EventType.SDL_JOYDEVICEREMOVED:
                         break;
 
-                    case SDL.EventType.JoyButtonDown:
+                    case SDL_EventType.SDL_JOYBUTTONDOWN:
                         break;
 
-                    case SDL.EventType.JoyButtonUp:
+                    case SDL_EventType.SDL_JOYBUTTONUP:
                         break;
 
-                    case SDL.EventType.JoyAxisMotion:
+                    case SDL_EventType.SDL_JOYAXISMOTION:
                         break;
 
-                    case SDL.EventType.WindowEvent:
-                        switch (ev.Window.EventID)
+                    case SDL_EventType.SDL_WINDOWEVENT:
+                        switch (ev.window.windowEvent)
                         {
-                            case SDL.Window.EventId.Shown:
-
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
                                 break;
 
-                            case SDL.Window.EventId.Close:
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                                 OnQuit?.Invoke();
                                 break;
 
-                            case SDL.Window.EventId.SizeChanged:
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
 
-                                int w = ev.Window.Data1;
-                                int h = ev.Window.Data2;
+                                int w = ev.window.data1;
+                                int h = ev.window.data2;
 
                                 if (screen_w != w || screen_h != h)
                                 {
@@ -170,7 +189,7 @@ namespace BLITTEngine.Core.Platform
                                 screen_w = w;
                                 screen_h = h;
 
-                                OnWinResized?.Invoke(ev.Window.Data1, ev.Window.Data2);
+                                OnWinResized?.Invoke(w, h);
                                 break;
                         }
                         break;
@@ -194,30 +213,37 @@ namespace BLITTEngine.Core.Platform
             prev_win_w = w;
             prev_win_h = h;
 
-            SDL.Window.SetSize(window, w, h);
-            SDL.Window.SetPosition(window, SDL.Window.PosCentered, SDL.Window.PosCentered);
+            SDL_SetWindowSize(window, w, h);
+            SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
         }
 
         public override void SetTitle(string title)
         {
-            SDL.Window.SetTitle(window, title);
+            SDL_SetWindowTitle(window, title);
         }
 
         public override void ShowCursor(bool show)
         {
-            SDL.Mouse.ShowCursor(show ? 1 : 0);
+            SDL_ShowCursor(show ? 1 : 0);
         }
 
         public override void ShowScreen(bool show)
         {
-            SDL.Window.Show(window);
+            if (show)
+            {
+                SDL_ShowWindow(window);
+            }
+            else
+            {
+                SDL_HideWindow(window);
+            }
         }
 
         public override void SetFullscreen(bool enabled)
         {
             if (is_fullscreen != enabled)
             {
-                SDL.Window.SetFullscreen(window, enabled ? SDL.Window.State.FullscreenDesktop : 0);
+                SDL_SetWindowFullscreen(window, (uint) (enabled ? SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
 
                 is_fullscreen = enabled;
 

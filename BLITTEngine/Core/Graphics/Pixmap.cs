@@ -1,6 +1,6 @@
-﻿using BLITTEngine.Resources;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Graphics
 {

@@ -1,6 +1,6 @@
-using BLITTEngine.Input.Keyboard;
-using BLITTEngine.Input.Mouse;
 using System;
+using BLITTEngine.Core.Input.Keyboard;
+using BLITTEngine.Core.Input.Mouse;
 
 namespace BLITTEngine.Core.Platform
 {

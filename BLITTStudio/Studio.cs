@@ -1,9 +1,9 @@
 ﻿using BLITTEngine;
 using BLITTEngine.Core.Foundation.STB;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Resources;
 using System.IO;
 using System.Linq;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTStudio
 {
@@ -16,6 +16,10 @@ namespace BLITTStudio
         private const int TEX_H = 512;
         private const int FONT_SIZE = 16;
 
+
+        public override void Load()
+        {
+        }
 
         public override void Init()
         {
@@ -71,6 +75,10 @@ namespace BLITTStudio
             font_texture = Content.CreateTexture(font_pixmap);
 
 
+        }
+
+        public override void End()
+        {
         }
 
         public override void Draw(Canvas canvas)

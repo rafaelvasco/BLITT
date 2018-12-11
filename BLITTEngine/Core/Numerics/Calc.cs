@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 
-namespace BLITTEngine.Numerics
+namespace BLITTEngine.Core.Numerics
 {
     public static class Calc
     {

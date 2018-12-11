@@ -1,5 +1,5 @@
 ﻿using BLITTEngine.Core.Foundation;
-using BLITTEngine.Resources;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Graphics
 {

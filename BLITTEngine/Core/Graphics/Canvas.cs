@@ -1,8 +1,8 @@
 using BLITTEngine.Core.Foundation;
-using BLITTEngine.Numerics;
-using BLITTEngine.Resources;
 using System;
 using System.Numerics;
+using BLITTEngine.Core.Numerics;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Graphics
 {

@@ -1,6 +1,6 @@
 using System;
 using BLITTEngine;
-using BLITTEngine.Core.Foundation.SDL;
+using BLITTEngine.Core.Audio;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Input;
 using BLITTEngine.Core.Input.Keyboard;
@@ -12,9 +12,12 @@ namespace BLITTDemo
     public class Demo1 : Scene
     {
         private Quad quad;
-        private IntPtr wav;
-        private IntPtr mus;
-        
+
+        private Effect bump_sfx;
+
+        private Song song;
+
+        private Song song2;
 
         private float x = 100.0f, y = 100.0f, dx, dy;
 
@@ -23,8 +26,13 @@ namespace BLITTDemo
 
         public override void Load()
         {
-            wav = SDL_mixer.Mix_LoadWAV(@"Assets\menu.wav");
-            mus = SDL_mixer.Mix_LoadMUS(@"Assets\mus1.ogg");
+            bump_sfx = Content.GetEffect("menu");
+
+            song = Content.GetSong("mus1");
+            song2 = Content.GetSong("mus2");
+
+            song.FadeMs = 1000;
+            song2.FadeMs = 1000;
 
             quad.Tex = Content.GetTexture2D("particles");
             quad.Blend = BlendMode.AlphaBlend;
@@ -58,8 +66,6 @@ namespace BLITTDemo
 
         public override void End()
         {
-            SDL_mixer.Mix_FreeChunk(wav);
-            SDL_mixer.Mix_FreeMusic(mus);
 
         }
 
@@ -70,26 +76,24 @@ namespace BLITTDemo
                 Game.Quit();
             }
 
-            if (Control.KeyPressed(Key.Space))
+            if (Control.KeyPressed(Key.D1))
             {
-                if (SDL_mixer.Mix_PlayingMusic() == 0)
-                {
-                    SDL_mixer.Mix_PlayMusic(mus, -1);   
-                }
-                else
-                {
-                    if (SDL_mixer.Mix_PausedMusic() == 1)
-                    {
-                        //SDL_mixer.Mix_ResumeMusic();
-                        SDL_mixer.Mix_FadeInMusic(wav, -1, 1000);
+                MediaPlayer.PlaySong(song);
+            }
 
-                    }
-                    else
-                    {
-                        SDL_mixer.Mix_FadeOutMusic(1000);
-                    }
-                }
-                
+            if (Control.KeyPressed(Key.D2))
+            {
+                MediaPlayer.PlaySong(song2);
+            }
+
+            if (Control.KeyPressed(Key.Add))
+            {
+                MediaPlayer.AddSongVolume(2);
+            }
+
+            if (Control.KeyPressed(Key.Subtract))
+            {
+                MediaPlayer.AddSongVolume(-2);
             }
 
             if(Control.KeyPressed(Key.F11))
@@ -175,7 +179,9 @@ namespace BLITTDemo
 
         private void PlayAudio()
         {
-            SDL_mixer.Mix_PlayChannel(-1, wav, 0);
+            //MediaPlayer.PlayEffect(bump_sfx);
+
+            MediaPlayer.PlayEffectEx(bump_sfx, volume: 40, pan: (x - 320)/320);
         }
 
         public override void Draw(Canvas canvas)

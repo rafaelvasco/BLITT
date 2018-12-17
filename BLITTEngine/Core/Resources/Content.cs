@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using BLITTEngine.Core.Audio;
 using BLITTEngine.Core.Foundation;
 using BLITTEngine.Core.Foundation.STB;
 using BLITTEngine.Core.Graphics;
@@ -112,6 +113,52 @@ namespace BLITTEngine.Core.Resources
         //        throw new Exception(e.Message);
         //    }
         //}
+
+        public static Effect GetEffect(string asset_name)
+        {
+            if (loaded_assets.TryGetValue(asset_name, out Resource asset))
+            {
+                return (Effect) asset;
+            }
+
+            var id = new StringBuilder(asset_name);
+
+            if (!asset_name.Contains(".wav"))
+            {
+                id.Append(".wav");
+            }
+
+            string path = Path.Combine(content_path, id.ToString());
+
+            var effect = MediaPlayer.LoadEffect(path);
+
+            loaded_assets.Add(asset_name, effect);
+
+            return effect;
+        }
+
+        public static Song GetSong(string asset_name)
+        {
+            if (loaded_assets.TryGetValue(asset_name, out Resource asset))
+            {
+                return (Song) asset;
+            }
+
+            var id = new StringBuilder(asset_name);
+
+            if (!asset_name.Contains(".ogg"))
+            {
+                id.Append(".ogg");
+            }
+
+            string path = Path.Combine(content_path, id.ToString());
+
+            var song = MediaPlayer.LoadSong(path);
+
+            loaded_assets.Add(asset_name, song);
+
+            return song;
+        }
 
         public static ShaderProgram GetBuiltinShader(string name)
         {

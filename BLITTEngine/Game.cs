@@ -4,6 +4,7 @@ using BLITTEngine.Temporal;
 using System;
 using System.Diagnostics;
 using System.Runtime;
+using BLITTEngine.Core.Audio;
 using BLITTEngine.Core.Foundation;
 using BLITTEngine.Core.Input;
 using BLITTEngine.Core.Numerics;
@@ -108,6 +109,8 @@ namespace BLITTEngine
 
             Control.Init(Platform);
 
+            MediaPlayer.Init();
+
             Clock = new Clock();
 
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
@@ -124,7 +127,8 @@ namespace BLITTEngine
             CurrentScene.End();
             Content.FreeEverything();
             GraphicsContext.Shutdown();
-            Platform.Quit();
+            MediaPlayer.Shutdown();
+            Platform.Shutdown();
         }
 
         public void Start(Scene scene = null)

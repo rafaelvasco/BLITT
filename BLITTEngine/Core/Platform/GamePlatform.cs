@@ -16,7 +16,7 @@ namespace BLITTEngine.Core.Platform
 
         public abstract void Init(string title, int width, int height, bool fullscreen);
 
-        public abstract void Quit();
+        public abstract void Shutdown();
 
         public abstract void PollEvents();
 

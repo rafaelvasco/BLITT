@@ -33,12 +33,6 @@ namespace BLITTEngine.Core.Platform
 
             SDL_Init(init_flags);
 
-            if (SDL_mixer.Mix_OpenAudio(SDL_mixer.MIX_DEFAULT_FREQUENCY, SDL_mixer.MIX_DEFAULT_FORMAT, 2, 1024) == -1)
-            {
-                SDL_Quit();
-                throw new Exception("Error on initializing SDL_mixer");
-            }
-
             var windowFlags =
                 SDL_WindowFlags.SDL_WINDOW_HIDDEN;
 
@@ -113,11 +107,9 @@ namespace BLITTEngine.Core.Platform
                 "Invalid OS, could not retrive native renderer surface handle.");
         }
 
-        public override void Quit()
+        public override void Shutdown()
         {
             Console.WriteLine($" > Closing GamePlatform");
-
-            SDL_mixer.Mix_CloseAudio();
 
             SDL_Quit();
         }

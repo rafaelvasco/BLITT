@@ -49,6 +49,9 @@
       <None Update="Assets\mus1.ogg">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Assets\mus2.ogg">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Assets\objects.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

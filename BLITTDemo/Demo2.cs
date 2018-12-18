@@ -9,6 +9,7 @@ using BLITTEngine.Temporal;
 
 namespace BLITTDemo
 {
+    // BLITT DEMO 2 - Game Utils : Particle Effects, Sprites, Timer, RandomEx
     public class Demo2 : Scene
     {
         private Size size;
@@ -35,7 +36,6 @@ namespace BLITTDemo
         {
             random = new RandomEx();
 
-            // BLITT DEMO 1 - Using Game Objects
             size = Game.ScreenSize;
 
             sprite = new Sprite(Content.GetTexture2D("particles"), 96, 64, 32, 32);

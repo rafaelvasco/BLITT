@@ -25,7 +25,7 @@ namespace BLITTEngine.Core.Platform
             prev_win_h = height;
             is_fullscreen = fullscreen;
 
-            const uint init_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK;
+            const uint init_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC;
 
             SDL_SetHint("SDL_WINDOWS_DISABLE_THREAD_NAMING", "1");
 
@@ -81,6 +81,8 @@ namespace BLITTEngine.Core.Platform
             sw.Stop();
 
             InitKeyboard();
+
+            InitGamepad();
         }
 
         public override IntPtr GetRenderSurfaceHandle()
@@ -132,6 +134,10 @@ namespace BLITTEngine.Core.Platform
                         RemoveKey((int) ev.key.keysym.sym);
                         break;
 
+                    case SDL.SDL_EventType.SDL_TEXTINPUT:
+
+                        break;
+
                     case SDL_EventType.SDL_MOUSEBUTTONDOWN:
                         SetMouseButtonState(ev.button.button, down: true);
                         break;
@@ -143,20 +149,17 @@ namespace BLITTEngine.Core.Platform
                     case SDL_EventType.SDL_MOUSEWHEEL:
                         TriggerMouseScroll(ev.wheel.y * 120);
                         break;
+                    
+                    case SDL_EventType.SDL_CONTROLLERDEVICEADDED:
 
-                    case SDL_EventType.SDL_JOYDEVICEADDED:
+                        ProcessGamepadAdd(ev.cdevice.which);
+
                         break;
 
-                    case SDL_EventType.SDL_JOYDEVICEREMOVED:
-                        break;
+                    case SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
 
-                    case SDL_EventType.SDL_JOYBUTTONDOWN:
-                        break;
+                        ProcessGamepadRemove(ev.cdevice.which);
 
-                    case SDL_EventType.SDL_JOYBUTTONUP:
-                        break;
-
-                    case SDL_EventType.SDL_JOYAXISMOTION:
                         break;
 
                     case SDL_EventType.SDL_WINDOWEVENT:

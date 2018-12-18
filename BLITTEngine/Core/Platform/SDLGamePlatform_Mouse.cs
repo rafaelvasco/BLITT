@@ -39,7 +39,7 @@ namespace BLITTEngine.Core.Platform
             OnMouseScroll?.Invoke(value);
         }
 
-        public override ref MouseState GetMouseState()
+        public override ref readonly MouseState GetMouseState()
         {
             return ref mouse_state;
         }

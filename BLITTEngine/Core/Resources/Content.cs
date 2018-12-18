@@ -266,6 +266,35 @@ namespace BLITTEngine.Core.Resources
             }
         }
 
+        internal static List<string> LoadEmbededTextFile(string fileName)
+        {
+            const string EMBEDDED_RESOURCES_NAMESPACE = "BLITTEngine.EngineResources.TextFiles.";
+
+            var lines = new List<string>();
+
+            using (var stream =
+                Assembly.GetExecutingAssembly().GetManifestResourceStream(EMBEDDED_RESOURCES_NAMESPACE + fileName))
+            {
+                if (stream != null)
+                {
+                    using (var reader = new StreamReader(stream))
+                    {
+                        string line;
+                        while ((line = reader.ReadLine()) != null && !String.IsNullOrWhiteSpace(line))
+                        {
+                            lines.Add(line);
+                        }
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            return lines;
+        }
+
         private static void LoadEmbededShaderProgram(string root_path, string name)
         {
             byte[] vs_file_buffer = { };

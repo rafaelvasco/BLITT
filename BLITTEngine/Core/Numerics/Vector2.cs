@@ -27,30 +27,15 @@ namespace BLITTEngine.Core.Numerics
             this.Y = y;
         }
 
-        public float Length
-        {
-            get => Calc.Sqrt(this.X * this.X + this.Y * this.Y);
-        }
+        public float Length => Calc.Sqrt(this.X * this.X + this.Y * this.Y);
 
-        public float LengthSquared
-        {
-            get => this.X * this.X + this.Y * this.Y;
-        }
+        public float LengthSquared => this.X * this.X + this.Y * this.Y;
 
-        public float Angle
-        {
-            get => (float)((Math.Atan2(this.Y, this.X) + Math.PI * 2.5) % (Math.PI * 2));
-        }
+        public float Angle => (float)((Math.Atan2(this.Y, this.X) + Math.PI * 2.5) % (Math.PI * 2));
 
-        public Vector2 PerpendicularLeft
-        {
-            get => new Vector2(this.Y, -this.X);
-        }
+        public Vector2 PerpendicularLeft => new Vector2(this.Y, -this.X);
 
-        public Vector2 PerpendicularRight
-        {
-            get => new Vector2(-this.Y, this.X);
-        }
+        public Vector2 PerpendicularRight => new Vector2(-this.Y, this.X);
 
         public Vector2 Normalized
         {

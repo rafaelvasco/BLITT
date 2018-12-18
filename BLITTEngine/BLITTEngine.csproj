@@ -57,6 +57,7 @@
       <None Remove="EngineResources\Shaders\bin\glsl\vs_base_2d.bin" />
       <None Remove="EngineResources\Shaders\bin\hlsl\fs_base_2d.bin" />
       <None Remove="EngineResources\Shaders\bin\hlsl\vs_base_2d.bin" />
+      <None Remove="EngineResources\TextFiles\gamecontrollerdb.txt" />
     </ItemGroup>
     <ItemGroup>
       <EmbeddedResource Include="EngineResources\Images\sprite.png" />
@@ -64,6 +65,7 @@
       <EmbeddedResource Include="EngineResources\Shaders\bin\glsl\vs_base_2d.bin" />
       <EmbeddedResource Include="EngineResources\Shaders\bin\hlsl\fs_base_2d.bin" />
       <EmbeddedResource Include="EngineResources\Shaders\bin\hlsl\vs_base_2d.bin" />
+      <EmbeddedResource Include="EngineResources\TextFiles\gamecontrollerdb.txt" />
     </ItemGroup>
 
     <ItemGroup>
@@ -74,7 +76,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Core\Input\GamePad\" />
       <Folder Include="Tools" />
     </ItemGroup>
 

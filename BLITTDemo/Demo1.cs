@@ -1,14 +1,14 @@
-using System;
 using BLITTEngine;
 using BLITTEngine.Core.Audio;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Input;
+using BLITTEngine.Core.Input.GamePad;
 using BLITTEngine.Core.Input.Keyboard;
 using BLITTEngine.Core.Resources;
 
 namespace BLITTDemo
 {
-    // BLITT DEMO 1 - Using input, sound and rendering
+    // BLITT DEMO 1 - Core low level features: Quad Rendering, Input and Audio
     public class Demo1 : Scene
     {
         private Quad quad;
@@ -71,7 +71,7 @@ namespace BLITTDemo
 
         public override void Update(float dt)
         {
-            if(Control.KeyDown(Key.Escape))
+            if(Control.KeyDown(Key.Escape) || Control.ButtonPressed(GamepadButton.Back))
             {
                 Game.Quit();
             }
@@ -101,6 +101,8 @@ namespace BLITTDemo
                 Game.ToggleFullscreen();
             }
 
+            var movement_gamepad = Control.LeftThumbstickAxis;
+
             if(Control.KeyDown(Key.Left))
             {
                 dx -= speed;
@@ -120,6 +122,11 @@ namespace BLITTDemo
             {
                 dy += speed;
             }
+
+
+
+            dx += speed * movement_gamepad.X;
+            dy += speed * movement_gamepad.Y;
 
             dx *= friction;
             dy *= friction;
@@ -179,8 +186,6 @@ namespace BLITTDemo
 
         private void PlayAudio()
         {
-            //MediaPlayer.PlayEffect(bump_sfx);
-
             MediaPlayer.PlayEffectEx(bump_sfx, volume: 40, pan: (x - 320)/320);
         }
 

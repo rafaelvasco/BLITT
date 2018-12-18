@@ -1,4 +1,5 @@
 ﻿using System;
+using BLITTEngine.Core.Input.GamePad;
 using BLITTEngine.Core.Input.Keyboard;
 using BLITTEngine.Core.Input.Mouse;
 using BLITTEngine.Core.Numerics;
@@ -10,6 +11,20 @@ namespace BLITTEngine.Core.Input
     {
         public static Action<int> OnMouseWheel;
 
+        public static GamepadDeadZoneMode GamepadDeadZoneMode
+        {
+            get => platform.GamepadDeadZoneMode;
+            set => platform.GamepadDeadZoneMode = value;
+        }
+
+        public static Vector2 LeftThumbstickAxis => gp_current_state.Thumbsticks.Left;
+
+        public static Vector2 RightThumbstickAxis => gp_current_state.Thumbsticks.Right;
+
+        public static float LeftTriggerValue => gp_current_state.Triggers.Left;
+
+        public static float RightTriggerValue => gp_current_state.Triggers.Right;
+
         private static GamePlatform platform;
 
         private static KeyboardState kb_current_state;
@@ -17,6 +32,10 @@ namespace BLITTEngine.Core.Input
 
         private static MouseState ms_current_state;
         private static MouseState ms_prev_state;
+
+        private static GamepadState gp_current_state;
+        private static GamepadState gp_prev_state;
+
 
         internal static void Init(GamePlatform game_platform)
         {
@@ -36,6 +55,9 @@ namespace BLITTEngine.Core.Input
 
             ms_prev_state = ms_current_state;
             ms_current_state = platform.GetMouseState();
+
+            gp_prev_state = gp_current_state;
+            gp_current_state = platform.GetGamepadState();
         }
 
         public static bool KeyDown(Key key)
@@ -68,7 +90,22 @@ namespace BLITTEngine.Core.Input
             return !ms_current_state[button] && ms_prev_state[button];
         }
 
-        public static void GetPosition(ref Point2 pos)
+        public static bool ButtonDown(GamepadButton button)
+        {
+            return gp_current_state[button];
+        }
+
+        public static bool ButtonPressed(GamepadButton button)
+        {
+            return gp_current_state[button] && !gp_prev_state[button];
+        }
+
+        public static bool ButtonReleased(GamepadButton button)
+        {
+            return !gp_current_state[button] && gp_prev_state[button];
+        }
+
+        public static void GetMousePosition(ref Point2 pos)
         {
             pos.X = ms_current_state.X;
             pos.Y = ms_current_state.Y;

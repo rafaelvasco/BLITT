@@ -142,7 +142,7 @@ namespace BLITTEngine.Core.Platform
             last_kb_state.ClearKey(key);
         }
 
-        public override ref KeyboardState GetKeyboardState()
+        public override ref readonly KeyboardState GetKeyboardState()
         {
             return ref last_kb_state;
         }

@@ -1,4 +1,5 @@
 using System;
+using BLITTEngine.Core.Input.GamePad;
 using BLITTEngine.Core.Input.Keyboard;
 using BLITTEngine.Core.Input.Mouse;
 
@@ -36,8 +37,14 @@ namespace BLITTEngine.Core.Platform
 
         /* INPUT */
 
-        public abstract ref KeyboardState GetKeyboardState();
+        public abstract GamepadDeadZoneMode GamepadDeadZoneMode { get; set; }
 
-        public abstract ref MouseState GetMouseState();
+        public abstract ref readonly KeyboardState GetKeyboardState();
+
+        public abstract ref readonly MouseState GetMouseState();
+
+        public abstract ref readonly GamepadState GetGamepadState();
+
+        public abstract bool SetGamepadVibration(float left_motor, float right_motor);
     }
 }

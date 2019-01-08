@@ -19,8 +19,6 @@ namespace BLITTEngine.Core.Graphics
 
     public unsafe class Canvas
     {
-
-
         public int Width { get; }
 
         public int Height { get; }
@@ -28,6 +26,8 @@ namespace BLITTEngine.Core.Graphics
         private int vertex_max_count;
 
         private Texture2D current_texture;
+
+        private Texture2D prim_texture;
 
         private Vertex2D[] vertex_array;
 
@@ -46,6 +46,10 @@ namespace BLITTEngine.Core.Graphics
         private bool ready_to_draw;
 
         private BlendMode current_blend_mode;
+
+        private BlendMode primitives_blend_mode;
+
+        private uint primitives_color = 0xFFFFFFFF;
 
         private RenderState render_state;
 
@@ -86,6 +90,15 @@ namespace BLITTEngine.Core.Graphics
             gfx.SetClearColor(view: 0, 0x000000FF);
 
             gfx.SetClearColor(view: 1, 0x000000FF);
+
+            var prim_pixmap = new Pixmap(1, 1);
+            prim_pixmap.Fill(Color.White);
+
+            primitives_blend_mode = BlendMode.AlphaBlend;
+
+            prim_texture = Content.CreateTexture(prim_pixmap);
+
+            prim_pixmap.Dispose();
 
             _InitRenderBuffers();
 
@@ -149,12 +162,22 @@ namespace BLITTEngine.Core.Graphics
             ready_to_draw = false;
         }
 
-        public void RenderQuad(ref Quad quad)
+        /// <summary>
+        /// Set Primitives Draw Color
+        /// </summary>
+        /// <param name="color"></param>
+        public void SetColor(Color color)
+        {
+            primitives_color = color;
+        }
+
+
+        public void DrawQuad(ref Quad quad)
         {
             if (!ready_to_draw) return;
 
             if (vertex_index >= vertex_max_count ||
-                current_texture != quad.Tex ||
+                current_texture != quad.Texture ||
                 current_blend_mode != quad.Blend)
             {
                 RenderBatch();
@@ -164,7 +187,7 @@ namespace BLITTEngine.Core.Graphics
                     SetBlendMode(quad.Blend);
                 }
 
-                current_texture = quad.Tex;
+                current_texture = quad.Texture;
             }
 
             int vidx = vertex_index;
@@ -181,6 +204,98 @@ namespace BLITTEngine.Core.Graphics
                 *(vertex_ptr + vidx++) = new Vertex2D(v1.X, v1.Y, v1.Tx, v1.Ty, v1.Col);
                 *(vertex_ptr + vidx++) = new Vertex2D(v2.X, v2.Y, v2.Tx, v2.Ty, v2.Col);
                 *(vertex_ptr + vidx) = new Vertex2D(v3.X, v3.Y, v3.Tx, v3.Ty, v3.Col);
+            }
+
+            unchecked
+            {
+                vertex_index += 4;
+                quad_count++;
+            }
+        }
+
+        public void DrawRect(float x, float y, float w, float h)
+        {
+            if (!ready_to_draw) return;
+
+            if (vertex_index >= vertex_max_count ||
+                current_texture != prim_texture ||
+                current_blend_mode != primitives_blend_mode)
+            {
+                RenderBatch();
+
+                if (current_blend_mode != primitives_blend_mode)
+                {
+                    SetBlendMode(primitives_blend_mode);
+                }
+
+                current_texture = prim_texture;
+            }
+
+            int vidx = vertex_index;
+
+            var col = primitives_color;
+
+            fixed (Vertex2D* vertex_ptr = vertex_array)
+            {
+                // Top Edge
+
+                *(vertex_ptr + vidx++) = new Vertex2D(x, y, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x+w, y, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x+w, y+1, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x, y+1, 0, 0, col);
+
+                // Bottom Edge
+                *(vertex_ptr + vidx++) = new Vertex2D(x, y+h, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x+w, y+h, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x+w, y+h+1, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x, y+h+1, 0, 0, col);
+
+                // Left Edge
+                *(vertex_ptr + vidx++) = new Vertex2D(x, y, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x+1, y, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x+1, y+h, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x, y+h, 0, 0, col);
+                
+                // Right Edge
+                *(vertex_ptr + vidx++) = new Vertex2D(x+w, y, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x+w+1, y, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x+w+1, y+h+1, 0, 0, col);
+                *(vertex_ptr + vidx) = new Vertex2D(x+w, y+h+1, 0, 0, col);
+            }
+
+            unchecked
+            {
+                vertex_index += 16;
+                quad_count+=4;
+            }
+        }
+
+        public void FillRect(float x, float y, float w, float h)
+        {
+            if (!ready_to_draw) return;
+
+            if (vertex_index >= vertex_max_count ||
+                current_texture != prim_texture ||
+                current_blend_mode != primitives_blend_mode)
+            {
+                RenderBatch();
+
+                if (current_blend_mode != primitives_blend_mode)
+                {
+                    SetBlendMode(primitives_blend_mode);
+                }
+
+                current_texture = prim_texture;
+            }
+
+            int vidx = vertex_index;
+
+            fixed (Vertex2D* vertex_ptr = vertex_array)
+            {
+                *(vertex_ptr + vidx++) = new Vertex2D(x, y, 0, 0, primitives_color);
+                *(vertex_ptr + vidx++) = new Vertex2D(x+w, y, 0, 0, primitives_color);
+                *(vertex_ptr + vidx++) = new Vertex2D(x+w, y+h, 0, 0, primitives_color);
+                *(vertex_ptr + vidx) = new Vertex2D(x, y+h, 0, 0, primitives_color);
             }
 
             unchecked

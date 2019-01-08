@@ -20,21 +20,9 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <TargetPath>SDL2.dll</TargetPath>
         </ContentWithTargetPath>
-        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\SDL2_mixer.dll">
+        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\soloud.dll">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <TargetPath>SDL2_mixer.dll</TargetPath>
-        </ContentWithTargetPath>
-        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\libogg-0.dll">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <TargetPath>libogg-0.dll</TargetPath>
-        </ContentWithTargetPath>
-        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\libvorbis-0.dll">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <TargetPath>libvorbis-0.dll</TargetPath>
-        </ContentWithTargetPath>
-        <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\libvorbisfile-3.dll">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <TargetPath>libvorbisfile-3.dll</TargetPath>
+          <TargetPath>soloud.dll</TargetPath>
         </ContentWithTargetPath>
         <ContentWithTargetPath Include="$(MSBuildThisFileDirectory)\Libs\win-x64\bgfx.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -69,20 +57,14 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="NativeLibraryLoader" Version="1.0.12" />
       <PackageReference Include="System.Memory" Version="4.5.1" />
       <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
       <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="EngineResources\Fonts\" />
       <Folder Include="Tools" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Update="BLITTEngine.dll.config">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
     </ItemGroup>
 
 </Project>

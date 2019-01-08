@@ -11,7 +11,7 @@ namespace BLITTEngine.Core.Graphics
         public Vertex2D V3;
 
         //public Vertex2D[] Vertices;
-        public Texture2D Tex;
+        public Texture2D Texture;
         public BlendMode Blend;
     }
 }

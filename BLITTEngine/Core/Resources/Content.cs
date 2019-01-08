@@ -7,6 +7,7 @@ using BLITTEngine.Core.Audio;
 using BLITTEngine.Core.Foundation;
 using BLITTEngine.Core.Foundation.STB;
 using BLITTEngine.Core.Graphics;
+using BLITTEngine.GameResources;
 
 namespace BLITTEngine.Core.Resources
 {
@@ -41,78 +42,37 @@ namespace BLITTEngine.Core.Resources
                 return (Texture2D) asset;
             }
 
+            var texture = LoadTexture(asset_name);
+
+            loaded_assets.Add(asset_name, texture);
+
+            return texture;
+
+        }
+
+        public static Font GetFont(string asset_name)
+        {
+            if (loaded_assets.TryGetValue(asset_name, out Resource asset))
+            {
+                return (Font) asset;
+            }
+
             var id = new StringBuilder(asset_name);
 
-            if (!asset_name.Contains(".png"))
+            if (!asset_name.Contains(".fnt"))
             {
-                id.Append(".png");
+                id.Append(".fnt");
             }
 
             string path = Path.Combine(content_path, id.ToString());
 
-            try
-            {
-                using (FileStream stream = File.OpenRead(path))
-                {
-                    Image loaded_image = image_reader.Read(stream);
+            var font = new Font(path);
 
-                    var pixmap = new Pixmap(loaded_image.Data, loaded_image.Width, loaded_image.Height);
+            loaded_assets.Add(asset_name, font);
 
-                    Texture2D texture = GraphicsContext.CreateTexture(pixmap.PixelData, pixmap.Width, pixmap.Height);
-
-                    pixmap.Dispose();
-
-                    string key = Path.GetFileNameWithoutExtension(path);
-
-                    loaded_assets.Add(key, texture);
-
-                    return texture;
-                }
-            }
-            catch (FileNotFoundException e)
-            {
-                throw new Exception(e.Message);
-            }
+            return font;
         }
-
-        //public static Font GetFont(string asset_name)
-        //{
-        //    if (loaded_assets.TryGetValue(asset_name, out var asset))
-        //    {
-        //        return (Font)asset;
-        //    }
-
-        //    var id = new StringBuilder(asset_name);
-
-        //    if (!asset_name.Contains(".png"))
-        //    {
-        //        id.Append(".png");
-        //    }
-
-        //    string path = Path.Combine(content_path, id.ToString());
-
-        //    try
-        //    {
-        //        using (var stream = File.OpenRead(path))
-        //        {
-        //            var loaded_image = image_reader.Read(stream);
-
-        //            var pixmap = new Pixmap(loaded_image.Data, loaded_image.Width, loaded_image.Height);
-
-        //            var font = new Font(pixmap);
-
-        //            var key = Path.GetFileNameWithoutExtension(path);
-
-        //            loaded_assets.Add(key, font);
-
-        //            return font;
-        //        }
-        //    }
-        //    catch (FileNotFoundException e)
-        //    {
-        //        throw new Exception(e.Message);
-        //    }
-        //}
+            
 
         public static Effect GetEffect(string asset_name)
         {
@@ -185,7 +145,7 @@ namespace BLITTEngine.Core.Resources
 
         public static Texture2D CreateTexture(Pixmap pixmap)
         {
-            Texture2D texture = GraphicsContext.CreateTexture(pixmap.PixelData, pixmap.Width, pixmap.Height);
+            Texture2D texture = GraphicsContext.CreateTexture(pixmap);
 
             Register(texture);
 
@@ -197,6 +157,40 @@ namespace BLITTEngine.Core.Resources
             var pixmap = new Pixmap(width, height);
 
             return CreateTexture(pixmap);
+        }
+
+        internal static Texture2D LoadTexture(string asset_name)
+        {
+            try
+            {
+                var id = new StringBuilder(asset_name);
+
+                if (!asset_name.Contains(".png"))
+                {
+                    id.Append(".png");
+                }
+
+                string path = Path.Combine(content_path, id.ToString());
+
+                using (FileStream stream = File.OpenRead(path))
+                {
+                    Image loaded_image = image_reader.Read(stream);
+
+                    var pixmap = new Pixmap(loaded_image.Data, loaded_image.Width, loaded_image.Height);
+
+                    Texture2D texture = GraphicsContext.CreateTexture(pixmap);
+
+                    texture.Name = asset_name;
+
+                    pixmap.Dispose();
+
+                    return texture;
+                }
+            }
+            catch (FileNotFoundException e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         public static RenderTarget CreateRenderTarget(int width, int height)

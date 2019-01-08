@@ -1,202 +1,161 @@
-﻿using System;
-using BLITTEngine.Core.Foundation.SDL;
-using BLITTEngine.Core.Numerics;
+﻿using BLITTEngine.Core.Foundation;
 
 namespace BLITTEngine.Core.Audio
 {
     public static class MediaPlayer
     {
-        private static Song current_song;
-        private static int global_song_volume;
+        public static float EffectVolume
+        {
+            get => sfx_vol * 100;
+            set => sfx_vol = value / 100;
+        }
 
-        public static int MaxVolume { get; internal set; }
+        public static float SongVolume
+        {
+            get => song_vol * 100;
+            set
+            {
+                song_vol = value / 100;
+
+                if (current_song_instance > 0)
+                {
+                    engine.setVolume(current_song_instance, song_vol);
+                }
+            }
+        }
+
+        private static Soloud engine;
+        private static uint current_song_instance;
+        private static Song current_song;
+        private static float sfx_vol = 1.0f;
+        private static float song_vol = 1.0f;
+        private static bool muted = false;
 
         internal static void Init()
         {
-            if (SDL_mixer.Mix_OpenAudio(SDL_mixer.MIX_DEFAULT_FREQUENCY, SDL_mixer.MIX_DEFAULT_FORMAT, 2, 1024) == -1)
-            {
-                throw new Exception("Error on initializing SDL_mixer");
-            }
+            engine = new Soloud();
 
-            MaxVolume = SDL_mixer.MIX_MAX_VOLUME;
-
-            global_song_volume = MaxVolume;
+            engine.init(Soloud.CLIP_ROUNDOFF, Soloud.AUTO, 22050, 1024);
         }
 
-        public static void PlayEffect(Effect effect)
-        {
-            SDL_mixer.Mix_VolumeChunk(effect.Handle, MaxVolume);
-            SDL_mixer.Mix_PlayChannel(1, effect.Handle, 0);
-        }
-
-        public static void PlayEffectEx(Effect effect, int volume = 100, float pan = 0, float pitch = 1.0f)
-        {
-            volume = Calc.Clamp(volume, 0, MaxVolume);
-
-            SDL_mixer.Mix_Volume(1, volume);
-
-            pan = Calc.NormalizeVar(pan, -1.0f, 1.0f);
-
-            byte left_vol = (byte) (127 - 127 * pan);
-
-            SDL_mixer.Mix_SetPanning(1, left_vol, (byte) (254 - left_vol));
-
-            //SDL_mixer.Mix_RegisterEffect()
-
-            SDL_mixer.Mix_PlayChannel(1, effect.Handle, 0);
-        }
-
-        public static void PlaySong(Song song)
+        public static void Play(Song song, bool loop = true)
         {
             if (current_song == song)
             {
-                if (SDL_mixer.Mix_PausedMusic() == 0)
-                {
-                    song.Playing = false;
-                    SDL_mixer.Mix_PauseMusic();
-                }
-                else
-                {
-                    song.Playing = true;
-                    SDL_mixer.Mix_ResumeMusic();
-                }
-                
+                Pause(!IsPaused(song));
+
                 return;
             }
 
-            if (current_song == null)
+            bool was_playing_something_else = false;
+
+            if (current_song != null)
             {
-                if (song.FadeMs == 0)
-                {
-                    SDL_mixer.Mix_PlayMusic(song.Handle, -1);
-                    
-                }
-                else
-                {
-                    int res = SDL_mixer.Mix_FadeInMusic(song.Handle, -1, song.FadeMs);
-                    Console.WriteLine(res);
-                }
+                was_playing_something_else = true;
+                engine.fadeVolume(current_song_instance, aTo: 0.0f, aTime: 1.0f);
+                engine.scheduleStop(current_song_instance, aTime: 1.0f);
+            }
 
-                song.Playing = true;
+            current_song = song;
 
-                current_song = song;
+            current_song_instance = engine.play(song.song_stream);
+            engine.setProtectVoice(current_song_instance, 1);
+            engine.setLooping(current_song_instance, loop ? 1 : 0);
+
+            if (was_playing_something_else)
+            {
+                engine.setVolume(current_song_instance, 0.0f);
+                engine.fadeVolume(current_song_instance, aTo: song_vol, aTime: 1.0f);    
             }
             else
             {
-                if (song.FadeMs == 0)
-                {
-                    
-                    SDL_mixer.Mix_PlayMusic(song.Handle, -1);
-                }
-                else
-                {
-                    SDL_mixer.Mix_FadeOutMusic(current_song.FadeMs);
-                    SDL_mixer.Mix_FadeInMusic(song.Handle, -1, song.FadeMs);
-                }
+                engine.setVolume(current_song_instance, song_vol);
+            }
+        }
 
-                current_song.Playing = false;
-                song.Playing = true;
+        public static void Fire(Effect effect, float pan = 0.0f, float speed = 1.0f)
+        {
+            uint voice = engine.play(effect.wave);
+            engine.setVolume(voice, sfx_vol);
+            engine.setPan(voice, pan);
 
-                current_song = song;
+            if (speed < 0.1f)
+            {
+                speed = 0.1f;
             }
 
-            SyncSongVolume();
+            engine.setRelativePlaySpeed(voice, speed);
         }
 
-        public static void SetSongVolume(int volume)
+        public static void ToggleAllAudio()
         {
-            if (current_song == null)
+            if (muted)
             {
-                return;
+                engine.setGlobalVolume(1.0f);
+                muted = false;
+            }
+            else
+            {
+                engine.setGlobalVolume(0.0f);
+                muted = true;
             }
 
-            global_song_volume = volume;
-
-            global_song_volume = Calc.Clamp(global_song_volume, 0, MaxVolume);
-
-            SDL_mixer.Mix_VolumeMusic((int) (global_song_volume * current_song.VolumeFactor));
         }
 
-        public static void AddSongVolume(int delta)
+        public static void GlobalFade(float to, float seconds)
         {
-            if (current_song == null)
+            engine.fadeGlobalVolume(to, seconds);
+        }
+
+        public static void Pause(bool pause)
+        {
+            if (pause)
             {
-                return;
+                engine.schedulePause(current_song_instance, 1.0f);
+                engine.fadeVolume(current_song_instance, aTo: 0.0f, aTime: 1.0f);    
             }
-
-            global_song_volume += delta;
-
-            global_song_volume = Calc.Clamp(global_song_volume, 0, MaxVolume);
-
-            SDL_mixer.Mix_VolumeMusic((int) (global_song_volume * current_song.VolumeFactor));
-        }
-
-        public static void SongMute(bool mute)
-        {
-            if (current_song == null)
+            else
             {
-                return;
+                engine.fadeVolume(current_song_instance, aTo: 1.0f, aTime: 1.0f);
+                engine.setPause(current_song_instance, 0);
             }
-
-            global_song_volume = mute ? 0 : MaxVolume;
-
-            SDL_mixer.Mix_VolumeMusic((int) (global_song_volume * current_song.VolumeFactor));
-        }
-
-        internal static void SyncSongVolume()
-        {
-            SetSongVolume(global_song_volume);
-        }
-
-        internal static Effect LoadEffect(string file)
-        {
-            IntPtr handle = SDL_mixer.Mix_LoadWAV(file);
-
-            var effect = new Effect()
-            {
-                Handle = handle
-            };
-
-            return effect;
         }
 
         internal static Song LoadSong(string file)
         {
-            IntPtr handle = SDL_mixer.Mix_LoadMUS(file);
+            var stream = new WavStream();
+            stream.load(file);
 
-            var song = new Song()
-            {
-                Handle = handle
-            };
+            var song = new Song(stream);
 
             return song;
         }
 
-        internal static void FreeEffect(Effect effect)
+        internal static Effect LoadEffect(string file)
         {
-            SDL_mixer.Mix_FreeChunk(effect.Handle);
+            var wave = new Wav();
+
+            wave.load(file);
+
+            var effect = new Effect(wave);
+
+            return effect;
         }
 
-        internal static void FreeSong(Song song)
+        internal static bool IsPlaying(Song song)
         {
-            SDL_mixer.Mix_FreeMusic(song.Handle);
+            return song == current_song;
         }
 
-       
+        internal static bool IsPaused(Song song)
+        {
+            return song == current_song && engine.getPause(current_song_instance) == 1;
+        }
+
         internal static void Shutdown()
         {
-            if (SDL_mixer.Mix_PlayingMusic() == 1)
-            {
-                SDL_mixer.Mix_HaltMusic();
-            }
-
-            if (SDL_mixer.Mix_Playing(1) == 1)
-            {
-                SDL_mixer.Mix_HaltChannel(1);
-            }
-            
-            SDL_mixer.Mix_CloseAudio();
+            engine.stopAll();
+            engine.deinit();
         }
-
     }
 }

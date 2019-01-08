@@ -1,6 +1,7 @@
 ﻿using BLITTEngine.Core.Graphics;
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace BLITTEngine.Core.Foundation.STB
@@ -31,43 +32,11 @@ namespace BLITTEngine.Core.Foundation.STB
 			return size;
 		}
 
-		public void WriteBmp(Pixmap image, Stream dest)
+		public void WritePng(Pixmap image, string output)
 		{
 			try
 			{
-				_stream = dest;
-				fixed (byte* b = &image.PixelData[0])
-				{
-					STBImageWrite.stbi_write_bmp_to_func(WriteCallback, null, image.Width, image.Height, 4, b);
-				}
-			}
-			finally
-			{
-				_stream = null;
-			}
-		}
-
-		public void WriteTga(Pixmap image, Stream dest)
-		{
-			try
-			{
-				_stream = dest;
-				fixed (byte* b = &image.PixelData[0])
-				{
-					STBImageWrite.stbi_write_tga_to_func(WriteCallback, null, image.Width, image.Height, 4, b);
-				}
-			}
-			finally
-			{
-				_stream = null;
-			}
-		}
-
-		public void WritePng(Pixmap image, Stream dest)
-		{
-			try
-			{
-				_stream = dest;
+			    _stream = new FileStream(output, FileMode.Create, FileAccess.Write);
 
 				fixed (byte* b = &image.PixelData[0])
 				{
@@ -81,17 +50,32 @@ namespace BLITTEngine.Core.Foundation.STB
 			}
 		}
 
+        public void WritePng(IntPtr data, int width, int height, string output)
+        {
+            try
+            {
+                _stream = new FileStream(output, FileMode.Create, FileAccess.Write);
+
+                STBImageWrite.stbi_write_png_to_func(WriteCallback, null, width, height, 4, (void*)data,
+                                                     width*4);
+            }
+            finally
+            {
+                _stream = null;
+            }
+        }
+
 		/// <summary>
 		/// Writes JPG File
 		/// </summary>
 		/// <param name="image"></param>
 		/// <param name="dest"></param>
 		/// <param name="quality">Should be beetween 1 & 100</param>
-		public void WriteJpg(Pixmap image, Stream dest, int quality)
+		public void WriteJpg(Pixmap image, int quality, string output)
 		{
 			try
 			{
-				_stream = dest;
+			    _stream = new FileStream(output, FileMode.Create, FileAccess.Write);
 
 				fixed (byte* b = &image.PixelData[0])
 				{

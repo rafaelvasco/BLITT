@@ -1101,7 +1101,7 @@ namespace BLITTEngine.Core.Foundation {
 
         static readonly int TextureFormatCount = Enum.GetValues(typeof(TextureFormat)).Length;
 
-        class DefaultCallbackHandler : ICallbackHandler {
+        internal class DefaultCallbackHandler : ICallbackHandler {
             public void ProfilerBegin (string name, int color, string filePath, int line) {}
             public void ProfilerEnd () {}
             public void CaptureStarted(int width, int height, int pitch, TextureFormat format, bool flipVertical) {}

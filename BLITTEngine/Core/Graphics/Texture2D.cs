@@ -1,5 +1,4 @@
 using BLITTEngine.Core.Foundation;
-using System;
 using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Graphics
@@ -9,6 +8,10 @@ namespace BLITTEngine.Core.Graphics
         internal static GraphicsContext GraphicsContext;
 
         internal Texture Texture;
+
+        internal TextureFlags TexFlags;
+
+        internal string Name;
 
         public readonly int Width;
 
@@ -25,7 +28,7 @@ namespace BLITTEngine.Core.Graphics
 
                 tiled = value;
 
-                GraphicsContext.UpdateTextureAttributes(this);
+                GraphicsContext.UpdateTexFlags(this);
             }
         }
 
@@ -38,7 +41,7 @@ namespace BLITTEngine.Core.Graphics
 
                 filtered = value;
 
-                GraphicsContext.UpdateTextureAttributes(this);
+                GraphicsContext.UpdateTexFlags(this);
             }
         }
 
@@ -46,12 +49,14 @@ namespace BLITTEngine.Core.Graphics
 
         private bool filtered;
 
-        internal Texture2D(Texture texture, bool render_target)
+        internal Texture2D(Texture texture, bool render_target, bool filtered, bool tiled)
         {
             this.Texture = texture;
             this.Width = texture.Width;
             this.Height = texture.Height;
             this.RenderTarget = render_target;
+            this.filtered = filtered;
+            this.tiled = tiled;
 
         }
 

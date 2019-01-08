@@ -1,9 +1,9 @@
-﻿using BLITTEngine.Core.Graphics;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Numerics;
 
-namespace BLITTEngine.GameObjects
+namespace BLITTEngine.DisplayObjects
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct Particle
@@ -107,7 +107,7 @@ namespace BLITTEngine.GameObjects
             {
                 spr.SetColor(par->Color);
 
-                spr.RenderEx(
+                spr.DrawEx(
                     canvas,
                     par->Loc.X * scale + tx,
                     par->Loc.Y * scale + ty,

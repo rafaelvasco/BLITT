@@ -28,6 +28,9 @@
       <None Update="Assets\bg2.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Assets\bg3.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Assets\cursor.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

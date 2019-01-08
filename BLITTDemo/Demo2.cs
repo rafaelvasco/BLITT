@@ -4,12 +4,12 @@ using BLITTEngine.Core.Input;
 using BLITTEngine.Core.Input.Keyboard;
 using BLITTEngine.Core.Numerics;
 using BLITTEngine.Core.Resources;
-using BLITTEngine.GameObjects;
+using BLITTEngine.DisplayObjects;
 using BLITTEngine.Temporal;
 
 namespace BLITTDemo
 {
-    // BLITT DEMO 2 - Game Utils : Particle Effects, Sprites, Timer, RandomEx
+    // BLITT DEMO 2 - Game Objects : Particle Effect, Sprite, Text, Timer, RandomEx
     public class Demo2 : Scene
     {
         private Size size;
@@ -197,7 +197,7 @@ namespace BLITTDemo
         {
             canvas.Begin();
 
-            sprite.Render(canvas, x, y);
+            sprite.Draw(canvas, x, y);
 
             emitter.Render(canvas);
 

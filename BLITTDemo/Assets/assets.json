@@ -1,0 +1,20 @@
+{
+  "Resources": {
+    "bg": "Textures/bg.png",
+    "bg2": "Textures/bg2.png",
+    "bg3": "Textures/bg3.png",
+    "cursor": "Textures/cursor.png",
+    "objects": "Textures/objects.png",
+    "res_text": "Textures/res_text.png",
+    "zazaka": "Textures/zazaka.png",
+    "font1": "Fonts/font1.fnt",
+    "font1_sheet": "Fonts/font1.png",
+    "font2": "Fonts/font2.fnt",
+    "font2_sheet": "Fonts/font2.png",
+    "pixelnoir": "Fonts/pixelnoir.fnt",
+    "pixelnoir_sheet": "Fonts/pixelnoir.png",
+    "menu": "Sfx/menu.wav",
+    "mus1": "Songs/mus1.ogg",
+    "mus2": "Songs/mus2.ogg"
+  }
+}

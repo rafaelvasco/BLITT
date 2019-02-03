@@ -232,3 +232,7 @@
 //        }
 //    }
 //}
+
+namespace BLITTEngine.GameToolkit
+{
+}

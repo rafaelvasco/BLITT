@@ -6,7 +6,7 @@ namespace BLITTEngine.Core.Numerics
     [StructLayout(LayoutKind.Sequential)]
     public struct Rect : IEquatable<Rect>
     {
-        private static Rect _empty = new Rect(0, 0, 0, 0);
+        private static readonly Rect _empty = new Rect(0, 0, 0, 0);
         public static ref readonly Rect Empty => ref _empty;
 
         public float X1;
@@ -21,17 +21,17 @@ namespace BLITTEngine.Core.Numerics
 
         public Rect(float x1, float y1, float x2, float y2)
         {
-            this.X1 = x1;
-            this.Y1 = y1;
-            this.X2 = x2;
-            this.Y2 = y2;
+            X1 = x1;
+            Y1 = y1;
+            X2 = x2;
+            Y2 = y2;
         }
 
         public float Width => X2 - X1;
 
         public float Height => Y2 - Y1;
 
-        public bool IsEmpty => (Width == 0 && Height == 0);
+        public bool IsEmpty => Width == 0 && Height == 0;
 
         public bool IsRegular => X2 > X1 && Y2 > Y1;
 
@@ -104,11 +104,11 @@ namespace BLITTEngine.Core.Numerics
         {
             unchecked
             {
-                int hash = 17;
-                hash = (int)(hash * 23 + X1);
-                hash = (int)(hash * 23 + Y1);
-                hash = (int)(hash * 23 + X2);
-                hash = (int)(hash * 23 + Y2);
+                var hash = 17;
+                hash = (int) (hash * 23 + X1);
+                hash = (int) (hash * 23 + Y1);
+                hash = (int) (hash * 23 + X2);
+                hash = (int) (hash * 23 + Y2);
                 return hash;
             }
         }
@@ -135,7 +135,7 @@ namespace BLITTEngine.Core.Numerics
             return $"{X1},{Y1},{X2},{Y2}";
         }
 
-        public static bool operator == (Rect a, Rect b)
+        public static bool operator ==(Rect a, Rect b)
         {
             return a.Equals(ref b);
         }

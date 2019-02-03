@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Numerics;
 
-namespace BLITTEngine.DisplayObjects
+namespace BLITTEngine.GameToolkit
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct Particle
@@ -69,19 +69,17 @@ namespace BLITTEngine.DisplayObjects
 
     public unsafe class ParticleEmitter : IDisposable
     {
+        private readonly ParticleBuffer particles;
+        private readonly RandomEx random;
+
+        private float age;
+        private float emission_residue;
         public ParticleEmitterInfo Info;
-
-        public float Scale
-        {
-            get => scale;
-            set => scale = value;
-        }
-
-        public int ParticlesAlive => particles_alive;
-
-        public Vector2 Position => loc;
-
-        public Vector2 Transposition => new Vector2(tx, ty);
+        private Vector2 loc;
+        private Vector2 prev_loc;
+        private float scale;
+        private float tx;
+        private float ty;
 
         public ParticleEmitter(ParticleEmitterInfo info, Sprite particle_sprite)
         {
@@ -89,7 +87,7 @@ namespace BLITTEngine.DisplayObjects
             loc.Y = prev_loc.Y = 0.0f;
             tx = ty = 0;
             emission_residue = 0.0f;
-            particles_alive = 0;
+            ParticlesAlive = 0;
             Info = info;
             Info.ParticleSprite = particle_sprite;
             scale = 1.0f;
@@ -98,12 +96,29 @@ namespace BLITTEngine.DisplayObjects
             random = new RandomEx();
         }
 
+        public float Scale
+        {
+            get => scale;
+            set => scale = value;
+        }
+
+        public int ParticlesAlive { get; private set; }
+
+        public Vector2 Position => loc;
+
+        public Vector2 Transposition => new Vector2(tx, ty);
+
+        public void Dispose()
+        {
+            particles.Dispose();
+        }
+
         public void Render(Canvas canvas)
         {
-            var par = (Particle*)particles.NativePointer;
-            Sprite spr = Info.ParticleSprite;
+            var par = (Particle*) particles.NativePointer;
+            var spr = Info.ParticleSprite;
 
-            for(var i = 0; i < particles_alive; ++i)
+            for (var i = 0; i < ParticlesAlive; ++i)
             {
                 spr.SetColor(par->Color);
 
@@ -117,7 +132,6 @@ namespace BLITTEngine.DisplayObjects
 
                 par++;
             }
-
         }
 
         public void FireAt(float x, float y)
@@ -129,24 +143,17 @@ namespace BLITTEngine.DisplayObjects
 
         public void Fire()
         {
-            if(Info.LifeTime == -1.0f)
-            {
+            if (Info.LifeTime == -1.0f)
                 age = -1.0f;
-            }
             else
-            {
                 age = 0.0f;
-            }
         }
 
         public void Stop(bool kill_particles = false)
         {
             age = -2.0f;
 
-            if(kill_particles)
-            {
-                particles_alive = 0;
-            }
+            if (kill_particles) ParticlesAlive = 0;
         }
 
         public void Transpose(float x, float y)
@@ -159,15 +166,15 @@ namespace BLITTEngine.DisplayObjects
         {
             if (move_particles)
             {
-                float dx = x - loc.X;
-                float dy = y - loc.Y;
+                var dx = x - loc.X;
+                var dy = y - loc.Y;
 
-                var particle = (Particle*)particles.NativePointer;
+                var particle = (Particle*) particles.NativePointer;
 
-                for(var i = 0; i < particles_alive; ++i)
+                for (var i = 0; i < ParticlesAlive; ++i)
                 {
-                    (particle + i)->Loc.X += dx;
-                    (particle + i)->Loc.Y += dy;
+                    particle + i->Loc.X += dx;
+                    particle + i->Loc.Y += dy;
                 }
 
                 prev_loc.X += dx;
@@ -196,42 +203,39 @@ namespace BLITTEngine.DisplayObjects
             int i;
             float angle;
             float rand_val;
-            ParticleEmitterInfo inf = Info;
-            int part_size = Particle.SizeInBytes;
+            var inf = Info;
+            var part_size = Particle.SizeInBytes;
 
             if (age >= 0)
             {
                 age += dt;
-                if(age >= inf.LifeTime)
-                {
-                    age = -2.0f;
-                }
+                if (age >= inf.LifeTime) age = -2.0f;
             }
 
-            var particle = (Particle*)particles.NativePointer;
-            var first_particle = (Particle*)particles.NativePointer;
+            var particle = (Particle*) particles.NativePointer;
+            var first_particle = (Particle*) particles.NativePointer;
 
             // Update Active Particles
 
-            for(i = 0; i < particles_alive; ++i)
+            for (i = 0; i < ParticlesAlive; ++i)
             {
                 particle->Age += dt;
 
-                if(particle->Age >= particle->TerminalAge)
+                if (particle->Age >= particle->TerminalAge)
                 {
-                    particles_alive--;
+                    ParticlesAlive--;
 
-                    *(particle) = *(first_particle+particles_alive);
+                    *particle = *(first_particle + ParticlesAlive);
 
                     i--;
 
                     continue;
                 }
 
-                Vector2 vec_accel = (particle->Loc - loc);
+                var vec_accel = particle->Loc - loc;
                 vec_accel.Normalize();
 
-                Vector2 vec_accel2 = vec_accel;
+                var vec_accel2 = vec_accel;
 
                 vec_accel *= particle->RadialAccel;
 
@@ -263,45 +267,35 @@ namespace BLITTEngine.DisplayObjects
 
             if (age != -2.0f)
             {
-                if(inf.Emission == 0)
-                {
-                    goto end;
-                }
+                if (inf.Emission == 0) goto end;
 
                 /*if (particles_alive >= inf.MaxParticles-1)
                 {
                    goto end;
                 }*/
 
-                float particles_needed = inf.Emission * dt + emission_residue;
+                var particles_needed = inf.Emission * dt + emission_residue;
                 var particles_created = (int) particles_needed;
 
                 emission_residue = particles_needed - particles_created;
 
-                particle = (Particle*) IntPtr.Add(particles.NativePointer, particles_alive * part_size);
+                particle = (Particle*) IntPtr.Add(particles.NativePointer, ParticlesAlive * part_size);
 
-                for(i=0; i < particles_created; ++i)
+                for (i = 0; i < particles_created; ++i)
                 {
-
-                    if(particles_alive >= inf.MaxParticles)
-                    {
-                        break;
-                    }
+                    if (ParticlesAlive >= inf.MaxParticles) break;
 
                     rand_val = random.NextFloat();
 
                     particle->Age = 0.0f;
                     particle->TerminalAge = random.NextFloat(inf.ParticleLifeMin, inf.ParticleLifeMax);
 
-                    particle->Loc.X = prev_loc.X + ((loc.X - prev_loc.X) * rand_val) + random.NextFloat(-2.0f, 2.0f);
-                    particle->Loc.Y = prev_loc.Y + ((loc.Y - prev_loc.Y) * rand_val) + random.NextFloat(-2.0f, 2.0f);
+                    particle->Loc.X = prev_loc.X + (loc.X - prev_loc.X) * rand_val + random.NextFloat(-2.0f, 2.0f);
+                    particle->Loc.Y = prev_loc.Y + (loc.Y - prev_loc.Y) * rand_val + random.NextFloat(-2.0f, 2.0f);
 
                     angle = inf.Direction - Calc.PI_OVER2 + random.NextFloat(0, inf.Spread) - inf.Spread / 2.0f;
 
-                    if (inf.Relative)
-                    {
-                        angle += (prev_loc - loc).Angle + Calc.PI_OVER2;
-                    }
+                    if (inf.Relative) angle += (prev_loc - loc).Angle + Calc.PI_OVER2;
 
                     particle->Vel.X = Calc.Cos(angle);
                     particle->Vel.Y = Calc.Sin(angle);
@@ -315,33 +309,37 @@ namespace BLITTEngine.DisplayObjects
 
                     particle->Gravity = random.NextFloat(inf.GravityMin, inf.GravityMax);
 
+                    particle->Gravity += rand_val;
+
                     particle->RadialAccel = random.NextFloat(inf.RadialAccelMin, inf.RadialAccelMax);
 
                     particle->TangentialAccel = random.NextFloat(inf.TangentialAccelMin, inf.TangentialAccelMax);
 
-                    particle->Size = random.NextFloat(inf.SizeStart, inf.SizeStart + (inf.SizeEnd - inf.SizeStart) * inf.SizeVariation);
+                    particle->Size = random.NextFloat(inf.SizeStart,
+                        inf.SizeStart + (inf.SizeEnd - inf.SizeStart) * inf.SizeVariation);
 
                     particle->SizeDelta = (inf.SizeEnd - particle->Size) / particle->TerminalAge;
 
-                    particle->Spin = random.NextFloat(inf.SpinStart, inf.SpinStart + (inf.SpinEnd - inf.SpinStart) * inf.SpinVariation);
+                    particle->Spin = random.NextFloat(inf.SpinStart,
+                        inf.SpinStart + (inf.SpinEnd - inf.SpinStart) * inf.SpinVariation);
 
                     particle->SpinDelta = (inf.SpinEnd - particle->Spin) / particle->TerminalAge;
 
                     particle->Color.R = random.NextFloat(inf.ColorStart.R,
-                                                         inf.ColorStart.R + (inf.ColorEnd.R - inf.ColorStart.R) *
-                                                         inf.ColorVariation);
+                        inf.ColorStart.R + (inf.ColorEnd.R - inf.ColorStart.R) *
+                        inf.ColorVariation);
 
                     particle->Color.G = random.NextFloat(inf.ColorStart.G,
-                                                         inf.ColorStart.G + (inf.ColorEnd.G - inf.ColorStart.G) *
-                                                         inf.ColorVariation);
+                        inf.ColorStart.G + (inf.ColorEnd.G - inf.ColorStart.G) *
+                        inf.ColorVariation);
 
                     particle->Color.B = random.NextFloat(inf.ColorStart.B,
-                                                         inf.ColorStart.B + (inf.ColorEnd.B - inf.ColorStart.B) *
-                                                         inf.ColorVariation);
+                        inf.ColorStart.B + (inf.ColorEnd.B - inf.ColorStart.B) *
+                        inf.ColorVariation);
 
                     particle->Color.A = random.NextFloat(inf.ColorStart.A,
-                                                         inf.ColorStart.A + (inf.ColorEnd.A - inf.ColorStart.A) *
-                                                         inf.ColorVariation);
+                        inf.ColorStart.A + (inf.ColorEnd.A - inf.ColorStart.A) *
+                        inf.ColorVariation);
 
                     particle->Color.Clamp();
 
@@ -350,41 +348,23 @@ namespace BLITTEngine.DisplayObjects
                     particle->ColorDelta.B = (inf.ColorEnd.B - particle->Color.B) / particle->TerminalAge;
                     particle->ColorDelta.A = (inf.ColorEnd.A - particle->Color.A) / particle->TerminalAge;
 
-                    particles_alive++;
+                    ParticlesAlive++;
 
                     particle++;
                 }
             }
 
-            end: prev_loc = loc;
+            prev_loc = loc;
         }
-
-        public void Dispose()
-        {
-            this.particles.Dispose();
-        }
-
-        private float age;
-        private float emission_residue;
-        private Vector2 prev_loc;
-        private Vector2 loc;
-        private float tx;
-        private float ty;
-        private float scale;
-        private int particles_alive;
-        private readonly ParticleBuffer particles;
-        private readonly RandomEx random;
-
-
     }
 
     internal class ParticleBuffer : IDisposable
     {
+        public readonly IntPtr NativePointer;
+        private bool disposed;
+        private GCHandle gc_handle;
 
         public Particle[] Particles;
-        public readonly IntPtr NativePointer;
-        private GCHandle gc_handle;
-        private bool disposed;
 
         public ParticleBuffer(int size)
         {
@@ -400,7 +380,6 @@ namespace BLITTEngine.DisplayObjects
                 gc_handle.Free();
                 Particles = null;
                 disposed = true;
-
             }
 
             GC.SuppressFinalize(this);
@@ -411,5 +390,4 @@ namespace BLITTEngine.DisplayObjects
             Dispose();
         }
     }
-
 }

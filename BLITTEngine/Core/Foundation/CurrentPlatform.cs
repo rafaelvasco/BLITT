@@ -13,8 +13,17 @@ namespace BLITTEngine.Core.Foundation
 
     internal static class CurrentPlatform
     {
-        private static bool init = false;
+        private static bool init;
         private static OS os;
+
+        public static OS OS
+        {
+            get
+            {
+                Init();
+                return os;
+            }
+        }
 
         [DllImport("libc")]
         private static extern int uname(IntPtr buf);
@@ -23,7 +32,7 @@ namespace BLITTEngine.Core.Foundation
         {
             if (!init)
             {
-                PlatformID pid = Environment.OSVersion.Platform;
+                var pid = Environment.OSVersion.Platform;
 
                 switch (pid)
                 {
@@ -41,23 +50,20 @@ namespace BLITTEngine.Core.Foundation
                     case PlatformID.Unix:
 
                         // Mac can return a value of Unix sometimes, We need to double check it.
-                        IntPtr buf = IntPtr.Zero;
+                        var buf = IntPtr.Zero;
                         try
                         {
                             buf = Marshal.AllocHGlobal(8192);
 
                             if (uname(buf) == 0)
                             {
-                                string sos = Marshal.PtrToStringAnsi(buf);
+                                var sos = Marshal.PtrToStringAnsi(buf);
                                 if (sos == "Darwin")
                                 {
                                     os = OS.MacOSX;
                                     return;
                                 }
                             }
-                        }
-                        catch
-                        {
                         }
                         finally
                         {
@@ -74,15 +80,6 @@ namespace BLITTEngine.Core.Foundation
                 }
 
                 init = true;
-            }
-        }
-
-        public static OS OS
-        {
-            get
-            {
-                Init();
-                return os;
             }
         }
     }

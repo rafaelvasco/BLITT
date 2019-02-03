@@ -1,6 +1,6 @@
 [BTFONT]
 
-Bitmap=font1.png
+Bitmap=font1
 
 Char=32,0,0,8,27,0,0
 Char=33,8,0,5,27,0,0

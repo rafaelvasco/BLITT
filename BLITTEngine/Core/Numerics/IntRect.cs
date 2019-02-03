@@ -6,7 +6,7 @@ namespace BLITTEngine.Core.Numerics
     [StructLayout(LayoutKind.Sequential)]
     public struct IntRect : IEquatable<IntRect>
     {
-        private static IntRect _empty = new IntRect(0, 0, 0, 0);
+        private static readonly IntRect _empty = new IntRect(0, 0, 0, 0);
         public ref readonly IntRect Empty => ref _empty;
 
         public int X1;
@@ -21,21 +21,22 @@ namespace BLITTEngine.Core.Numerics
 
         public IntRect(int x1, int y1, int x2, int y2)
         {
-            this.X1 = x1;
-            this.Y1 = y1;
-            this.X2 = x2;
-            this.Y2 = y2;
+            X1 = x1;
+            Y1 = y1;
+            X2 = x2;
+            Y2 = y2;
         }
 
         public int Width => X2 - X1;
 
         public int Height => Y2 - Y1;
 
-        public bool IsEmpty => (Width == 0 && Height == 0);
+        public bool IsEmpty => Width == 0 && Height == 0;
 
         public bool IsRegular => X2 > X1 && Y2 > Y1;
 
-        public IntRect Normalized => new IntRect(Calc.Min(X1, X2), Calc.Min(Y1, Y2), Calc.Max(X1, X2), Calc.Max(Y1, Y2));
+        public IntRect Normalized =>
+            new IntRect(Calc.Min(X1, X2), Calc.Min(Y1, Y2), Calc.Max(X1, X2), Calc.Max(Y1, Y2));
 
         public int Area => Math.Abs(Width * Height);
 
@@ -104,7 +105,7 @@ namespace BLITTEngine.Core.Numerics
         {
             unchecked
             {
-                int hash = 17;
+                var hash = 17;
                 hash = hash * 23 + X1;
                 hash = hash * 23 + Y1;
                 hash = hash * 23 + X2;
@@ -135,7 +136,7 @@ namespace BLITTEngine.Core.Numerics
             return $"{X1},{Y1},{X2},{Y2}";
         }
 
-        public static bool operator == (IntRect a, IntRect b)
+        public static bool operator ==(IntRect a, IntRect b)
         {
             return a.Equals(ref b);
         }

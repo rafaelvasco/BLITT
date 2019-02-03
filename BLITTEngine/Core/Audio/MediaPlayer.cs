@@ -1,9 +1,17 @@
 ﻿using BLITTEngine.Core.Foundation;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Audio
 {
     public static class MediaPlayer
     {
+        private static Soloud engine;
+        private static uint current_song_instance;
+        private static Song current_song;
+        private static float sfx_vol = 1.0f;
+        private static float song_vol = 1.0f;
+        private static bool muted;
+
         public static float EffectVolume
         {
             get => sfx_vol * 100;
@@ -17,19 +25,9 @@ namespace BLITTEngine.Core.Audio
             {
                 song_vol = value / 100;
 
-                if (current_song_instance > 0)
-                {
-                    engine.setVolume(current_song_instance, song_vol);
-                }
+                if (current_song_instance > 0) engine.setVolume(current_song_instance, song_vol);
             }
         }
-
-        private static Soloud engine;
-        private static uint current_song_instance;
-        private static Song current_song;
-        private static float sfx_vol = 1.0f;
-        private static float song_vol = 1.0f;
-        private static bool muted = false;
 
         internal static void Init()
         {
@@ -47,13 +45,13 @@ namespace BLITTEngine.Core.Audio
                 return;
             }
 
-            bool was_playing_something_else = false;
+            var was_playing_something_else = false;
 
             if (current_song != null)
             {
                 was_playing_something_else = true;
-                engine.fadeVolume(current_song_instance, aTo: 0.0f, aTime: 1.0f);
-                engine.scheduleStop(current_song_instance, aTime: 1.0f);
+                engine.fadeVolume(current_song_instance, 0.0f, 1.0f);
+                engine.scheduleStop(current_song_instance, 1.0f);
             }
 
             current_song = song;
@@ -65,7 +63,7 @@ namespace BLITTEngine.Core.Audio
             if (was_playing_something_else)
             {
                 engine.setVolume(current_song_instance, 0.0f);
-                engine.fadeVolume(current_song_instance, aTo: song_vol, aTime: 1.0f);    
+                engine.fadeVolume(current_song_instance, song_vol, 1.0f);
             }
             else
             {
@@ -75,14 +73,11 @@ namespace BLITTEngine.Core.Audio
 
         public static void Fire(Effect effect, float pan = 0.0f, float speed = 1.0f)
         {
-            uint voice = engine.play(effect.wave);
+            var voice = engine.play(effect.wave);
             engine.setVolume(voice, sfx_vol);
             engine.setPan(voice, pan);
 
-            if (speed < 0.1f)
-            {
-                speed = 0.1f;
-            }
+            if (speed < 0.1f) speed = 0.1f;
 
             engine.setRelativePlaySpeed(voice, speed);
         }
@@ -99,7 +94,6 @@ namespace BLITTEngine.Core.Audio
                 engine.setGlobalVolume(0.0f);
                 muted = true;
             }
-
         }
 
         public static void GlobalFade(float to, float seconds)
@@ -112,11 +106,11 @@ namespace BLITTEngine.Core.Audio
             if (pause)
             {
                 engine.schedulePause(current_song_instance, 1.0f);
-                engine.fadeVolume(current_song_instance, aTo: 0.0f, aTime: 1.0f);    
+                engine.fadeVolume(current_song_instance, 0.0f, 1.0f);
             }
             else
             {
-                engine.fadeVolume(current_song_instance, aTo: 1.0f, aTime: 1.0f);
+                engine.fadeVolume(current_song_instance, 1.0f, 1.0f);
                 engine.setPause(current_song_instance, 0);
             }
         }
@@ -129,17 +123,6 @@ namespace BLITTEngine.Core.Audio
             var song = new Song(stream);
 
             return song;
-        }
-
-        internal static Effect LoadEffect(string file)
-        {
-            var wave = new Wav();
-
-            wave.load(file);
-
-            var effect = new Effect(wave);
-
-            return effect;
         }
 
         internal static bool IsPlaying(Song song)

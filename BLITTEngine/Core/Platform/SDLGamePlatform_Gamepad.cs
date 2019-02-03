@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using BLITTEngine.Core.Foundation.SDL;
 using BLITTEngine.Core.Input.GamePad;
@@ -10,17 +9,17 @@ namespace BLITTEngine.Core.Platform
 {
     internal class SDL2GamepadDevice
     {
-        public string Name;
-        public int DeviceId;
         public IntPtr Device;
+        public int DeviceId;
         public IntPtr HapticDevice;
         public int HapticType;
+        public string Name;
 
         public GamepadState State;
 
         public SDL2GamepadDevice()
         {
-            State = new GamepadState()
+            State = new GamepadState
             {
                 Thumbsticks = new GamepadThumbsticks(),
                 Triggers = new GamePadTriggers()
@@ -30,18 +29,21 @@ namespace BLITTEngine.Core.Platform
 
     internal partial class SDLGamePlatform
     {
-        private static SDL.SDL_HapticEffect _haptic_left_right = new SDL.SDL_HapticEffect()
+        private static SDL.SDL_HapticEffect _haptic_left_right = new SDL.SDL_HapticEffect
         {
             type = SDL.SDL_HAPTIC_LEFTRIGHT,
-            leftright = new SDL.SDL_HapticLeftRight()
+            leftright = new SDL.SDL_HapticLeftRight
             {
                 type = SDL.SDL_HAPTIC_LEFTRIGHT,
                 length = SDL.SDL_HAPTIC_INFINITY,
                 large_magnitude = ushort.MaxValue,
                 small_magnitude = ushort.MaxValue
             }
-            
         };
+
+        private SDL2GamepadDevice gamepad_device;
+
+        private GamepadState gamepad_state;
 
         public bool GamepadPresent => gamepad_device != null;
 
@@ -49,106 +51,102 @@ namespace BLITTEngine.Core.Platform
 
         public override GamepadDeadZoneMode GamepadDeadZoneMode { get; set; } = GamepadDeadZoneMode.IndependentAxis;
 
-        private SDL2GamepadDevice gamepad_device;
-
-        private GamepadState gamepad_state;
-
         private void InitGamepad()
         {
-            List<string> gamepadDbFileLines = Content.LoadEmbededTextFile("gamecontrollerdb.txt");
+            var gamepad_db_file = Game.Instance.ContentManager.GetBuiltin<TextFile>("gamecontrollerdb.txt");
 
-            foreach (string line in gamepadDbFileLines)
-            {
+            foreach (var line in gamepad_db_file.Text)
                 if (!line.StartsWith("#"))
-                {
                     SDL.SDL_GameControllerAddMapping(line);
-                }
-            }
         }
 
         public override ref readonly GamepadState GetGamepadState()
         {
-            if (gamepad_device == null)
-            {
-                return ref GamepadState.Default;
-            }
+            if (gamepad_device == null) return ref GamepadState.Default;
 
-            IntPtr device = gamepad_device.Device;
+            var device = gamepad_device.Device;
 
             var thumbsticks_state = new GamepadThumbsticks(
-                
                 new Vector2(
-                    NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device, SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX)), 
-                    NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device, SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY))
-                ), 
-
+                    NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device,
+                        SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX)),
+                    NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device,
+                        SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY))
+                ),
                 new Vector2(
-                    NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device, SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX)), 
-                    NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device, SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY))
-                ), 
-                
+                    NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device,
+                        SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX)),
+                    NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device,
+                        SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY))
+                ),
                 GamepadDeadZoneMode
             );
 
             var triggers_state = new GamePadTriggers(
-                
-                NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device, SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT)),
-                NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device, SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
-
+                NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device,
+                    SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT)),
+                NormalizeAxisValue(SDL.SDL_GameControllerGetAxis(device,
+                    SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
             );
 
-            var buttons_state = gamepad_device.State.ButtonsState = 
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A) == 1)
+            var buttons_state = gamepad_device.State.ButtonsState =
+                (SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A) == 1
                     ? GamepadButton.A
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B) == 1)
+                (SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B) == 1
                     ? GamepadButton.B
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_BACK) == 1)
+                (SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_BACK) == 1
                     ? GamepadButton.Back
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_GUIDE) == 1)
+                (SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_GUIDE) == 1
                     ? GamepadButton.BigButton
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device,
-                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER) == 1)
+                (SDL.SDL_GameControllerGetButton(device,
+                     SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER) == 1
                     ? GamepadButton.LeftShoulder
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device,
-                    SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER) == 1)
+                (SDL.SDL_GameControllerGetButton(device,
+                     SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER) == 1
                     ? GamepadButton.RightShoulder
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK) ==
-                  1)
+                (SDL.SDL_GameControllerGetButton(device,
+                     SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK) ==
+                 1
                     ? GamepadButton.LeftStick
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK) ==
-                  1)
+                (SDL.SDL_GameControllerGetButton(device,
+                     SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK) ==
+                 1
                     ? GamepadButton.RightStick
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_START) == 1)
+                (SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_START) == 1
                     ? GamepadButton.Start
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X) == 1)
+                (SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X) == 1
                     ? GamepadButton.X
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y) == 1)
+                (SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y) == 1
                     ? GamepadButton.Y
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP) == 1)
+                (SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP) ==
+                 1
                     ? GamepadButton.DPadUp
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN) == 1)
+                (SDL.SDL_GameControllerGetButton(device,
+                     SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN) == 1
                     ? GamepadButton.DPadDown
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT) == 1)
+                (SDL.SDL_GameControllerGetButton(device,
+                     SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT) == 1
                     ? GamepadButton.DPadLeft
                     : 0) |
-                ((SDL.SDL_GameControllerGetButton(device, SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == 1)
+                (SDL.SDL_GameControllerGetButton(device,
+                     SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT) == 1
                     ? GamepadButton.DPadRight
                     : 0) |
-                ((triggers_state.Left > 0f) ? GamepadButton.LeftTrigger : 0) |
-                ((triggers_state.Right > 0f) ? GamepadButton.RightTrigger : 0);
+                (triggers_state.Left > 0f ? GamepadButton.LeftTrigger : 0) |
+                (triggers_state.Right > 0f ? GamepadButton.RightTrigger : 0);
 
 
             gamepad_state.ButtonsState = buttons_state;
@@ -156,22 +154,15 @@ namespace BLITTEngine.Core.Platform
             gamepad_state.Triggers = triggers_state;
 
             return ref gamepad_state;
-
         }
 
         public override bool SetGamepadVibration(float left_motor, float right_motor)
         {
-            if (gamepad_device == null)
-            {
-                return false;
-            }
+            if (gamepad_device == null) return false;
 
             var gamepad = gamepad_device;
 
-            if (gamepad.HapticType == 0)
-            {
-                return false;
-            }
+            if (gamepad.HapticType == 0) return false;
 
             if (left_motor <= 0.0f && right_motor <= 0.0f)
             {
@@ -188,7 +179,7 @@ namespace BLITTEngine.Core.Platform
             else if (gamepad.HapticType == 2)
             {
                 SDL.SDL_HapticRumblePlay(gamepad.HapticDevice, Math.Max(left_motor, right_motor),
-                                         SDL.SDL_HAPTIC_INFINITY);
+                    SDL.SDL_HAPTIC_INFINITY);
             }
 
             return true;
@@ -196,29 +187,20 @@ namespace BLITTEngine.Core.Platform
 
         private void ProcessGamepadAdd(int device_id)
         {
-            if (gamepad_device != null)
-            {
-                return;
-            }
+            if (gamepad_device != null) return;
 
-            var gamepad = new SDL2GamepadDevice()
+            var gamepad = new SDL2GamepadDevice
             {
                 DeviceId = device_id,
                 Device = SDL.SDL_GameControllerOpen(device_id),
                 HapticDevice = SDL.SDL_HapticOpen(device_id)
             };
 
-            if (gamepad.Device == IntPtr.Zero)
-            {
-                return;
-            }
+            if (gamepad.Device == IntPtr.Zero) return;
 
             gamepad_device = gamepad;
 
-            if (gamepad_device.HapticDevice == IntPtr.Zero)
-            {
-                return;
-            }
+            if (gamepad_device.HapticDevice == IntPtr.Zero) return;
 
             try
             {
@@ -240,7 +222,7 @@ namespace BLITTEngine.Core.Platform
 
                 gamepad_device.Name = SDL.SDL_GameControllerName(gamepad.Device);
             }
-            catch 
+            catch
             {
                 SDL.SDL_HapticClose(gamepad_device.HapticDevice);
                 gamepad_device.HapticDevice = IntPtr.Zero;
@@ -250,18 +232,12 @@ namespace BLITTEngine.Core.Platform
 
         private void ProcessGamepadRemove(int device_id)
         {
-            if (gamepad_device.DeviceId == device_id)
-            {
-                DisposeGamepadDevice();
-            }
+            if (gamepad_device.DeviceId == device_id) DisposeGamepadDevice();
         }
 
         private void DisposeGamepadDevice()
         {
-            if (gamepad_device.HapticType > 0)
-            {
-                SDL.SDL_HapticClose(gamepad_device.HapticDevice);
-            }
+            if (gamepad_device.HapticType > 0) SDL.SDL_HapticClose(gamepad_device.HapticDevice);
 
             SDL.SDL_GameControllerClose(gamepad_device.Device);
         }
@@ -269,10 +245,7 @@ namespace BLITTEngine.Core.Platform
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static float NormalizeAxisValue(int axis)
         {
-            if (axis < 0)
-            {
-                return axis / 32768f;
-            }
+            if (axis < 0) return axis / 32768f;
 
             return axis / 32767f;
         }

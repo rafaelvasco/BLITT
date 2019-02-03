@@ -1,32 +1,30 @@
 ﻿using BLITTEngine;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Core.Input;
 using BLITTEngine.Core.Input.Keyboard;
 using BLITTEngine.Core.Numerics;
 using BLITTEngine.Core.Resources;
-using BLITTEngine.DisplayObjects;
-using BLITTEngine.Temporal;
+using BLITTEngine.GameToolkit;
 
 namespace BLITTDemo
 {
     // BLITT DEMO 2 - Game Objects : Particle Effect, Sprite, Text, Timer, RandomEx
     public class Demo2 : Scene
     {
-        private Size size;
-
-        private Sprite sprite;
-        private Sprite trail;
+        private int color_task;
 
         private ParticleEmitter emitter;
+        private readonly float friction = 0.98f;
+        private RandomEx random;
+        private Size size;
+
+        private readonly float speed = 130;
+
+        private Sprite sprite;
 
         private Timer timer;
+        private Sprite trail;
 
         private float x = 100.0f, y = 100.0f, dx, dy;
-
-        private float speed = 130;
-        private float friction = 0.98f;
-        private RandomEx random;
-        private int color_task;
 
         public override void Load()
         {
@@ -38,12 +36,12 @@ namespace BLITTDemo
 
             size = Game.ScreenSize;
 
-            sprite = new Sprite(Content.GetTexture2D("particles"), 96, 64, 32, 32);
+            sprite = new Sprite(Content.Get<Texture2D>("particles"), 96, 64, 32, 32);
 
             sprite.SetColor(Color.Cyan);
             sprite.SetOrigin(0.5f, 0.5f);
 
-            trail = new Sprite(Content.GetTexture2D("particles"), 32, 32, 32, 32)
+            trail = new Sprite(Content.Get<Texture2D>("particles"), 32, 32, 32, 32)
             {
                 BlendMode = BlendMode.AlphaAdd
             };
@@ -51,7 +49,7 @@ namespace BLITTDemo
             trail.SetOrigin(0.5f, 0.5f);
             trail.SetColor(Color.White);
 
-            var particles_info = new ParticleEmitterInfo()
+            var particles_info = new ParticleEmitterInfo
             {
                 MaxParticles = 500,
                 Emission = 30,
@@ -96,72 +94,36 @@ namespace BLITTDemo
         {
             //timer.Update(dt);
 
-            if (Control.KeyPressed(Key.Escape))
-            {
-                Game.Quit();
-            }
+            if (Input.KeyPressed(Key.Escape)) Game.Quit();
 
-            if (Control.KeyPressed(Key.F11))
-            {
+            if (Input.KeyPressed(Key.F11))
                 Game.ToggleFullscreen();
-            }
-            else if (Control.KeyPressed(Key.C))
-            {
+            else if (Input.KeyPressed(Key.C))
                 timer.Cancel(color_task);
-            }
-            else if (Control.KeyPressed(Key.T))
-            {
+            else if (Input.KeyPressed(Key.T))
                 color_task = timer.Every(0.5f, () => sprite.SetColor(random.NextColor()));
-            }
-            else if (Control.KeyPressed(Key.D))
-            {
+            else if (Input.KeyPressed(Key.D))
                 timer.After(1.0f, () => sprite.SetColor(Color.Green));
-            }
-            else if (Control.KeyPressed(Key.D1))
-            {
+            else if (Input.KeyPressed(Key.D1))
                 Game.ScreenSize = new Size(size.W, size.H);
-            }
-            else if (Control.KeyPressed(Key.D2))
-            {
+            else if (Input.KeyPressed(Key.D2))
                 Game.ScreenSize = new Size(size.W * 2, size.H * 2);
-            }
-            else if (Control.KeyPressed(Key.D3))
-            {
-                Game.ScreenSize = new Size(size.W * 3, size.H * 3);
-            }
+            else if (Input.KeyPressed(Key.D3)) Game.ScreenSize = new Size(size.W * 3, size.H * 3);
 
-            if (Control.KeyDown(Key.Left))
-            {
-                dx -= speed * dt;
-            }
+            if (Input.KeyDown(Key.Left)) dx -= speed * dt;
 
-            if (Control.KeyDown(Key.Right))
-            {
-                dx += speed * dt;
-            }
+            if (Input.KeyDown(Key.Right)) dx += speed * dt;
 
-            if (Control.KeyDown(Key.Up))
-            {
-                dy -= speed * dt;
-            }
+            if (Input.KeyDown(Key.Up)) dy -= speed * dt;
 
-            if (Control.KeyDown(Key.Down))
-            {
-                dy += speed * dt;
-            }
+            if (Input.KeyDown(Key.Down)) dy += speed * dt;
 
             dx *= friction;
             dy *= friction;
 
-            if ((dx > 0.05f && dx < 0.05f) || (dx < 0 && dx > -0.05f))
-            {
-                dx = 0;
-            }
+            if (dx > 0.05f && dx < 0.05f || dx < 0 && dx > -0.05f) dx = 0;
 
-            if ((dy > 0.05f && dy < 0.05f) || (dy < 0.05f && dy > -0.05f))
-            {
-                dy = 0;
-            }
+            if (dy > 0.05f && dy < 0.05f || dy < 0.05f && dy > -0.05f) dy = 0;
 
             x += dx;
             y += dy;
@@ -188,7 +150,7 @@ namespace BLITTDemo
                 dy = -dy;
             }
 
-            emitter.Info.Emission = (int)((dx * dx + dy * dy) * 2);
+            emitter.Info.Emission = (int) ((dx * dx + dy * dy) * 2);
             emitter.MoveTo(x, y);
             emitter.Update(dt);
         }

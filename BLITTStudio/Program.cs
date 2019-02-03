@@ -1,18 +1,17 @@
 ﻿using BLITTEngine;
-using System;
 
 namespace BLITTStudio
 {
-    static class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            var props = new GameProps()
+            var props = new GameProps
             {
-                Title = "BLITT DEMO",
+                Title = "BLITT Studio",
                 CanvasWidth = 1024,
                 CanvasHeight = 768,
-                Fullscreen = false,
+                Fullscreen = false
             };
 
             using (var game = new Game(props))

@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Graphics
 {

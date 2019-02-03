@@ -30,7 +30,7 @@ namespace BLITTEngine.Core.Numerics
 
         public override bool Equals(object obj)
         {
-            return obj is Point3 && Equals((Point3)obj);
+            return obj is Point3 point3 && Equals(point3);
         }
 
         public bool Equals(Point3 other)
@@ -42,7 +42,7 @@ namespace BLITTEngine.Core.Numerics
         {
             unchecked
             {
-                int hash = 17;
+                var hash = 17;
                 hash = hash * 23 + X;
                 hash = hash * 23 + Y;
                 hash = hash * 23 + Z;

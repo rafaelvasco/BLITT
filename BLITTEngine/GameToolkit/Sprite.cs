@@ -1,21 +1,22 @@
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Numerics;
+using BLITTEngine.Core.Resources;
 
-namespace BLITTEngine.DisplayObjects
+namespace BLITTEngine.GameToolkit
 {
     public class Sprite
     {
-        public Vector2 Origin => new Vector2(origin_x, origin_y);
+        private bool flip_x;
+        private bool flip_y;
+        private bool orig_flip;
+        private float origin_x;
+        private float origin_y;
 
-        public float Width => width;
-
-        public float Height => height;
-
-        public BlendMode BlendMode
-        {
-            get => quad.Blend;
-            set => quad.Blend = value;
-        }
+        private Quad quad;
+        private float src_x;
+        private float src_y;
+        private float tex_h;
+        private float tex_w;
 
         public Sprite(Texture2D texture) : this(texture, 0, 0, texture.Width, texture.Height)
         {
@@ -25,10 +26,10 @@ namespace BLITTEngine.DisplayObjects
         {
             this.src_x = src_x;
             this.src_y = src_y;
-            this.width = w;
-            this.height = h;
+            Width = w;
+            Height = h;
 
-            if(texture != null)
+            if (texture != null)
             {
                 tex_w = texture.Width;
                 tex_h = texture.Height;
@@ -45,10 +46,10 @@ namespace BLITTEngine.DisplayObjects
             flip_y = false;
             quad.Texture = texture;
 
-            float u = src_x / tex_w;
-            float v = src_y / tex_h;
-            float u2 = (src_x + w)/tex_w;
-            float v2 = (src_y + h)/tex_h;
+            var u = src_x / tex_w;
+            var v = src_y / tex_h;
+            var u2 = (src_x + w) / tex_w;
+            var v2 = (src_y + h) / tex_h;
 
             quad.V0.Tx = u;
             quad.V0.Ty = v;
@@ -62,19 +63,30 @@ namespace BLITTEngine.DisplayObjects
             quad.V3.Tx = u;
             quad.V3.Ty = v2;
             quad.V3.Col = 0xFFFFFFFF;
-            
-            quad.Blend = BlendMode.AlphaBlend;
 
+            quad.Blend = BlendMode.AlphaBlend;
+        }
+
+        public Vector2 Origin => new Vector2(origin_x, origin_y);
+
+        public float Width { get; private set; }
+
+        public float Height { get; private set; }
+
+        public BlendMode BlendMode
+        {
+            get => quad.Blend;
+            set => quad.Blend = value;
         }
 
         public void Draw(Canvas canvas, float x, float y)
         {
-            float tx1 = x - origin_x;
-            float ty1 = y - origin_y;
-            float tx2 = x + width - origin_x;
-            float ty2 = y + height - origin_y;
+            var tx1 = x - origin_x;
+            var ty1 = y - origin_y;
+            var tx2 = x + Width - origin_x;
+            var ty2 = y + Height - origin_y;
 
-            ref Quad q = ref quad;
+            ref var q = ref quad;
 
             q.V0.X = tx1;
             q.V0.Y = ty1;
@@ -86,36 +98,32 @@ namespace BLITTEngine.DisplayObjects
             q.V3.Y = ty2;
 
             canvas.DrawQuad(ref q);
-
         }
 
         public void DrawEx(Canvas canvas, float x, float y, float rot, float hscale, float vscale = 0)
         {
-            if(vscale == 0)
+            if (vscale == 0.0f) vscale = hscale;
+
+            var tx1 = -origin_x * hscale;
+            var ty1 = -origin_y * vscale;
+            var tx2 = (Width - origin_x) * hscale;
+            var ty2 = (Height - origin_y) * vscale;
+
+            ref var q = ref quad;
+
+            if (rot != 0.0f)
             {
-                vscale = hscale;
-            }
+                var cost = Calc.Cos(rot);
+                var sint = Calc.Sin(rot);
 
-            float tx1 = -origin_x * hscale;
-            float ty1 = -origin_y * vscale;
-            float tx2 = (width - origin_x) * hscale;
-            float ty2 = (height - origin_y) * vscale;
-
-            ref Quad q = ref quad;
-
-            if(rot != 0.0f)
-            {
-                float cost = Calc.Cos(rot);
-                float sint = Calc.Sin(rot);
-
-                q.V0.X = tx1 * cost - ty1*sint + x;
+                q.V0.X = tx1 * cost - ty1 * sint + x;
                 q.V0.Y = tx1 * sint + ty1 * cost + y;
                 q.V1.X = tx2 * cost - ty1 * sint + x;
                 q.V1.Y = tx2 * sint + ty1 * cost + y;
                 q.V2.X = tx2 * cost - ty2 * sint + x;
                 q.V2.Y = tx2 * sint + ty2 * cost + y;
-                q.V3.X = tx1 * cost - ty2 * sint + x;;
-                q.V3.Y = tx1 * sint + ty2 * cost + y;;
+                q.V3.X = tx1 * cost - ty2 * sint + x;
+                q.V3.Y = tx1 * sint + ty2 * cost + y;
             }
             else
             {
@@ -134,7 +142,7 @@ namespace BLITTEngine.DisplayObjects
 
         public void DrawStretch(Canvas canvas, float x1, float y1, float x2, float y2)
         {
-            ref Quad q = ref quad;
+            ref var q = ref quad;
 
             q.V0.X = x1;
             q.V0.Y = y1;
@@ -149,16 +157,15 @@ namespace BLITTEngine.DisplayObjects
         }
 
         public void Draw4Vertices
-            (
-                Canvas canvas,
-                float x0, float y0,
-                float x1, float y1,
-                float x2, float y2,
-                float x3, float y3
-
-            )
+        (
+            Canvas canvas,
+            float x0, float y0,
+            float x1, float y1,
+            float x2, float y2,
+            float x3, float y3
+        )
         {
-            ref Quad q = ref quad;
+            ref var q = ref quad;
 
             q.V0.X = x0;
             q.V0.Y = y0;
@@ -172,36 +179,24 @@ namespace BLITTEngine.DisplayObjects
             canvas.DrawQuad(ref q);
         }
 
-        public void SetFlip(bool flip_h, bool flip_v, bool flip_origin=true)
+        public void SetFlip(bool flip_h, bool flip_v, bool flip_origin = true)
         {
             float tx, ty;
 
-            if(flip_origin && flip_h)
-            {
-                origin_x = width - origin_x;
-            }
-            if(flip_origin && flip_v)
-            {
-                origin_y = height - origin_y;
-            }
+            if (flip_origin && flip_h) origin_x = Width - origin_x;
+            if (flip_origin && flip_v) origin_y = Height - origin_y;
 
-            this.orig_flip = flip_origin;
+            orig_flip = flip_origin;
 
-            if(flip_origin && flip_h)
-            {
-                origin_x = width - origin_x;
-            }
-            if(flip_origin && flip_v)
-            {
-                origin_y = height - origin_y;
-            }
+            if (flip_origin && flip_h) origin_x = Width - origin_x;
+            if (flip_origin && flip_v) origin_y = Height - origin_y;
 
-            ref Quad q = ref quad;
+            ref var q = ref quad;
 
-            if(flip_h != this.flip_x)
+            if (flip_h != flip_x)
             {
                 tx = q.V0.Tx;
-                q.V0.Tx  = q.V1.Tx;
+                q.V0.Tx = q.V1.Tx;
                 q.V1.Tx = tx;
 
                 ty = q.V0.Ty;
@@ -216,10 +211,10 @@ namespace BLITTEngine.DisplayObjects
                 q.V3.Ty = q.V2.Ty;
                 q.V2.Ty = ty;
 
-                this.flip_x = flip_h;
+                flip_x = flip_h;
             }
 
-            if(flip_v != this.flip_y)
+            if (flip_v != flip_y)
             {
                 tx = q.V0.Tx;
                 q.V0.Tx = q.V3.Tx;
@@ -237,7 +232,7 @@ namespace BLITTEngine.DisplayObjects
                 q.V1.Ty = q.V2.Ty;
                 q.V2.Ty = ty;
 
-                this.flip_y = flip_v;
+                flip_y = flip_v;
             }
         }
 
@@ -245,11 +240,11 @@ namespace BLITTEngine.DisplayObjects
         {
             float tw, th;
 
-            ref Quad q = ref quad;
+            ref var q = ref quad;
 
             q.Texture = tex;
 
-            if(tex != null)
+            if (tex != null)
             {
                 tw = tex.Width;
                 th = tex.Height;
@@ -260,12 +255,12 @@ namespace BLITTEngine.DisplayObjects
                 th = 1.0f;
             }
 
-            if(tw != tex_w || th != tex_h)
+            if (tw != tex_w || th != tex_h)
             {
-                float u = q.V0.Tx * tex_w;
-                float v = q.V0.Ty * tex_h;
-                float u2 = q.V2.Tx * tex_w;
-                float v2 = q.V2.Ty * tex_h;
+                var u = q.V0.Tx * tex_w;
+                var v = q.V0.Ty * tex_h;
+                var u2 = q.V2.Tx * tex_w;
+                var v2 = q.V2.Ty * tex_h;
 
                 tex_w = tw;
                 tex_h = th;
@@ -291,18 +286,18 @@ namespace BLITTEngine.DisplayObjects
             src_x = x;
             src_y = y;
 
-            if(adj_size)
+            if (adj_size)
             {
-                width = w;
-                height = h;
+                Width = w;
+                Height = h;
             }
 
-            float u = src_x / tex_w;
-            float v = src_y / tex_h;
-            float u2 = (src_x + w)/tex_w;
-            float v2 = (src_y + h)/tex_h;
+            var u = src_x / tex_w;
+            var v = src_y / tex_h;
+            var u2 = (src_x + w) / tex_w;
+            var v2 = (src_y + h) / tex_h;
 
-            ref Quad q = ref quad;
+            ref var q = ref quad;
 
             q.V0.Tx = u;
             q.V0.Ty = v;
@@ -313,36 +308,34 @@ namespace BLITTEngine.DisplayObjects
             q.V3.Tx = u;
             q.V3.Ty = v2;
 
-            bool flipx = flip_x;
-            bool flipy = flip_y;
+            var flipx = flip_x;
+            var flipy = flip_y;
 
             flip_x = false;
             flip_y = false;
 
             SetFlip(flipx, flipy, orig_flip);
-
         }
 
         public void SetColor(Color color)
         {
-            ref Quad q = ref quad;
+            ref var q = ref quad;
 
             q.V0.Col = color;
             q.V1.Col = color;
             q.V2.Col = color;
             q.V3.Col = color;
-
         }
 
         public void SetColor
-            (
-                Color top_left_col,
-                Color top_right_col,
-                Color bottom_left_col,
-                Color bottom_right_col
-            )
+        (
+            Color top_left_col,
+            Color top_right_col,
+            Color bottom_left_col,
+            Color bottom_right_col
+        )
         {
-            ref Quad q = ref quad;
+            ref var q = ref quad;
 
             q.V0.Col = top_left_col;
             q.V1.Col = top_right_col;
@@ -352,7 +345,7 @@ namespace BLITTEngine.DisplayObjects
 
         public Color GetColor(int corner = 0)
         {
-            switch(corner)
+            switch (corner)
             {
                 case 0: return new Color(quad.V0.Col);
                 case 1: return new Color(quad.V1.Col);
@@ -365,27 +358,14 @@ namespace BLITTEngine.DisplayObjects
 
         public void SetOrigin(float ox, float oy)
         {
-            this.origin_x = this.width * ox;
-            this.origin_y = this.height * oy;
+            origin_x = Width * ox;
+            origin_y = Height * oy;
         }
 
         public Rect GetBoundingBox(float ref_x, float ref_y)
         {
-            return Rect.FromBox(ref_x - origin_x, ref_y - origin_y, ref_x - origin_x + width, ref_y - origin_y + height );
+            return Rect.FromBox(ref_x - origin_x, ref_y - origin_y, ref_x - origin_x + Width,
+                ref_y - origin_y + Height);
         }
-
-        private Quad quad;
-        private float src_x;
-        private float src_y;
-        private float width;
-        private float height;
-        private float tex_w;
-        private float tex_h;
-        private float origin_x;
-        private float origin_y;
-        private bool flip_x;
-        private bool flip_y;
-        private bool orig_flip;
     }
-
 }

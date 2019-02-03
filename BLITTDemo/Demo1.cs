@@ -1,58 +1,55 @@
 using BLITTEngine;
 using BLITTEngine.Core.Audio;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Core.Input;
 using BLITTEngine.Core.Input.GamePad;
 using BLITTEngine.Core.Input.Keyboard;
 using BLITTEngine.Core.Numerics;
 using BLITTEngine.Core.Resources;
-using BLITTEngine.DisplayObjects;
-using BLITTEngine.GameResources;
+using BLITTEngine.GameToolkit;
 
 namespace BLITTDemo
 {
     // BLITT DEMO 1 - Core low level features: Quad Rendering, Input and Audio
     public class Demo1 : Scene
     {
+        private Quad ball_quad;
         private Quad bg_quad;
 
-        private Quad ball_quad;
-
         private Effect bump_sfx;
+
+        private Font font1;
+        private readonly float friction = 0.87f;
+
+        private RandomEx random;
 
         private Song song;
 
         private Song song2;
 
-        private Font font1;
+        private readonly float speed = 10;
+
+        private float t;
 
         private SpriteText ui_text;
 
         private float x = 100.0f, y = 100.0f, dx, dy;
 
-        private float speed = 10;
-        private float friction = 0.87f;
-
-        private float t;
-
-        private RandomEx random;
-
         public override void Load()
         {
             random = new RandomEx();
 
-            bump_sfx = Content.GetEffect("menu");
+            bump_sfx = Content.Get<Effect>("menu");
 
-            song = Content.GetSong("mus1");
-            song2 = Content.GetSong("mus2");
+            song = Content.Get<Song>("mus1");
+            song2 = Content.Get<Song>("mus2");
 
-            font1 = Content.GetFont("pixelnoir");
+            font1 = Content.Get<Font>("pixelnoir");
 
             font1.Texture.Filtered = true;
 
             //abcdefghijklmnopqrstuvwxyz0123456789!@#$%&*()-_=+]}[{~^?;:,<.>
 
-            ui_text = new SpriteText(font1, "Hello World!\nThis is Blitt Engine !")
+            ui_text = new SpriteText(font1, "Hello World!\nThis is Blitt Engine !\nNice to meet you!")
             {
                 Spacing = 1,
                 Proportion = 1f,
@@ -61,7 +58,7 @@ namespace BLITTDemo
             };
 
 
-            ball_quad.Texture = Content.GetTexture2D("particles");
+            ball_quad.Texture = Content.Get<Texture2D>("particles");
             ball_quad.Blend = BlendMode.AlphaAdd;
 
             ball_quad.V0.X = x - 16;
@@ -86,7 +83,7 @@ namespace BLITTDemo
             ball_quad.V3.Ty = 96.0f / 128.0f;
             ball_quad.V3.Col = 0xFF00A0FF;
 
-            bg_quad.Texture = Content.GetTexture2D("bg3");
+            bg_quad.Texture = Content.Get<Texture2D>("bg3");
             bg_quad.Texture.Filtered = true;
             bg_quad.Blend = BlendMode.AlphaBlend;
 
@@ -111,8 +108,6 @@ namespace BLITTDemo
             bg_quad.V2.Ty = Canvas.Height / 64f;
             bg_quad.V3.Tx = 0;
             bg_quad.V3.Ty = Canvas.Height / 64f;
-
-          
         }
 
         public override void Init()
@@ -121,32 +116,19 @@ namespace BLITTDemo
 
         public override void End()
         {
-
         }
 
         public override void Update(float dt)
         {
-            if (Control.KeyPressed(Key.P))
-            {
-                Canvas.SaveScreenShot(@"C:\Users\rafae\Desktop\blitt_ss.png");
-            }
+            if (Input.KeyPressed(Key.P)) Canvas.SaveScreenShot(@"C:\Users\rafae\Desktop\blitt_ss.png");
 
-            if(Control.KeyDown(Key.Escape) || Control.ButtonPressed(GamepadButton.Back))
-            {
-                Game.Quit();
-            }
+            if (Input.KeyDown(Key.Escape) || Input.ButtonPressed(GamepadButton.Back)) Game.Quit();
 
-            if (Control.KeyPressed(Key.D1))
-            {
-                MediaPlayer.Play(song);
-            }
+            if (Input.KeyPressed(Key.D1)) MediaPlayer.Play(song);
 
-            if (Control.KeyPressed(Key.D2))
-            {
-                MediaPlayer.Play(song2);
-            }
+            if (Input.KeyPressed(Key.D2)) MediaPlayer.Play(song2);
 
-           /* if (Control.KeyPressed(Key.Add))
+            /* if (Control.KeyPressed(Key.Add))
             {
                 MediaPlayer.AddSongVolume(2);
             }
@@ -156,38 +138,21 @@ namespace BLITTDemo
                 MediaPlayer.AddSongVolume(-2);
             }*/
 
-            if(Control.KeyPressed(Key.F11))
-            {
-                Game.ToggleFullscreen();
-            }
+            if (Input.KeyPressed(Key.F11)) Game.ToggleFullscreen();
 
-            var movement_gamepad = Control.LeftThumbstickAxis;
+            var movement_gamepad = Input.LeftThumbstickAxis;
 
-            if(Control.KeyDown(Key.Left))
-            {
-                dx -= speed;
-            }
+            if (Input.KeyDown(Key.Left)) dx -= speed;
 
-            if(Control.KeyDown(Key.Right))
-            {
-                dx += speed;
-            }
+            if (Input.KeyDown(Key.Right)) dx += speed;
 
-            if(Control.KeyDown(Key.Up))
-            {
-                dy -= speed;
-            }
+            if (Input.KeyDown(Key.Up)) dy -= speed;
 
-            if(Control.KeyDown(Key.Down))
-            {
-                dy += speed;
-            }
+            if (Input.KeyDown(Key.Down)) dy += speed;
 
             // UPDATE BACKGROUND
             t += dt / 2;
 
-            /*float bgtx = 50 * Calc.Cos(t / 60);
-            float bgty = 50 * Calc.Sin(t / 60);*/
 
             bg_quad.V0.Tx = t;
             bg_quad.V0.Ty = t;
@@ -198,10 +163,7 @@ namespace BLITTDemo
             bg_quad.V3.Tx = t;
             bg_quad.V3.Ty = t + Canvas.Height / 64f;
 
-            if (t > 1.0f)
-            {
-                t = 0;
-            }
+            if (t > 1.0f) t = 0;
 
 
             // UPDATE BALL
@@ -212,46 +174,40 @@ namespace BLITTDemo
             dx *= friction;
             dy *= friction;
 
-            if((dx > 0.05f && dx < 0.05f) || (dx < 0 && dx > -0.05f))
-            {
-                dx = 0;
-            }
+            if (dx > 0.05f && dx < 0.05f || dx < 0 && dx > -0.05f) dx = 0;
 
-            if((dy > 0.05f && dy < 0.05f) || (dy < 0.05f && dy > -0.05f))
-            {
-                dy = 0;
-            }
+            if (dy > 0.05f && dy < 0.05f || dy < 0.05f && dy > -0.05f) dy = 0;
 
             x += dx;
             y += dy;
 
-            if(x > Canvas.Width - 16)
+            if (x > Canvas.Width - 16)
             {
                 x = Canvas.Width - 16;
                 dx = -dx;
                 PlayAudio();
             }
-            else if(x < 16)
+            else if (x < 16)
             {
                 x = 16;
                 dx = -dx;
                 PlayAudio();
             }
 
-            if(y > Canvas.Height - 16)
+            if (y > Canvas.Height - 16)
             {
                 y = Canvas.Height - 16;
                 dy = -dy;
                 PlayAudio();
             }
-            else if(y < 16)
+            else if (y < 16)
             {
                 y = 16;
                 dy = -dy;
                 PlayAudio();
             }
 
-            ball_quad.V0.X = (x - 16);
+            ball_quad.V0.X = x - 16;
             ball_quad.V0.Y = y - 16;
             ball_quad.V1.X = x + 16;
             ball_quad.V1.Y = y - 16;
@@ -259,12 +215,11 @@ namespace BLITTDemo
             ball_quad.V2.Y = y + 16;
             ball_quad.V3.X = x - 16;
             ball_quad.V3.Y = y + 16;
-
         }
 
         private void PlayAudio()
         {
-            MediaPlayer.Fire(bump_sfx, pan: 0f, speed: random.NextFloat(0.1f, 1.0f));
+            MediaPlayer.Fire(bump_sfx, 0f, random.NextFloat(0.1f, 1.0f));
         }
 
         public override void Draw(Canvas canvas)
@@ -275,7 +230,7 @@ namespace BLITTDemo
 
             canvas.DrawQuad(ref ball_quad);
 
-            ui_text.Draw(canvas, 50, 50);
+            ui_text.Draw(canvas, 0, 0);
 
             canvas.End();
         }

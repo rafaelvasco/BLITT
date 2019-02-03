@@ -33,8 +33,8 @@ namespace BLITTEngine.Core.Input.GamePad
 
             SetDirectionalState(Left, Right);
         }
-     
-       
+
+
         private void ApplyDeadZone(GamepadDeadZoneMode deadZoneMode)
         {
             switch (deadZoneMode)
@@ -61,8 +61,8 @@ namespace BLITTEngine.Core.Input.GamePad
                 return Vector2.Zero;
             }
 
-            var newLength = (originalLength - deadzone)/(1f - deadzone);
-            return value*(newLength/originalLength);
+            var newLength = (originalLength - deadzone) / (1f - deadzone);
+            return value * (newLength / originalLength);
         }
 
         private Vector2 ExcludeIndependentAxisDeadZone(Vector2 value, float deadzone)
@@ -85,7 +85,7 @@ namespace BLITTEngine.Core.Input.GamePad
                 return 0f;
             }
 
-            return value/(1f - deadzone);
+            return value / (1f - deadzone);
         }
 
 
@@ -142,6 +142,7 @@ namespace BLITTEngine.Core.Input.GamePad
             {
                 Left = Left.Normalized;
             }
+
             if (Right.LengthSquared > 1f)
             {
                 Right = Right.Normalized;

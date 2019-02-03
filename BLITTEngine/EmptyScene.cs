@@ -1,4 +1,3 @@
-
 using BLITTEngine.Core.Graphics;
 
 namespace BLITTEngine

@@ -50,8 +50,7 @@ namespace BLITTEngine.Core.Graphics
             gc_handle = GCHandle.Alloc(this.PixelData, GCHandleType.Pinned);
             PixelDataPtr = Marshal.UnsafeAddrOfPinnedArrayElement(this.PixelData, 0);
 
-            Unsafe.CopyBlock((void*)PixelDataPtr, (void*)data, (uint)length);
-
+            Unsafe.CopyBlock((void*) PixelDataPtr, (void*) data, (uint) length);
         }
 
         public Pixmap(int width, int height)
@@ -70,10 +69,10 @@ namespace BLITTEngine.Core.Graphics
         public void Fill(Color color)
         {
             var pd = PixelData;
-            byte r = (byte) (color.R*255);
-            byte g = (byte) (color.G*255);
-            byte b = (byte) (color.B*255);
-            byte a = (byte) (color.A*255);
+            byte r = (byte) (color.R * 255);
+            byte g = (byte) (color.G * 255);
+            byte b = (byte) (color.B * 255);
+            byte a = (byte) (color.A * 255);
 
             fixed (byte* p = pd)
             {
@@ -101,7 +100,7 @@ namespace BLITTEngine.Core.Graphics
 
         public void FlipY()
         {
-            STBImage.stbi__vertical_flip((void*)PixelDataPtr, Width, Height, 4);
+            STBImage.stbi__vertical_flip((void*) PixelDataPtr, Width, Height, 4);
         }
 
         private void SwizzleToRGBA()
@@ -125,7 +124,7 @@ namespace BLITTEngine.Core.Graphics
                 }
             }
         }
-        
+
         private void SwizzleToBGRA()
         {
             var pd = PixelData;

@@ -18,7 +18,7 @@ namespace BLITTEngine.Core.Input.GamePad
 
         LeftShoulder = 1 << 8,
         RightShoulder = 1 << 9,
-        
+
         BigButton = 1 << 10,
 
         A = 1 << 11,

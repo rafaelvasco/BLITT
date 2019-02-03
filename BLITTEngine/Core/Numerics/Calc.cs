@@ -7,7 +7,7 @@ namespace BLITTEngine.Core.Numerics
 {
     public static class Calc
     {
-        public const float E = (float)Math.E;
+        public const float E = (float) Math.E;
         public const float PI = 3.14159265358979323846f;
         public const float PI_OVER2 = 1.57079632679489661923f;
         public const float PI_OVER4 = 0.785398163397448309616f;
@@ -38,14 +38,14 @@ namespace BLITTEngine.Core.Numerics
             for (int i = 0; i < SIN_COUNT; i++)
             {
                 float angle = (i + 0.5f) / SIN_COUNT * RAD_FULL;
-                sinBuffer[i] = (float)Math.Sin(angle);
-                cosBuffer[i] = (float)Math.Cos(angle);
+                sinBuffer[i] = (float) Math.Sin(angle);
+                cosBuffer[i] = (float) Math.Cos(angle);
             }
 
             for (int i = 0; i < 360; i += 90)
             {
-                sinBuffer[(int)(i * DEG_TO_INDEX) & SIN_MASK] = (float)Math.Sin(i * DEGREES_TO_RADIANS_FACTOR);
-                cosBuffer[(int)(i * DEG_TO_INDEX) & SIN_MASK] = (float)Math.Cos(i * DEGREES_TO_RADIANS_FACTOR);
+                sinBuffer[(int) (i * DEG_TO_INDEX) & SIN_MASK] = (float) Math.Sin(i * DEGREES_TO_RADIANS_FACTOR);
+                cosBuffer[(int) (i * DEG_TO_INDEX) & SIN_MASK] = (float) Math.Cos(i * DEGREES_TO_RADIANS_FACTOR);
             }
         }
 
@@ -64,22 +64,22 @@ namespace BLITTEngine.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Round(float value)
         {
-            return (float)Math.Round(value);
+            return (float) Math.Round(value);
         }
 
         public static int RoundToInt(float f)
         {
-            return (int)Math.Round(f);
+            return (int) Math.Round(f);
         }
 
         public static float Ceil(float value)
         {
-            return (float)Math.Ceiling(value);
+            return (float) Math.Ceiling(value);
         }
 
         public static int CeilToInt(float value)
         {
-            return (int)Math.Ceiling(value);
+            return (int) Math.Ceiling(value);
         }
 
         /// <summary>
@@ -90,17 +90,17 @@ namespace BLITTEngine.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int FastCeilToInt(float value)
         {
-            return 32768 - (int)(32768f - value);
+            return 32768 - (int) (32768f - value);
         }
 
         public static float Floor(float value)
         {
-            return (float)Math.Floor(value);
+            return (float) Math.Floor(value);
         }
 
         public static int FloorToInt(float f)
         {
-            return (int)Math.Floor(f);
+            return (int) Math.Floor(f);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace BLITTEngine.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int FastFloorToInt(float x)
         {
-            return (int)(x + 32768f) - 32768;
+            return (int) (x + 32768f) - 32768;
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace BLITTEngine.Core.Numerics
 
         public static float Pow(float x, float y)
         {
-            return (float)Math.Pow(x, y);
+            return (float) Math.Pow(x, y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -309,7 +309,7 @@ namespace BLITTEngine.Core.Numerics
             return a < b ? (b < c ? c : b) : (a < c ? c : b);
         }
 
-         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Max(float a, float b, float c, float d)
         {
             return Max(d, Max(a, Max(b, c)));
@@ -347,7 +347,7 @@ namespace BLITTEngine.Core.Numerics
             return a < b ? (b < c ? c : b) : (a < c ? c : b);
         }
 
-         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Max(int a, int b, int c, int d)
         {
             return Max(d, Max(a, Max(b, c)));
@@ -391,7 +391,7 @@ namespace BLITTEngine.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Sin(float rad)
         {
-            return sinBuffer[(int)(rad * RAD_TO_INDEX) & SIN_MASK];
+            return sinBuffer[(int) (rad * RAD_TO_INDEX) & SIN_MASK];
         }
 
         public static float ASin(float v)
@@ -402,7 +402,7 @@ namespace BLITTEngine.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Cos(float rad)
         {
-            return cosBuffer[(int)(rad * RAD_TO_INDEX) & SIN_MASK];
+            return cosBuffer[(int) (rad * RAD_TO_INDEX) & SIN_MASK];
         }
 
         public static float ACos(float v)
@@ -413,13 +413,13 @@ namespace BLITTEngine.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SinDeg(float deg)
         {
-            return sinBuffer[(int)(deg * DEG_TO_INDEX) & SIN_MASK];
+            return sinBuffer[(int) (deg * DEG_TO_INDEX) & SIN_MASK];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float CosDeg(float deg)
         {
-            return cosBuffer[(int)(deg * DEG_TO_INDEX) & SIN_MASK];
+            return cosBuffer[(int) (deg * DEG_TO_INDEX) & SIN_MASK];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -437,13 +437,13 @@ namespace BLITTEngine.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float AngleBetweenVectors(Vector2 from, Vector2 to)
         {
-            return (float)Math.Atan2(to.Y - from.Y, to.X - from.X);
+            return (float) Math.Atan2(to.Y - from.Y, to.X - from.X);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Sqrt(float val)
         {
-            return (float)Math.Sqrt(val);
+            return (float) Math.Sqrt(val);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -531,7 +531,7 @@ namespace BLITTEngine.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Distance(float x1, float y1, float x2, float y2)
         {
-            return (float)Math.Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+            return (float) Math.Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
         }
 
         public static float IntBitsToFloat(int value)

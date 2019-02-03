@@ -6,27 +6,29 @@ namespace BLITTEngine.Core.Foundation.STB
 {
     public struct FontBakerCharacterRange
     {
-        public static readonly FontBakerCharacterRange BasicLatin = new FontBakerCharacterRange((char)0x0020, (char)0x007F);
+        public static readonly FontBakerCharacterRange BasicLatin =
+            new FontBakerCharacterRange((char) 0x0020, (char) 0x007F);
 
         public static readonly FontBakerCharacterRange Latin1Supplement =
-            new FontBakerCharacterRange((char)0x00A0, (char)0x00FF);
+            new FontBakerCharacterRange((char) 0x00A0, (char) 0x00FF);
 
         public static readonly FontBakerCharacterRange LatinExtendedA =
-            new FontBakerCharacterRange((char)0x0100, (char)0x017F);
+            new FontBakerCharacterRange((char) 0x0100, (char) 0x017F);
 
         public static readonly FontBakerCharacterRange LatinExtendedB =
-            new FontBakerCharacterRange((char)0x0180, (char)0x024F);
+            new FontBakerCharacterRange((char) 0x0180, (char) 0x024F);
 
-        public static readonly FontBakerCharacterRange Cyrillic = new FontBakerCharacterRange((char)0x0400, (char)0x04FF);
+        public static readonly FontBakerCharacterRange Cyrillic =
+            new FontBakerCharacterRange((char) 0x0400, (char) 0x04FF);
 
         public static readonly FontBakerCharacterRange CyrillicSupplement =
-            new FontBakerCharacterRange((char)0x0500, (char)0x052F);
+            new FontBakerCharacterRange((char) 0x0500, (char) 0x052F);
 
         public static readonly FontBakerCharacterRange Hiragana =
-            new FontBakerCharacterRange((char)0x3040, (char)0x309F);
+            new FontBakerCharacterRange((char) 0x3040, (char) 0x309F);
 
         public static readonly FontBakerCharacterRange Katakana =
-            new FontBakerCharacterRange((char)0x30A0, (char)0x30FF);
+            new FontBakerCharacterRange((char) 0x30A0, (char) 0x30FF);
 
         public char Start { get; private set; }
         public char End { get; private set; }
@@ -60,7 +62,8 @@ namespace BLITTEngine.Core.Foundation.STB
             _handle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
             fixed (STBTrueType.stbtt_pack_context* pcPtr = &pc)
             {
-                STBTrueType.stbtt_PackBegin(pcPtr, (byte*)_handle.AddrOfPinnedObject().ToPointer(), pw, ph, pw, 1, null);
+                STBTrueType.stbtt_PackBegin(pcPtr, (byte*) _handle.AddrOfPinnedObject().ToPointer(), pw, ph, pw, 1,
+                    null);
             }
         }
 
@@ -86,7 +89,7 @@ namespace BLITTEngine.Core.Foundation.STB
 
                         for (var i = 0; i < cd.Length; ++i)
                         {
-                            result[(char)(i + range.Start)] = cd[i];
+                            result[(char) (i + range.Start)] = cd[i];
                         }
                     }
                 }

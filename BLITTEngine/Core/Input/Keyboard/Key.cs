@@ -5,237 +5,237 @@
         /// <summary>
         /// Reserved.
         /// </summary>
-		None = 0,
+        None = 0,
 
         /// <summary>
         /// BACKSPACE key.
         /// </summary>
-		Back = 8,
+        Back = 8,
 
         /// <summary>
         /// TAB key.
         /// </summary>
-		Tab = 9,
+        Tab = 9,
 
         /// <summary>
         /// ENTER key.
         /// </summary>
-		Enter = 13,
+        Enter = 13,
 
         /// <summary>
         /// ESC key.
         /// </summary>
-		Escape = 27,
+        Escape = 27,
 
         /// <summary>
         /// SPACEBAR key.
         /// </summary>
-		Space = 32,
+        Space = 32,
 
         /// <summary>
         /// LEFT ARROW key.
         /// </summary>
-		Left = 37,
+        Left = 37,
 
         /// <summary>
         /// UP ARROW key.
         /// </summary>
-		Up = 38,
+        Up = 38,
 
         /// <summary>
         /// RIGHT ARROW key.
         /// </summary>
-		Right = 39,
+        Right = 39,
 
         /// <summary>
         /// DOWN ARROW key.
         /// </summary>
-		Down = 40,
+        Down = 40,
 
         /// <summary>
         /// DEL key.
         /// </summary>
-		Delete = 46,
+        Delete = 46,
 
         /// <summary>
         /// A key.
         /// </summary>
-		A = 65,
+        A = 65,
 
         /// <summary>
         /// B key.
         /// </summary>
-		B = 66,
+        B = 66,
 
         /// <summary>
         /// C key.
         /// </summary>
-		C = 67,
+        C = 67,
 
         /// <summary>
         /// D key.
         /// </summary>
-		D = 68,
+        D = 68,
 
         /// <summary>
         /// E key.
         /// </summary>
-		E = 69,
+        E = 69,
 
         /// <summary>
         /// F key.
         /// </summary>
-		F = 70,
+        F = 70,
 
         /// <summary>
         /// G key.
         /// </summary>
-		G = 71,
+        G = 71,
 
         /// <summary>
         /// H key.
         /// </summary>
-		H = 72,
+        H = 72,
 
         /// <summary>
         /// I key.
         /// </summary>
-		I = 73,
+        I = 73,
 
         /// <summary>
         /// J key.
         /// </summary>
-		J = 74,
+        J = 74,
 
         /// <summary>
         /// K key.
         /// </summary>
-		K = 75,
+        K = 75,
 
         /// <summary>
         /// L key.
         /// </summary>
-		L = 76,
+        L = 76,
 
         /// <summary>
         /// M key.
         /// </summary>
-		M = 77,
+        M = 77,
 
         /// <summary>
         /// N key.
         /// </summary>
-		N = 78,
+        N = 78,
 
         /// <summary>
         /// O key.
         /// </summary>
-		O = 79,
+        O = 79,
 
         /// <summary>
         /// P key.
         /// </summary>
-		P = 80,
+        P = 80,
 
         /// <summary>
         /// Q key.
         /// </summary>
-		Q = 81,
+        Q = 81,
 
         /// <summary>
         /// R key.
         /// </summary>
-		R = 82,
+        R = 82,
 
         /// <summary>
         /// S key.
         /// </summary>
-		S = 83,
+        S = 83,
 
         /// <summary>
         /// T key.
         /// </summary>
-		T = 84,
+        T = 84,
 
         /// <summary>
         /// U key.
         /// </summary>
-		U = 85,
+        U = 85,
 
         /// <summary>
         /// V key.
         /// </summary>
-		V = 86,
+        V = 86,
 
         /// <summary>
         /// W key.
         /// </summary>
-		W = 87,
+        W = 87,
 
         /// <summary>
         /// X key.
         /// </summary>
-		X = 88,
+        X = 88,
 
         /// <summary>
         /// Y key.
         /// </summary>
-		Y = 89,
+        Y = 89,
 
         /// <summary>
         /// Z key.
         /// </summary>
-		Z = 90,
+        Z = 90,
 
         /// <summary>
         /// Numeric keypad 0 key.
         /// </summary>
-		NumPad0 = 96,
+        NumPad0 = 96,
 
         /// <summary>
         /// Numeric keypad 1 key.
         /// </summary>
-		NumPad1 = 97,
+        NumPad1 = 97,
 
         /// <summary>
         /// Numeric keypad 2 key.
         /// </summary>
-		NumPad2 = 98,
+        NumPad2 = 98,
 
         /// <summary>
         /// Numeric keypad 3 key.
         /// </summary>
-		NumPad3 = 99,
+        NumPad3 = 99,
 
         /// <summary>
         /// Numeric keypad 4 key.
         /// </summary>
-		NumPad4 = 100,
+        NumPad4 = 100,
 
         /// <summary>
         /// Numeric keypad 5 key.
         /// </summary>
-		NumPad5 = 101,
+        NumPad5 = 101,
 
         /// <summary>
         /// Numeric keypad 6 key.
         /// </summary>
-		NumPad6 = 102,
+        NumPad6 = 102,
 
         /// <summary>
         /// Numeric keypad 7 key.
         /// </summary>
-		NumPad7 = 103,
+        NumPad7 = 103,
 
         /// <summary>
         /// Numeric keypad 8 key.
         /// </summary>
-		NumPad8 = 104,
+        NumPad8 = 104,
 
         /// <summary>
         /// Numeric keypad 9 key.
         /// </summary>
-		NumPad9 = 105,
+        NumPad9 = 105,
 
         /// <summary>
         /// Subtract key
@@ -315,152 +315,152 @@
         /// <summary>
         /// F1 key.
         /// </summary>
-		F1 = 112,
+        F1 = 112,
 
         /// <summary>
         /// F2 key.
         /// </summary>
-		F2 = 113,
+        F2 = 113,
 
         /// <summary>
         /// F3 key.
         /// </summary>
-		F3 = 114,
+        F3 = 114,
 
         /// <summary>
         /// F4 key.
         /// </summary>
-		F4 = 115,
+        F4 = 115,
 
         /// <summary>
         /// F5 key.
         /// </summary>
-		F5 = 116,
+        F5 = 116,
 
         /// <summary>
         /// F6 key.
         /// </summary>
-		F6 = 117,
+        F6 = 117,
 
         /// <summary>
         /// F7 key.
         /// </summary>
-		F7 = 118,
+        F7 = 118,
 
         /// <summary>
         /// F8 key.
         /// </summary>
-		F8 = 119,
+        F8 = 119,
 
         /// <summary>
         /// F9 key.
         /// </summary>
-		F9 = 120,
+        F9 = 120,
 
         /// <summary>
         /// F10 key.
         /// </summary>
-		F10 = 121,
+        F10 = 121,
 
         /// <summary>
         /// F11 key.
         /// </summary>
-		F11 = 122,
+        F11 = 122,
 
         /// <summary>
         /// F12 key.
         /// </summary>
-		F12 = 123,
+        F12 = 123,
 
         /// <summary>
         /// F13 key.
         /// </summary>
-		F13 = 124,
+        F13 = 124,
 
         /// <summary>
         /// F14 key.
         /// </summary>
-		F14 = 125,
+        F14 = 125,
 
         /// <summary>
         /// F15 key.
         /// </summary>
-		F15 = 126,
+        F15 = 126,
 
         /// <summary>
         /// F16 key.
         /// </summary>
-		F16 = 127,
+        F16 = 127,
 
         /// <summary>
         /// F17 key.
         /// </summary>
-		F17 = 128,
+        F17 = 128,
 
         /// <summary>
         /// F18 key.
         /// </summary>
-		F18 = 129,
+        F18 = 129,
 
         /// <summary>
         /// F19 key.
         /// </summary>
-		F19 = 130,
+        F19 = 130,
 
         /// <summary>
         /// F20 key.
         /// </summary>
-		F20 = 131,
+        F20 = 131,
 
         /// <summary>
         /// F21 key.
         /// </summary>
-		F21 = 132,
+        F21 = 132,
 
         /// <summary>
         /// F22 key.
         /// </summary>
-		F22 = 133,
+        F22 = 133,
 
         /// <summary>
         /// F23 key.
         /// </summary>
-		F23 = 134,
+        F23 = 134,
 
         /// <summary>
         /// F24 key.
         /// </summary>
-		F24 = 135,
+        F24 = 135,
 
         /// <summary>
         /// Left SHIFT key.
         /// </summary>
-		LeftShift = 160,
+        LeftShift = 160,
 
         /// <summary>
         /// Right SHIFT key.
         /// </summary>
-		RightShift = 161,
+        RightShift = 161,
 
         /// <summary>
         /// Left CONTROL key.
         /// </summary>
-		LeftControl = 162,
+        LeftControl = 162,
 
         /// <summary>
         /// Right CONTROL key.
         /// </summary>
-		RightControl = 163,
+        RightControl = 163,
 
         /// <summary>
         /// Left ALT key.
         /// </summary>
-		LeftAlt = 164,
+        LeftAlt = 164,
 
         /// <summary>
         /// Right ALT key.
         /// </summary>
-		RightAlt = 165,
+        RightAlt = 165,
 
         /// <summary>
         /// End Key

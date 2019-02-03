@@ -30,7 +30,7 @@ namespace BLITTEngine.Core.Foundation.STB
 
         private int SkipCallback(void* user, int i)
         {
-            return (int)_stream.Seek(i, SeekOrigin.Current);
+            return (int) _stream.Seek(i, SeekOrigin.Current);
         }
 
         private int Eof(void* user)
@@ -85,7 +85,8 @@ namespace BLITTEngine.Core.Foundation.STB
             }
         }
 
-        public AnimatedGifFrame[] ReadAnimatedGif(Stream stream, out int w, out int h, int req_comp = STBImage.STBI_default)
+        public AnimatedGifFrame[] ReadAnimatedGif(Stream stream, out int w, out int h,
+            int req_comp = STBImage.STBI_default)
         {
             try
             {

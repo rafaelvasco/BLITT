@@ -41,11 +41,11 @@ namespace BLITTEngine.Core.Graphics
         public Color(uint col)
         {
             R = (col & 0xFF) / 255.0f;
-            G = ((col >> 8) & 0xFF)/ 255.0f ;
-            B = ((col >> 16) & 0xFF)/ 255.0f;
+            G = ((col >> 8) & 0xFF) / 255.0f;
+            B = ((col >> 16) & 0xFF) / 255.0f;
             A = 1.0f;
         }
-        
+
         public static Color operator -(Color c1, Color c2)
         {
             return new Color(c1.R - c2.R, c1.G - c2.G, c1.B - c2.B, c1.A - c2.A);
@@ -107,9 +107,8 @@ namespace BLITTEngine.Core.Graphics
 
         public void SetPackedColor(uint col)
         {
-
             R = (col & 0xFF);
-            G = ((col >> 8) & 0xFF) ;
+            G = ((col >> 8) & 0xFF);
             B = ((col >> 16) & 0xFF);
             A = col >= 0xFF000000 ? (col >> 24) : 255;
         }
@@ -122,7 +121,8 @@ namespace BLITTEngine.Core.Graphics
 
         public int GetIntRgba()
         {
-            return (int) (((uint) (R * 255) << 24) | ((uint) (G * 255) << 16) | ((uint) (B * 255) << 8) | (uint)(A * 255));
+            return (int) (((uint) (R * 255) << 24) | ((uint) (G * 255) << 16) | ((uint) (B * 255) << 8) |
+                          (uint) (A * 255));
         }
 
         public void Clamp()

@@ -16,8 +16,8 @@ namespace BLITTEngine.Core.Numerics
 
         public Size(float w, float h)
         {
-            this.W = (int)w;
-            this.H = (int)h;
+            this.W = (int) w;
+            this.H = (int) h;
         }
     }
 }

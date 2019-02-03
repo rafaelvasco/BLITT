@@ -52,8 +52,8 @@ namespace BLITTEngine.Core.Foundation.STB
         public class stbi__jpeg
         {
             public stbi__context s;
-            public readonly stbi__huffman* huff_dc = (stbi__huffman*)stbi__malloc(4 * sizeof(stbi__huffman));
-            public readonly stbi__huffman* huff_ac = (stbi__huffman*)stbi__malloc(4 * sizeof(stbi__huffman));
+            public readonly stbi__huffman* huff_dc = (stbi__huffman*) stbi__malloc(4 * sizeof(stbi__huffman));
+            public readonly stbi__huffman* huff_ac = (stbi__huffman*) stbi__malloc(4 * sizeof(stbi__huffman));
             public readonly ushort*[] dequant;
 
             public readonly short*[] fast_ac;
@@ -83,7 +83,7 @@ namespace BLITTEngine.Core.Foundation.STB
             public int rgb;
 
             public int scan_n;
-            public int* order = (int*)stbi__malloc(4 * sizeof(int));
+            public int* order = (int*) stbi__malloc(4 * sizeof(int));
             public int restart_interval, todo;
 
             // kernels
@@ -108,13 +108,13 @@ namespace BLITTEngine.Core.Foundation.STB
                 fast_ac = new short*[4];
                 for (var i = 0; i < fast_ac.Length; ++i)
                 {
-                    fast_ac[i] = (short*)stbi__malloc((1 << STBI__ZFAST_BITS) * sizeof(short));
+                    fast_ac[i] = (short*) stbi__malloc((1 << STBI__ZFAST_BITS) * sizeof(short));
                 }
 
                 dequant = new ushort*[4];
                 for (var i = 0; i < dequant.Length; ++i)
                 {
-                    dequant[i] = (ushort*)stbi__malloc(64 * sizeof(ushort));
+                    dequant[i] = (ushort*) stbi__malloc(64 * sizeof(ushort));
                 }
             }
         };
@@ -168,20 +168,20 @@ namespace BLITTEngine.Core.Foundation.STB
 
             public stbi__gif()
             {
-                codes = (stbi__gif_lzw*)stbi__malloc(4096 * sizeof(stbi__gif_lzw));
-                pal = (byte*)stbi__malloc(256 * 4 * sizeof(byte));
-                lpal = (byte*)stbi__malloc(256 * 4 * sizeof(byte));
+                codes = (stbi__gif_lzw*) stbi__malloc(4096 * sizeof(stbi__gif_lzw));
+                pal = (byte*) stbi__malloc(256 * 4 * sizeof(byte));
+                lpal = (byte*) stbi__malloc(256 * 4 * sizeof(byte));
             }
         }
 
         private static void* stbi__malloc(int size)
         {
-            return CRuntime.malloc((ulong)size);
+            return CRuntime.malloc((ulong) size);
         }
 
         private static void* stbi__malloc(ulong size)
         {
-            return stbi__malloc((int)size);
+            return stbi__malloc((int) size);
         }
 
         private static int stbi__err(string str)
@@ -198,7 +198,7 @@ namespace BLITTEngine.Core.Foundation.STB
                 pal[i * 4 + 2] = stbi__get8(s);
                 pal[i * 4 + 1] = stbi__get8(s);
                 pal[i * 4] = stbi__get8(s);
-                pal[i * 4 + 3] = (byte)(transp == i ? 0 : 255);
+                pal[i * 4 + 3] = (byte) (transp == i ? 0 : 255);
             }
         }
     }

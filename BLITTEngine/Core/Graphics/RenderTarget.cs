@@ -3,7 +3,7 @@ using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Graphics
 {
-    public class RenderTarget : Resource 
+    public class RenderTarget : Resource
     {
         internal static GraphicsContext GraphicsContext;
 

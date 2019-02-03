@@ -1,5 +1,4 @@
-﻿
-namespace BLITTEngine.Core.Graphics
+﻿namespace BLITTEngine.Core.Graphics
 {
     public enum BlendMode
     {

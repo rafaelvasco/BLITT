@@ -4,7 +4,6 @@ namespace BLITTEngine.Core.Input.GamePad
 {
     public struct GamePadTriggers
     {
-       
         public float Left { get; }
         public float Right { get; }
 
@@ -13,6 +12,5 @@ namespace BLITTEngine.Core.Input.GamePad
             Left = Calc.Clamp(left, 0f, 1f);
             Right = Calc.Clamp(right, 0f, 1f);
         }
-
     }
 }

@@ -24,7 +24,8 @@
 
         public bool this[GamepadButton button] => (CompositeState & button) == button;
 
-        public GamepadState(GamepadThumbsticks thumbSticksState, GamePadTriggers triggersState, GamepadButton buttonsState)
+        public GamepadState(GamepadThumbsticks thumbSticksState, GamePadTriggers triggersState,
+            GamepadButton buttonsState)
             : this()
         {
             Thumbsticks = thumbSticksState;

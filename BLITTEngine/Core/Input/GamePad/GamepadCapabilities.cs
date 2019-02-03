@@ -49,7 +49,5 @@
         public bool HasLeftVibrationMotor { get; internal set; }
 
         public bool HasRightVibrationMotor { get; internal set; }
-
-
     }
 }

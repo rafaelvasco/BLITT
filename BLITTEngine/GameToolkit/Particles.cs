@@ -173,8 +173,8 @@ namespace BLITTEngine.GameToolkit
 
                 for (var i = 0; i < ParticlesAlive; ++i)
                 {
-                    particle + i->Loc.X += dx;
-                    particle + i->Loc.Y += dy;
+                    (particle + i)->Loc.X += dx;
+                    (particle + i)->Loc.Y += dy;
                 }
 
                 prev_loc.X += dx;
@@ -354,7 +354,7 @@ namespace BLITTEngine.GameToolkit
                 }
             }
 
-            prev_loc = loc;
+            end: prev_loc = loc;
         }
     }
 

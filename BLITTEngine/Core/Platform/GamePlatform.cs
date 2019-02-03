@@ -46,6 +46,5 @@ namespace BLITTEngine.Core.Platform
         public abstract ref readonly GamepadState GetGamepadState();
 
         public abstract bool SetGamepadVibration(float left_motor, float right_motor);
-
     }
 }

@@ -59,7 +59,7 @@ namespace BLITTEngine.Core.Numerics
 
         public static explicit operator Point2(Vector2 p)
         {
-            return new Point2((int)p.X, (int)p.Y);
+            return new Point2((int) p.X, (int) p.Y);
         }
 
         public static bool operator ==(Point2 a, Point2 b)

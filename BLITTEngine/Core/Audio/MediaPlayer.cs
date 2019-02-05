@@ -119,7 +119,7 @@ namespace BLITTEngine.Core.Audio
         {
             var stream = new WavStream();
             stream.load(file);
-
+            
             var song = new Song(stream);
 
             return song;

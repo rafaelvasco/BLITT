@@ -55,8 +55,6 @@ namespace BLITTEngine.Core.Resources
 
     public class ShaderProgram : Resource
     {
-        internal static GraphicsContext GraphicsContext;
-
         internal Program Program;
 
         internal readonly ShaderParameter[] Parameters;

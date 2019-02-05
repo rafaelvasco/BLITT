@@ -75,9 +75,9 @@ namespace BLITTEngine.Core.Graphics
 
             renderer_surface = Game.Instance.ContentManager.CreateRenderTarget(width, height);
 
-            default_shader = Game.Instance.ContentManager.GetBuiltin<ShaderProgram>("base_2d");
+            default_shader = Game.Instance.ContentManager.Get<ShaderProgram>("base_2d");
 
-            default_font = Game.Instance.ContentManager.GetBuiltin<Font>("default_font");
+            default_font = Game.Instance.ContentManager.Get<Font>("default_font");
 
             default_shader.AddTextureUniform("texture_2d");
 

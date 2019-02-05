@@ -5,8 +5,6 @@ namespace BLITTEngine.Core.Graphics
 {
     public class RenderTarget : Resource
     {
-        internal static GraphicsContext GraphicsContext;
-
         internal FrameBuffer FrameBuffer { get; }
 
         internal Texture2D Texture { get; }

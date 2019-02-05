@@ -53,7 +53,7 @@ namespace BLITTEngine.Core.Platform
 
         private void InitGamepad()
         {
-            var gamepad_db_file = Game.Instance.ContentManager.GetBuiltin<TextFile>("gamecontrollerdb.txt");
+            var gamepad_db_file = Game.Instance.ContentManager.Get<TextFile>("gamecontrollerdb");
 
             foreach (var line in gamepad_db_file.Text)
                 if (!line.StartsWith("#"))

@@ -16,7 +16,7 @@ namespace BLITTEngine
         public int CanvasWidth;
         public int CanvasHeight;
         public bool Fullscreen;
-        public string AssetsFolder;
+        public string ResourcesFolder;
     }
 
     public class Game : IDisposable
@@ -52,7 +52,7 @@ namespace BLITTEngine
             props.Title = props.Title ?? "BLITT!";
             props.CanvasWidth = Calc.Max(64, props.CanvasWidth);
             props.CanvasHeight = Calc.Max(64, props.CanvasHeight);
-            props.AssetsFolder = props.AssetsFolder ?? "Assets";
+            props.ResourcesFolder = props.ResourcesFolder ?? "Resources";
 
             full_screen = props.Fullscreen;
 
@@ -64,11 +64,11 @@ namespace BLITTEngine
             Platform.OnQuit += _OnPlatformQuit;
             Platform.OnWinResized += _OnScreenResized;
 
-            Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, props.Fullscreen);
-
             ResourceLoader = new ResourceLoader();
 
-            ContentManager = new ContentManager(props.AssetsFolder);
+            ContentManager = new ContentManager(props.ResourcesFolder);
+
+            Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, props.Fullscreen);
 
             Console.WriteLine($" > Platform Init took: {timer.Elapsed.TotalSeconds}");
 

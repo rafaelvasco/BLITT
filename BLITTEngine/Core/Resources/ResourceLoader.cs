@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -7,7 +8,7 @@ using BLITTEngine.GameToolkit;
 
 namespace BLITTEngine.Core.Resources
 {
-    internal class ResourceLoader
+    internal unsafe class ResourceLoader
     {
         public ResourcePak LoadPak(string pak_name)
         {
@@ -64,13 +65,12 @@ namespace BLITTEngine.Core.Resources
         {
             var wav = new Wav();
             
-            var pinned_array = GCHandle.Alloc(sfx_data.Data, GCHandleType.Pinned);
-
-            var data_ptr = pinned_array.AddrOfPinnedObject();
-
-            wav.loadMem(data_ptr, (uint) sfx_data.Data.Length);
-            
-            pinned_array.Free();
+            fixed (byte* p = sfx_data.Data)
+            {
+                var ptr = (IntPtr)p;
+                
+                wav.loadMem(ptr, (uint) sfx_data.Data.Length);
+            }
             
             var effect = new Effect(wav);
 
@@ -81,13 +81,12 @@ namespace BLITTEngine.Core.Resources
         {
             var wav_stream = new WavStream();
             
-            var pinned_array = GCHandle.Alloc(song_data.Data, GCHandleType.Pinned);
-
-            var data_ptr = pinned_array.AddrOfPinnedObject();
-
-            wav_stream.loadMem(data_ptr, (uint) song_data.Data.Length);
-            
-            pinned_array.Free();
+            fixed (byte* p = song_data.Data)
+            {
+                var ptr = (IntPtr)p;
+                
+                wav_stream.loadMem(ptr, (uint) song_data.Data.Length);
+            }
             
             var song = new Song(wav_stream);
 

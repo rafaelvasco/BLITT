@@ -17,4 +17,8 @@
       <ProjectReference Include="..\BLITTEngine\BLITTEngine.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="PowerArgs" Version="3.5.0" />
+    </ItemGroup>
+
 </Project>

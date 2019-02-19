@@ -6,17 +6,9 @@ namespace BLITTDemo
     {
         private static void Main()
         {
-            var props = new GameProps()
+            using (var game = new Game())
             {
-                Title = "BLITT DEMOS",
-                CanvasWidth = 640,
-                CanvasHeight = 480,
-                Fullscreen = false,
-            };
-
-            using (var game = new Game(props))
-            {
-                game.Start(new Demo1());
+                game.Start(new Demo2());
             }
         }
     }

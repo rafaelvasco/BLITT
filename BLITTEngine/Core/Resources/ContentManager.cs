@@ -1,34 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using BLITTEngine.Core.Foundation;
 using BLITTEngine.Core.Graphics;
-using Utf8Json;
 
 namespace BLITTEngine.Core.Resources
 {
     public class ContentManager
     {
-        private readonly Dictionary<string, Resource> _builtin_resources;
-
         private readonly Dictionary<string, Resource> _loaded_resources;
         
         private readonly List<Resource> _runtime_resources;
         
         private readonly ResourceLoader _loader;
 
-        public ContentManager(string root_path)
+        public ContentManager()
         {
-            RootPath = root_path;
-
             _loaded_resources = new Dictionary<string, Resource>();
-            _builtin_resources = new Dictionary<string, Resource>();
             _runtime_resources = new List<Resource>();
             _loader = new ResourceLoader();
+            
+            LoadContentPack("base");
         }
-
-        public string RootPath { get; }
 
         public T Get<T>(string resource_id) where T : Resource
         {
@@ -40,7 +32,98 @@ namespace BLITTEngine.Core.Resources
             throw new Exception("Can't find resource with ID: " + resource_id);
         }
 
-        public void LoadFromPak(string pak_name)
+        public Texture2D LoadTexture(string texture_path) 
+        {
+            var full_path = Path.Combine("Content", texture_path);
+            
+            var id = Path.GetFileNameWithoutExtension(texture_path);
+            
+            if (_loaded_resources.TryGetValue(id, out Resource res))
+            {
+                return (Texture2D) res;
+            }
+
+            Texture2D texture = _loader.LoadTexture(full_path);
+
+            _loaded_resources.Add(texture.Id, texture);
+
+            return texture;
+        }
+        
+        public ShaderProgram LoadShader(string vs_path, string fs_path) 
+        {
+            var vs_full_path = Path.Combine("Content", vs_path);
+            var fs_full_path = Path.Combine("Content", fs_path);
+            
+            var id = Path.GetFileNameWithoutExtension(vs_path);
+            
+            if (_loaded_resources.TryGetValue(id, out Resource res))
+            {
+                return (ShaderProgram) res;
+            }
+
+            ShaderProgram shader = _loader.LoadShader(vs_full_path, fs_full_path);
+
+            _loaded_resources.Add(shader.Id, shader);
+
+            return shader;
+        }
+
+        public Font LoadFont(string font_path)
+        {
+            var full_path = Path.Combine("Content", font_path);
+            
+            var id = Path.GetFileNameWithoutExtension(font_path);
+            
+            if (_loaded_resources.TryGetValue(id, out Resource res))
+            {
+                return (Font) res;
+            }
+
+            Font font = _loader.LoadFont(full_path);
+
+            _loaded_resources.Add(font.Id, font);
+
+            return font;
+        }
+
+        public Effect LoadSfx(string sfx_path)
+        {
+            var full_path = Path.Combine("Content", sfx_path);
+            
+            var id = Path.GetFileNameWithoutExtension(sfx_path);
+            
+            if (_loaded_resources.TryGetValue(id, out Resource res))
+            {
+                return (Effect) res;
+            }
+
+            Effect sfx = _loader.LoadEffect(full_path);
+
+            _loaded_resources.Add(sfx.Id, sfx);
+
+            return sfx;
+        }
+
+        public Song LoadSong(string song_path)
+        {
+            var full_path = Path.Combine("Content", song_path);
+            
+            var id = Path.GetFileNameWithoutExtension(song_path);
+            
+            if (_loaded_resources.TryGetValue(id, out Resource res))
+            {
+                return (Song) res;
+            }
+
+            Song song = _loader.LoadSong(full_path);
+
+            _loaded_resources.Add(song.Id, song);
+
+            return song;
+        }
+        
+        public void LoadContentPack(string pak_name)
         {
             ResourcePak pak = _loader.LoadPak(pak_name);
             
@@ -101,7 +184,10 @@ namespace BLITTEngine.Core.Resources
 
         public Pixmap CreatePixmap(byte[] data, int width, int height)
         {
-            var pixmap = new Pixmap(data, width, height);
+            var pixmap = new Pixmap(data, width, height)
+            {
+                Id = $"Pixmap [{width},{height}]"
+            };
 
             RegisterRuntimeLoaded(pixmap);
 
@@ -110,7 +196,7 @@ namespace BLITTEngine.Core.Resources
 
         public Pixmap CreatePixmap(int width, int height)
         {
-            var pixmap = new Pixmap(width, height);
+            var pixmap = new Pixmap(width, height) {Id = $"Pixmap [{width},{height}]"};
 
             RegisterRuntimeLoaded(pixmap);
 
@@ -121,6 +207,8 @@ namespace BLITTEngine.Core.Resources
         {
             var texture = Game.Instance.GraphicsContext.CreateTexture(pixmap);
 
+            texture.Id = $"Pixmap [{texture.Width},{texture.Height}]";
+            
             RegisterRuntimeLoaded(texture);
 
             return texture;
@@ -129,13 +217,15 @@ namespace BLITTEngine.Core.Resources
         public Texture2D CreateTexture(int width, int height, Color color)
         {
             var pixmap = new Pixmap(width, height);
-
+            
             return CreateTexture(pixmap);
         }
 
         public RenderTarget CreateRenderTarget(int width, int height)
         {
             var render_target = Game.Instance.GraphicsContext.CreateRenderTarget(width, height);
+
+            render_target.Id = $"Render Target: [{width}, {height}]";
 
             RegisterRuntimeLoaded(render_target);
 
@@ -151,19 +241,22 @@ namespace BLITTEngine.Core.Resources
         {
             Console.WriteLine($" > Diposing {_loaded_resources.Count} loaded resources.");
 
-            foreach (var resource in _loaded_resources) resource.Value.Dispose();
+            foreach (var resource in _loaded_resources)
+            {
+                Console.WriteLine($" > Diposing {resource.Key}.");
+                resource.Value.Dispose();
+            }
 
             Console.WriteLine($" > Disposing {_runtime_resources.Count} runtime resources.");
 
-            foreach (var resource in _runtime_resources) resource.Dispose();
-
-            Console.WriteLine($" > Disposing {_builtin_resources.Count} builtin resources.");
-
-            foreach (var resource in _builtin_resources) resource.Value.Dispose();
+            foreach (var resource in _runtime_resources)
+            {
+                Console.WriteLine($" > Diposing {resource.Id}.");
+                resource.Dispose();
+            }
 
             _loaded_resources.Clear();
             _runtime_resources.Clear();
-            _builtin_resources.Clear();
         }
     }
 }

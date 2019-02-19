@@ -1,5 +1,6 @@
 using System.IO;
 using System.IO.Compression;
+using System.Net.Mime;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace BLITTEngine.Core.Resources
@@ -25,6 +26,13 @@ namespace BLITTEngine.Core.Resources
             }
         }
 
+        public static T Deserialize<T>(string file_path)
+        {
+            var bytes = File.ReadAllBytes(file_path);
+
+            return Deserialize<T>(bytes);
+        }
+        
         public static T Deserialize<T>(byte[] data)
         {
             using (var memoryStream = new MemoryStream())

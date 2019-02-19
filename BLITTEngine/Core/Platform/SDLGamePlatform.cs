@@ -78,7 +78,10 @@ namespace BLITTEngine.Core.Platform
             sw.Stop();
 
             InitKeyboard();
+        }
 
+        public override void LoadContent()
+        {
             InitGamepad();
         }
 

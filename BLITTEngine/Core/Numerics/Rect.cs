@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 namespace BLITTEngine.Core.Numerics
 {
     [StructLayout(LayoutKind.Sequential)]
+    [Serializable]
     public struct Rect : IEquatable<Rect>
     {
         private static readonly Rect _empty = new Rect(0, 0, 0, 0);

@@ -43,17 +43,15 @@ namespace BLITTDemo
             song = Content.Get<Song>("mus1");
             song2 = Content.Get<Song>("mus2");
 
-            font1 = Content.Get<Font>("pixelnoir");
-
-            font1.Texture.Filtered = true;
+            font1 = Content.Get<Font>("default_font2");
 
             //abcdefghijklmnopqrstuvwxyz0123456789!@#$%&*()-_=+]}[{~^?;:,<.>
 
             ui_text = new SpriteText(font1, "Hello World!\nThis is Blitt Engine !\nNice to meet you!")
             {
-                Spacing = 1,
+                LetterSpacing = 1,
                 Proportion = 1f,
-                Scale = 1,
+                Scale = 0.5f,
                 LineSpacing = 0
             };
 
@@ -185,26 +183,26 @@ namespace BLITTDemo
             {
                 x = Canvas.Width - 16;
                 dx = -dx;
-                PlayAudio();
+                PlayBump();
             }
             else if (x < 16)
             {
                 x = 16;
                 dx = -dx;
-                PlayAudio();
+                PlayBump();
             }
 
             if (y > Canvas.Height - 16)
             {
                 y = Canvas.Height - 16;
                 dy = -dy;
-                PlayAudio();
+                PlayBump();
             }
             else if (y < 16)
             {
                 y = 16;
                 dy = -dy;
-                PlayAudio();
+                PlayBump();
             }
 
             ball_quad.V0.X = x - 16;
@@ -217,9 +215,9 @@ namespace BLITTDemo
             ball_quad.V3.Y = y + 16;
         }
 
-        private void PlayAudio()
+        private void PlayBump()
         {
-            MediaPlayer.Fire(bump_sfx, 0f, random.NextFloat(0.1f, 1.0f));
+            MediaPlayer.Play(bump_sfx, 0f, random.NextFloat(0.1f, 1.0f));
         }
 
         public override void Draw(Canvas canvas)
@@ -229,7 +227,7 @@ namespace BLITTDemo
             canvas.DrawQuad(ref bg_quad);
 
             canvas.DrawQuad(ref ball_quad);
-
+            
             ui_text.Draw(canvas, 0, 0);
 
             canvas.End();

@@ -1,0 +1,37 @@
+{
+  "title" : "BLITT Demos",
+  "frame_rate" : 60,
+  "canvas_width" : 800,
+  "canvas_height" : 600,
+  "start_fullscreen" : false,
+  "resources" : {
+    "main" : [
+      
+      "Fonts/font1.fnt",
+      "Fonts/font2.fnt",
+      "Fonts/pixelnoir.fnt",
+      "Sfx/menu.wav",
+      "Songs/mus1.ogg",
+      "Songs/mus2.ogg",
+      "Textures/bg.png",
+      "Textures/bg2.png",
+      "Textures/bg3.png",
+      "Textures/cursor.png",
+      "Textures/objects.png",
+      "Textures/particles.png",
+      "Textures/res_test.png",
+      "Textures/zazaka.png"
+    ],
+    
+    "base" : [
+      
+      "Base/Fonts/default_font.fnt",
+      "Base/Fonts/default_font2.fnt",
+     
+      "Base/Shaders/hlsl/dx_base_2d.vs",
+      "Base/Shaders/hlsl/dx_base_2d.fs",
+      "Base/TextFiles/gamecontrollerdb.txt"
+    ]
+  },
+  "preload" : ["main"]
+}

@@ -32,7 +32,7 @@ namespace BLITTEngine.GameToolkit
 
         private float scale = 1.0f;
 
-        private float spacing = 1.0f;
+        private float letter_spacing = 1.0f;
 
         private char[] string_buffer;
 
@@ -80,12 +80,12 @@ namespace BLITTEngine.GameToolkit
             }
         }
 
-        public float Spacing
+        public float LetterSpacing
         {
-            get => spacing;
+            get => letter_spacing;
             set
             {
-                spacing = value;
+                letter_spacing = value;
 
                 if (calculate_boundaries && current_font != null) RecalculateMetrics();
             }
@@ -183,7 +183,7 @@ namespace BLITTEngine.GameToolkit
                     {
                         dx += pre_spacings[ch_idx] * scale * proportion;
                         letters[ch_idx].DrawEx(canvas, dx, y, 0.0f, scale * proportion, scale);
-                        dx += (letters[ch_idx].Width + post_spacings[ch_idx] + spacing) * scale * proportion;
+                        dx += (letters[ch_idx].Width + post_spacings[ch_idx] + letter_spacing) * scale * proportion;
                     }
                 }
             }
@@ -211,7 +211,7 @@ namespace BLITTEngine.GameToolkit
                         {
                             dx += pre_spacings[ch_idx] * scale * proportion;
                             letters[ch_idx].DrawEx(canvas, dx, dy, 0.0f, scale * proportion, scale);
-                            dx += (letters[ch_idx].Width + post_spacings[ch_idx] + spacing) * scale * proportion;
+                            dx += (letters[ch_idx].Width + post_spacings[ch_idx] + letter_spacing) * scale * proportion;
                         }
                     }
                 }
@@ -253,7 +253,7 @@ namespace BLITTEngine.GameToolkit
 
                         if (string_buffer[i] != '\n')
                         {
-                            cur_width += letters[ch_idx].Width + spacing;
+                            cur_width += letters[ch_idx].Width + letter_spacing;
                             Height = letters[ch_idx].Height * line;
 
 

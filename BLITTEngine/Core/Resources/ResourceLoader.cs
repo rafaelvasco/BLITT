@@ -1,27 +1,44 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Text;
 using BLITTEngine.Core.Foundation;
+using BLITTEngine.Core.Foundation.STB;
 using BLITTEngine.Core.Graphics;
+using BLITTEngine.Core.Numerics;
 using BLITTEngine.GameToolkit;
 
 namespace BLITTEngine.Core.Resources
 {
-    internal unsafe class ResourceLoader
+    public class ResourceLoader
     {
+        private const string FNT_HEADER_TAG = "[BTFONT]";
+        private const string FNT_CHAR_TAG = "Char=";
+        
+        private readonly ImageReader _image_reader = new ImageReader();
+        
+        private T DeserializeObject<T>(string path)
+        {
+            var bytes = File.ReadAllBytes(path);
+
+            var obj = BinarySerializer.Deserialize<T>(bytes);
+
+            return obj;
+        }
+        
         public ResourcePak LoadPak(string pak_name)
         {
-            var path = Path.Combine(Game.Instance.ContentManager.RootPath,
+            var path = Path.Combine("Content",
                 !pak_name.Contains(".pak") ? pak_name + ".pak" : pak_name);
+            
+            ResourcePak pak = DeserializeObject<ResourcePak>(path);
 
-            var pak_bytes = File.ReadAllBytes(path);
-
-            var resource_pak = BinarySerializer.Deserialize<ResourcePak>(pak_bytes);
-
-            return resource_pak;
+            return pak;
         }
 
+        /* Content Loaders */
+        /* ==================================================== */
+        
         public Texture2D LoadTexture(PixmapData pixmap_data)
         {
             var pixmap = new Pixmap(pixmap_data.Data, pixmap_data.Width, pixmap_data.Height);
@@ -33,6 +50,12 @@ namespace BLITTEngine.Core.Resources
             return texture;
         }
 
+        public Texture2D LoadTexture(string path)
+        {
+            var pixmap_data = LoadPixmapData(path);
+            return LoadTexture(pixmap_data);
+        }
+        
         public Font LoadFont(FontData font_data)
         {
             var texture = LoadTexture(font_data.FontSheet);
@@ -51,6 +74,18 @@ namespace BLITTEngine.Core.Resources
             return font;
         }
 
+        public Font LoadFont(string path)
+        {
+            var font_image_path = Path.Combine(
+                Path.GetDirectoryName(path),
+                Path.GetFileNameWithoutExtension(path) + ".png"
+            );
+
+            var font_data = LoadFontData(path, font_image_path);
+
+            return LoadFont(font_data);
+        }
+        
         public ShaderProgram LoadShader(ShaderProgramData shader_data)
         {
             var shader_program =
@@ -61,7 +96,14 @@ namespace BLITTEngine.Core.Resources
             return shader_program;
         }
 
-        public Effect LoadEffect(SfxData sfx_data)
+        public ShaderProgram LoadShader(string vs_path, string fs_path)
+        {
+            var shader_prog_data = LoadShaderProgramData(vs_path, fs_path);
+
+            return LoadShader(shader_prog_data);
+        }
+        
+        public unsafe Effect LoadEffect(SfxData sfx_data)
         {
             var wav = new Wav();
             
@@ -69,15 +111,25 @@ namespace BLITTEngine.Core.Resources
             {
                 var ptr = (IntPtr)p;
                 
-                wav.loadMem(ptr, (uint) sfx_data.Data.Length);
+                wav.loadMem(ptr, (uint) sfx_data.Data.Length, aCopy: true);
             }
             
-            var effect = new Effect(wav);
+            var effect = new Effect(wav)
+            {
+                Id = sfx_data.Id
+            };
 
             return effect;
         }
 
-        public Song LoadSong(SongData song_data)
+        public Effect LoadEffect(string path)
+        {
+            var sfx_data = LoadSfxData(path);
+
+            return LoadEffect(sfx_data);
+        }
+        
+        public unsafe Song LoadSong(SongData song_data)
         {
             var wav_stream = new WavStream();
             
@@ -85,19 +137,204 @@ namespace BLITTEngine.Core.Resources
             {
                 var ptr = (IntPtr)p;
                 
-                wav_stream.loadMem(ptr, (uint) song_data.Data.Length);
+                wav_stream.loadMem(ptr, (uint) song_data.Data.Length, aCopy: true);
             }
             
-            var song = new Song(wav_stream);
+            var song = new Song(wav_stream)
+            {
+                Id = song_data.Id
+            };
 
             return song;
         }
 
+        public Song LoadSong(string path)
+        {
+            var song_data = LoadSongData(path);
+
+            return LoadSong(song_data);
+        }
+        
         public TextFile LoadTextFile(TextFileData txt_data)
         {
-            var txt_file = new TextFile(txt_data.TextData.ToList());
+            var txt_file = new TextFile(txt_data.TextData.ToList())
+            {
+                Id = txt_data.Id
+            };
 
             return txt_file;
         }
+
+        public TextFile LoadTextFile(string path)
+        {
+            var txt_data = LoadTextFileData(path);
+
+            return LoadTextFile(txt_data);
+        }
+        
+        /* File Data Loaders */
+        /* ================================================================== */
+        
+        public PixmapData LoadPixmapData(string path)
+        {
+            using (var stream = File.OpenRead(path))
+            {
+                Image img = _image_reader.Read(stream);
+
+                var id = Path.GetFileNameWithoutExtension(path);
+                
+                var pixmap_data = new PixmapData()
+                {
+                    Id = id,
+                    Data = img.Data,
+                    Width = img.Width,
+                    Height = img.Height
+                };
+
+                return pixmap_data;
+            }
+        }
+
+        public ShaderProgramData LoadShaderProgramData(string vs_path, string fs_path)
+        {
+            var vs_bytes = File.ReadAllBytes(vs_path);
+            var fs_bytes = File.ReadAllBytes(fs_path);
+
+            var id = Path.GetFileNameWithoutExtension(vs_path).Replace("vs_", "");
+
+            var shader_program_data = new ShaderProgramData()
+            {
+                Id = id,
+                VertexShader = vs_bytes,
+                FragmentShader = fs_bytes
+            };
+
+            return shader_program_data;
+        }
+
+        public FontData LoadFontData(string descr_path, string image_path)
+        {
+            var sheet_data = LoadPixmapData(image_path);
+
+            var glyphs = new Rect[255];
+            var pre_spacings = new float[255];
+            var post_spacings = new float[255];
+
+            using (var descr_stream = File.OpenRead(descr_path))
+            {
+                using (var reader = new StreamReader(descr_stream, Encoding.UTF8))
+                {
+                    string line;
+                    var idx = 0;
+
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (line.Length == 0)
+                        {
+                            continue;
+                        }
+
+                        if (idx == 0 && !line.Equals(FNT_HEADER_TAG))
+                        {
+                            throw new Exception("Invalid Font Description File.");
+                        }
+
+                        if (line.StartsWith(FNT_CHAR_TAG))
+                        {
+                            string char_def_str = line.Split('=')[1];
+
+                            string[] char_def_attrs = char_def_str.Split(',');
+
+                            if (char_def_attrs.Length != 7)
+                            {
+                                throw new Exception(
+                                    $"Invalid Font Description File: Invalid Char Definition at line: {line + 1}");
+                            }
+
+                            int ch_idx = int.Parse(char_def_attrs[0]);
+
+                            if (ch_idx < 0 || ch_idx > 255)
+                            {
+                                throw new Exception("Invalid Font Description File: Character Id out of range");
+                            }
+
+                            int letter_reg_x = int.Parse(char_def_attrs[1]);
+                            int letter_reg_y = int.Parse(char_def_attrs[2]);
+                            int letter_reg_w = int.Parse(char_def_attrs[3]);
+                            int letter_reg_h = int.Parse(char_def_attrs[4]);
+                            int letter_pre_spac = int.Parse(char_def_attrs[5]);
+                            int letter_post_spac = int.Parse(char_def_attrs[6]);
+
+                            glyphs[ch_idx] = Rect.FromBox(letter_reg_x, letter_reg_y, letter_reg_w,
+                                letter_reg_h);
+
+                            pre_spacings[ch_idx] = letter_pre_spac;
+                            post_spacings[ch_idx] = letter_post_spac;
+                        }
+
+                        idx++;
+                    }
+                }
+            }
+
+            var id = Path.GetFileNameWithoutExtension(descr_path);
+
+            var font_data = new FontData()
+            {
+                FontSheet = sheet_data,
+                GlyphRects = glyphs,
+                Id = id,
+                PreSpacings = pre_spacings,
+                PostSpacings = post_spacings
+            };
+
+            return font_data;
+        }
+
+        public SfxData LoadSfxData(string path)
+        {
+            var bytes = File.ReadAllBytes(path);
+
+            var id = Path.GetFileNameWithoutExtension(path);
+
+            var sfx_data = new SfxData()
+            {
+                Id = id,
+                Data = bytes
+            };
+
+            return sfx_data;
+        }
+
+        public SongData LoadSongData(string path)
+        {
+            var bytes = File.ReadAllBytes(path);
+
+            var id = Path.GetFileNameWithoutExtension(path);
+
+            var song_data = new SongData()
+            {
+                Id = id,
+                Data = bytes
+            };
+
+            return song_data;
+        }
+
+        public TextFileData LoadTextFileData(string path)
+        {
+            var text = File.ReadAllLines(path);
+
+            var id = Path.GetFileNameWithoutExtension(path);
+
+            var text_file_data = new TextFileData()
+            {
+                Id = id,
+                TextData = text.Where(line => !string.IsNullOrWhiteSpace(line)).ToArray()
+            };
+
+            return text_file_data;
+        }
+        
     }
 }

@@ -5,8 +5,6 @@ namespace BLITTEngine.Core.Resources
 {
     public class Texture2D : Resource
     {
-        internal static GraphicsContext GraphicsContext;
-
         internal readonly Texture Texture;
 
         internal TextureFlags TexFlags;
@@ -59,7 +57,7 @@ namespace BLITTEngine.Core.Resources
 
         public void SetData(Pixmap pixmap)
         {
-            GraphicsContext.UpdateTextureData(this, pixmap);
+            Game.Instance.GraphicsContext.UpdateTextureData(this, pixmap);
         }
 
         internal override void Dispose()

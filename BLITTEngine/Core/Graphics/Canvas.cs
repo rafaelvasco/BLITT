@@ -31,7 +31,7 @@ namespace BLITTEngine.Core.Graphics
 
         private Texture2D current_texture;
 
-        private Font default_font;
+        private readonly Font default_font;
 
         private readonly ShaderProgram default_shader;
 
@@ -75,9 +75,25 @@ namespace BLITTEngine.Core.Graphics
 
             renderer_surface = Game.Instance.ContentManager.CreateRenderTarget(width, height);
 
-            default_shader = Game.Instance.ContentManager.Get<ShaderProgram>("base_2d");
+            string shader_to_load;
 
-            default_font = Game.Instance.ContentManager.Get<Font>("default_font");
+            switch (graphics_context.Info.RendererBackend)
+            {
+                case RendererBackend.Direct3D9:
+                case RendererBackend.Direct3D11:
+                case RendererBackend.Direct3D12:
+                    shader_to_load = "dx_base_2d";
+                    break;
+                case RendererBackend.OpenGL:
+                    shader_to_load = "gx_base_2d";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Can't load shader for this renderer backend: " + graphics_context.Info.RendererBackend);
+            }
+
+            default_shader = Game.Instance.ContentManager.Get<ShaderProgram>(shader_to_load);
+
+            default_font = Game.Instance.ContentManager.Get<Font>("default_font2");
 
             default_shader.AddTextureUniform("texture_2d");
 
@@ -91,7 +107,7 @@ namespace BLITTEngine.Core.Graphics
 
             gfx.SetClearColor(1, 0x000000FF);
 
-            var prim_pixmap = new Pixmap(1, 1);
+            var prim_pixmap = new Pixmap(2, 2);
             prim_pixmap.Fill(Color.White);
 
             primitives_blend_mode = BlendMode.AlphaBlend;
@@ -296,6 +312,42 @@ namespace BLITTEngine.Core.Graphics
             }
         }
 
+
+        public void DrawString(float x, float y, string text, float scale = 1.0f)
+        {
+            DrawString(default_font, x, y, text, scale);
+        }
+        
+        public void DrawString(Font font, float x, float y, string text, float scale = 1.0f)
+        {
+            var str_len = text.Length;
+            
+            if (str_len == 0)
+            {
+                return;
+            }
+            
+            var dx = x;
+            
+            var letters = font.letters;
+            var pre_spacings = font.pre_spacings;
+            var post_spacings = font.post_spacings;
+            
+            for (var i = 0; i < str_len; ++i)
+            {
+                int ch_idx = text[i];
+
+                if (letters[ch_idx] == null) ch_idx = '?';
+
+                if (letters[ch_idx] != null)
+                {
+                    dx += pre_spacings[ch_idx] * scale;
+                    letters[ch_idx].DrawEx(this, dx, y, 0.0f, scale , scale);
+                    dx += (letters[ch_idx].Width + post_spacings[ch_idx] ) * scale ;
+                }
+            }
+        }
+        
         private void RenderBatch()
         {
             if (vertex_index == 0) return;

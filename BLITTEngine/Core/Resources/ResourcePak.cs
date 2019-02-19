@@ -7,6 +7,8 @@ namespace BLITTEngine.Core.Resources
     [Serializable]
     public class ResourcePak
     {
+        public readonly string Name;
+        
         public readonly Dictionary<string, PixmapData> Images;
         public readonly Dictionary<string, ShaderProgramData> Shaders;
         public readonly Dictionary<string, FontData> Fonts;
@@ -14,8 +16,9 @@ namespace BLITTEngine.Core.Resources
         public readonly Dictionary<string, SongData> Songs;
         public readonly Dictionary<string, TextFileData> TextFiles;
 
-        public ResourcePak()
+        public ResourcePak(string name)
         {
+            Name = name;
             Images = new Dictionary<string, PixmapData>();
             Shaders = new Dictionary<string, ShaderProgramData>();
             Fonts = new Dictionary<string, FontData>();

@@ -71,7 +71,7 @@ namespace BLITTEngine.Core.Audio
             }
         }
 
-        public static void Fire(Effect effect, float pan = 0.0f, float speed = 1.0f)
+        public static void Play(Effect effect, float pan = 0.0f, float speed = 1.0f)
         {
             var voice = engine.play(effect.wave);
             engine.setVolume(voice, sfx_vol);

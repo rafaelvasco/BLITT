@@ -1,4 +1,5 @@
 ﻿using BLITTEngine;
+using BLITTEngine.Core.Audio;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Input.Keyboard;
 using BLITTEngine.Core.Numerics;
@@ -12,6 +13,8 @@ namespace BLITTDemo
     {
         private int color_task;
 
+        private Effect bump_sfx;
+        
         private ParticleEmitter emitter;
         private readonly float friction = 0.98f;
         private RandomEx random;
@@ -34,6 +37,8 @@ namespace BLITTDemo
         {
             random = new RandomEx();
 
+            bump_sfx = Content.Get<Effect>("menu");
+            
             size = Game.ScreenSize;
 
             sprite = new Sprite(Content.Get<Texture2D>("particles"), 96, 64, 32, 32);
@@ -132,22 +137,26 @@ namespace BLITTDemo
             {
                 x = Canvas.Width - 16;
                 dx = -dx;
+                PlayBump();
             }
             else if (x < 16)
             {
                 x = 16;
                 dx = -dx;
+                PlayBump();
             }
 
             if (y > Canvas.Height - 16)
             {
                 y = Canvas.Height - 16;
                 dy = -dy;
+                PlayBump();
             }
             else if (y < 16)
             {
                 y = 16;
                 dy = -dy;
+                PlayBump();
             }
 
             emitter.Info.Emission = (int) ((dx * dx + dy * dy) * 2);
@@ -162,8 +171,16 @@ namespace BLITTDemo
             sprite.Draw(canvas, x, y);
 
             emitter.Render(canvas);
+            
+            canvas.DrawString(10, 10, $"FPS: {Game.Clock.FPS}, DT: {Game.Clock.DeltaTime}, FrameRate: {Game.Clock.FrameRate}", 0.5f);
+            
 
             canvas.End();
+        }
+        
+        private void PlayBump()
+        {
+            MediaPlayer.Play(bump_sfx, 0f, random.NextFloat(0.1f, 1.0f));
         }
     }
 }

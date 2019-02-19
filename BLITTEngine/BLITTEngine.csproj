@@ -39,46 +39,12 @@
             <TargetPath>libsdl2.dyllib</TargetPath>
         </ContentWithTargetPath>
     </ItemGroup>
-    <ItemGroup>
-        <None Remove="EngineResources\Fonts\default_font.fnt" />
-        <None Remove="EngineResources\Fonts\default_font.png" />
-        <None Remove="EngineResources\Fonts\default_font2.fnt" />
-        <None Remove="EngineResources\Fonts\default_font2.png" />
-      <None Remove="EngineResources\Images\sprite.png" />
-      <None Remove="EngineResources\Shaders\bin\glsl\fs_base_2d.bin" />
-      <None Remove="EngineResources\Shaders\bin\glsl\vs_base_2d.bin" />
-      <None Remove="EngineResources\Shaders\bin\hlsl\fs_base_2d.bin" />
-      <None Remove="EngineResources\Shaders\bin\hlsl\vs_base_2d.bin" />
-      <None Remove="EngineResources\TextFiles\gamecontrollerdb.txt" />
-        <None Remove="Temporal\**" />
-    </ItemGroup>
-    <ItemGroup>
-        <EmbeddedResource Include="EngineResources\Fonts\default_font.fnt" />
-        <EmbeddedResource Include="EngineResources\Fonts\default_font.png" />
-        <EmbeddedResource Include="EngineResources\Fonts\default_font2.fnt" />
-        <EmbeddedResource Include="EngineResources\Fonts\default_font2.png" />
-      <EmbeddedResource Include="EngineResources\Shaders\bin\glsl\fs_base_2d.bin" />
-      <EmbeddedResource Include="EngineResources\Shaders\bin\glsl\vs_base_2d.bin" />
-      <EmbeddedResource Include="EngineResources\Shaders\bin\hlsl\fs_base_2d.bin" />
-      <EmbeddedResource Include="EngineResources\Shaders\bin\hlsl\vs_base_2d.bin" />
-      <EmbeddedResource Include="EngineResources\TextFiles\gamecontrollerdb.txt" />
-        <EmbeddedResource Remove="Temporal\**" />
-    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="System.Memory" Version="4.5.1" />
       <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
       <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
         <PackageReference Include="Utf8Json" Version="1.3.7" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="GameToolkit" />
-      <Folder Include="Tools" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Compile Remove="Temporal\**" />
     </ItemGroup>
 
 </Project>

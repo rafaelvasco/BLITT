@@ -1,5 +1,8 @@
 using System;
+using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime;
 using BLITTEngine.Core.Audio;
 using BLITTEngine.Core.Graphics;
@@ -7,18 +10,10 @@ using BLITTEngine.Core.Input;
 using BLITTEngine.Core.Numerics;
 using BLITTEngine.Core.Platform;
 using BLITTEngine.Core.Resources;
+using Utf8Json;
 
 namespace BLITTEngine
 {
-    public struct GameProps
-    {
-        public string Title;
-        public int CanvasWidth;
-        public int CanvasHeight;
-        public bool Fullscreen;
-        public string ResourcesFolder;
-    }
-
     public class Game : IDisposable
     {
         public readonly Canvas Canvas;
@@ -33,41 +28,36 @@ namespace BLITTEngine
 
         internal readonly GamePlatform Platform;
 
-        internal readonly ResourceLoader ResourceLoader;
-
         private bool error;
+        
         private string error_msg;
+        
         private bool full_screen;
+        
         private int requested_screen_h;
+        
         private int requested_screen_w;
+        
         private bool screen_resize_requested;
+        
         private bool toggle_fullscreen_requested;
+
+        private readonly string[] paks_to_preload;
 
         /* ========================================================================================================== */
 
-        public Game(GameProps props = default)
+        public Game()
         {
             Instance = this;
 
-            props.Title = props.Title ?? "BLITT!";
-            props.CanvasWidth = Calc.Max(64, props.CanvasWidth);
-            props.CanvasHeight = Calc.Max(64, props.CanvasHeight);
-            props.ResourcesFolder = props.ResourcesFolder ?? "Resources";
-
-            full_screen = props.Fullscreen;
-
-            Console.WriteLine(":: Blit Engine Start ::");
+            var props = _LoadGameProperties();
 
             var timer = Stopwatch.StartNew();
 
             Platform = new SDLGamePlatform();
             Platform.OnQuit += _OnPlatformQuit;
             Platform.OnWinResized += _OnScreenResized;
-
-            ResourceLoader = new ResourceLoader();
-
-            ContentManager = new ContentManager(props.ResourcesFolder);
-
+            
             Platform.Init(props.Title, props.CanvasWidth, props.CanvasHeight, props.Fullscreen);
 
             Console.WriteLine($" > Platform Init took: {timer.Elapsed.TotalSeconds}");
@@ -76,15 +66,30 @@ namespace BLITTEngine
 
             GraphicsContext = new GraphicsContext(Platform.GetRenderSurfaceHandle(), screen_w, screen_h);
 
-            Console.WriteLine($" > Graphics Init took: {timer.Elapsed.TotalSeconds}");
+            ContentManager = new ContentManager();
 
+            if (props.PreloadResourcePaks != null)
+            {
+                paks_to_preload = props.PreloadResourcePaks;
+            }
+            
+            Platform.LoadContent();
+
+            Console.WriteLine($" > Load Content took: {timer.Elapsed.TotalSeconds}");
+            
             Canvas = new Canvas(GraphicsContext, props.CanvasWidth, props.CanvasHeight, 2048);
 
+            Console.WriteLine($" > Canvas Load took: {timer.Elapsed.TotalSeconds}");
+            
+            
             InputManager = new InputManager(Platform);
 
             MediaPlayer.Init();
 
-            Clock = new Clock();
+            Clock = new Clock
+            {
+                FrameRate = props.FrameRate
+            };
 
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
@@ -147,6 +152,14 @@ namespace BLITTEngine
         public void Start(Scene scene = null)
         {
             if (Running) return;
+            
+            if (paks_to_preload != null)
+            {
+                foreach (var pak in paks_to_preload)
+                {   
+                    ContentManager.LoadContentPack(pak);
+                }
+            }
 
             CurrentScene = scene ?? new EmptyScene();
             CurrentScene.Load();
@@ -155,8 +168,9 @@ namespace BLITTEngine
             Running = true;
 
             Platform.ShowScreen(true);
+            
             GraphicsContext.SwapBuffers();
-
+            
             _Tick();
         }
 
@@ -182,6 +196,49 @@ namespace BLITTEngine
             error_msg = string.Format(message, args);
         }
 
+        private static GameProperties _LoadGameProperties()
+        {
+            GameProperties props;
+            
+            try
+            {
+                var bytes = File.ReadAllBytes("Config.json");
+
+                props = JsonSerializer.Deserialize<GameProperties>(bytes);
+
+                if (props.Title == null)
+                {
+                    props.Title = "Game";
+                }
+
+                if (props.FrameRate == 0)
+                {
+                    props.FrameRate = 60;
+                }
+
+                if (props.CanvasWidth == 0)
+                {
+                    props.CanvasWidth = 800;
+                }
+
+                if (props.CanvasHeight == 0)
+                {
+                    props.CanvasHeight = 600;
+                }
+
+            }
+            catch (FileNotFoundException)
+            {
+                props = GameProperties.Default();
+
+                var bytes = JsonSerializer.Serialize(props);
+                
+                File.WriteAllBytes(AppContext.BaseDirectory, bytes);
+            }
+
+            return props;
+        }
+        
         private void _OnScreenResized(int w, int h)
         {
             Canvas.OnScreenResized(w, h);
@@ -194,7 +251,6 @@ namespace BLITTEngine
 
         private void _Tick()
         {
-            Clock.FrameRate = 60;
             Clock.Start();
 
             while (Running)

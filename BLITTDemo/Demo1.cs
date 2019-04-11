@@ -1,9 +1,10 @@
 using BLITTEngine;
 using BLITTEngine.Core.Audio;
+using BLITTEngine.Core.Common;
+using BLITTEngine.Core.Control;
+using BLITTEngine.Core.Control.GamePad;
+using BLITTEngine.Core.Control.Keyboard;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Core.Input.GamePad;
-using BLITTEngine.Core.Input.Keyboard;
-using BLITTEngine.Core.Numerics;
 using BLITTEngine.Core.Resources;
 using BLITTEngine.GameToolkit;
 
@@ -12,15 +13,19 @@ namespace BLITTDemo
     // BLITT DEMO 1 - Core low level features: Quad Rendering, Input and Audio
     public class Demo1 : Scene
     {
+        private Texture2D ball_texture;
+
+        private Texture2D bg_texture;
+        
         private Quad ball_quad;
+        
         private Quad bg_quad;
 
         private Effect bump_sfx;
 
         private Font font1;
+        
         private readonly float friction = 0.87f;
-
-        private RandomEx random;
 
         private Song song;
 
@@ -36,16 +41,12 @@ namespace BLITTDemo
 
         public override void Load()
         {
-            random = new RandomEx();
-
             bump_sfx = Content.Get<Effect>("menu");
 
             song = Content.Get<Song>("mus1");
             song2 = Content.Get<Song>("mus2");
 
             font1 = Content.Get<Font>("default_font2");
-
-            //abcdefghijklmnopqrstuvwxyz0123456789!@#$%&*()-_=+]}[{~^?;:,<.>
 
             ui_text = new SpriteText(font1, "Hello World!\nThis is Blitt Engine !\nNice to meet you!")
             {
@@ -56,7 +57,7 @@ namespace BLITTDemo
             };
 
 
-            ball_quad.Texture = Content.Get<Texture2D>("particles");
+            ball_texture = Content.Get<Texture2D>("particles");
             ball_quad.Blend = BlendMode.AlphaAdd;
 
             ball_quad.V0.X = x - 16;
@@ -81,8 +82,8 @@ namespace BLITTDemo
             ball_quad.V3.Ty = 96.0f / 128.0f;
             ball_quad.V3.Col = 0xFF00A0FF;
 
-            bg_quad.Texture = Content.Get<Texture2D>("bg3");
-            bg_quad.Texture.Filtered = true;
+            bg_texture = Content.Get<Texture2D>("bg3");
+            bg_texture.Filtered = true;
             bg_quad.Blend = BlendMode.AlphaBlend;
 
             bg_quad.V0.X = 0;
@@ -116,7 +117,7 @@ namespace BLITTDemo
         {
         }
 
-        public override void Update(float dt)
+        public override void Update(GameTime gameTime)
         {
             if (Input.KeyPressed(Key.P)) Canvas.SaveScreenShot(@"C:\Users\rafae\Desktop\blitt_ss.png");
 
@@ -149,7 +150,7 @@ namespace BLITTDemo
             if (Input.KeyDown(Key.Down)) dy += speed;
 
             // UPDATE BACKGROUND
-            t += dt / 2;
+            t += 0.01f;
 
 
             bg_quad.V0.Tx = t;
@@ -217,19 +218,21 @@ namespace BLITTDemo
 
         private void PlayBump()
         {
-            MediaPlayer.Play(bump_sfx, 0f, random.NextFloat(0.1f, 1.0f));
+            MediaPlayer.Play(bump_sfx, 0f, RandomEx.Range(0.1f, 1.0f));
         }
 
-        public override void Draw(Canvas canvas)
+        public override void Draw(Canvas canvas, GameTime gameTime)
         {
             canvas.Begin();
+            
+            canvas.Clear(Color.Black);
 
-            canvas.DrawQuad(ref bg_quad);
+            canvas.DrawQuad(bg_texture, ref bg_quad);
 
-            canvas.DrawQuad(ref ball_quad);
+            canvas.DrawQuad(ball_texture, ref ball_quad);
             
             ui_text.Draw(canvas, 0, 0);
-
+            
             canvas.End();
         }
     }

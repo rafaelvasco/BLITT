@@ -1,6 +1,10 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
+using BLITTEngine.Core.Common;
 using BLITTEngine.Core.Foundation;
 using BLITTEngine.Core.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace BLITTEngine.Core.Resources
 {
@@ -8,7 +12,15 @@ namespace BLITTEngine.Core.Resources
     {
         internal Uniform Uniform;
 
-        private Vector4 value;
+        internal int ArrayLength;
+
+        internal bool Constant;
+
+        internal bool SubmitedOnce;
+
+        public Vector4 Value => _value;
+
+        private Vector4 _value;
 
         internal ShaderParameter(string name)
         {
@@ -17,39 +29,41 @@ namespace BLITTEngine.Core.Resources
 
         public void SetValue(float v)
         {
-            value.X = v;
-            value.Y = 0;
-            value.Z = 0;
-            value.W = 0;
+            ArrayLength = 1;
+            _value.X = v;
         }
 
         public void SetValue(Vector2 v)
         {
-            value.X = v.X;
-            value.Y = v.Y;
-            value.Z = 0;
-            value.W = 0;
+            ArrayLength = 2;
+            
+            _value.X = v.X;
+            _value.Y = v.Y;
         }
 
         public void SetValue(Vector3 v)
         {
-            value.X = v.X;
-            value.Y = v.Y;
-            value.Z = v.Z;
-            value.W = 0;
+            ArrayLength = 3;
+            
+            _value.X = v.X;
+            _value.Y = v.Y;
+            _value.Z = v.Z;
         }
 
         public void SetValue(Vector4 v)
         {
-            value = v;
+            ArrayLength = 4;
+            _value = v;
         }
 
         public void SetValue(Color color)
         {
-            value.X = color.R / 255f;
-            value.Y = color.G / 255f;
-            value.Z = color.B / 255f;
-            value.W = color.A / 255f;
+            ArrayLength = 4;
+            
+            _value.X = color.Rf;
+            _value.Y = color.Gf;
+            _value.Z = color.Bf;
+            _value.W = color.Af;
         }
     }
 
@@ -57,44 +71,94 @@ namespace BLITTEngine.Core.Resources
     {
         internal Program Program;
 
-        internal readonly ShaderParameter[] Parameters;
+        private ShaderParameter[] Parameters;
 
-        internal readonly Uniform[] Samplers;
+        private Dictionary<string, int> ParametersMap;
 
-        private int param_idx;
-        private int sample_idx;
+        internal Uniform[] Samplers;
 
-        internal ShaderProgram(Program program)
+
+        internal ShaderProgram(Program program, IReadOnlyList<string> samplers, IReadOnlyList<string> _params)
         {
             this.Program = program;
-            Parameters = new ShaderParameter[16];
-            Samplers = new Uniform[8];
+            
+            BuildSamplersList(samplers);
+            
+            BuildParametersList(_params);
         }
 
-        public ShaderParameter CreateParameter(string name)
+        public ShaderParameter GetParameter(string name)
         {
-            var parameter = new ShaderParameter(name);
+            if (ParametersMap.TryGetValue(name, out var index))
+            {
+                return Parameters[index];
+            }
 
-            Parameters[param_idx++] = parameter;
-
-            return parameter;
+            return null;
         }
 
-        public void AddTextureUniform(string name)
+        internal unsafe void SubmitValues()
         {
-            Samplers[sample_idx++] = new Uniform(name, UniformType.Int1);
+            for (int i = 0; i < Parameters.Length; ++i)
+            {
+                var p = Parameters[i];
+
+                if (p.ArrayLength == 0)
+                {
+                    continue;
+                }
+
+                if (p.Constant)
+                {
+                    if (p.SubmitedOnce)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        p.SubmitedOnce = true;
+                    }
+                    
+                }
+                
+                var val = p.Value;
+                
+                Bgfx.SetUniform(p.Uniform, &val);
+            }
+        }
+
+        private void BuildSamplersList(IReadOnlyList<string> samplers)
+        {
+            Samplers = new Uniform[samplers.Count];
+
+            for (int i = 0; i < samplers.Count; ++i)
+            {
+                Samplers[i] = new Uniform(samplers[i], UniformType.Sampler);
+            }
+        }
+
+        private void BuildParametersList(IReadOnlyList<string> _params)
+        {
+            Parameters = new ShaderParameter[_params.Count];
+            ParametersMap = new Dictionary<string, int>();
+            
+            for (int i = 0; i < _params.Count; ++i)
+            {
+                Parameters[i] = new ShaderParameter(_params[i]);
+                ParametersMap.Add(_params[i], i);
+            }
         }
 
         internal override void Dispose()
         {
-            while (sample_idx > 0)
+            for (int i = 0; i < Samplers.Length; ++i)
             {
-                Samplers[--sample_idx].Dispose();
+                Samplers[i].Dispose();
             }
 
-            while (param_idx > 0)
+            for (int i = 0; i < Parameters.Length; ++i)
             {
-                Parameters[--param_idx].Uniform.Dispose();
+                Parameters[i].Uniform.Dispose();
             }
 
             Program.Dispose();

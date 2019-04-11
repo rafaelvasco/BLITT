@@ -1,4 +1,4 @@
-using BLITTEngine.Core.Numerics;
+using BLITTEngine.Core.Common;
 
 namespace BLITTEngine.GameToolkit
 {

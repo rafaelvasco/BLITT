@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using BLITTEngine.Core.Input.Keyboard;
+using BLITTEngine.Core.Control.Keyboard;
 
 namespace BLITTEngine.Core.Platform
 {

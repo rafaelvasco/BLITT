@@ -1,186 +1,381 @@
 ﻿using BLITTEngine;
 using BLITTEngine.Core.Audio;
+using BLITTEngine.Core.Common;
+using BLITTEngine.Core.Control;
+using BLITTEngine.Core.Control.Keyboard;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Core.Input.Keyboard;
-using BLITTEngine.Core.Numerics;
 using BLITTEngine.Core.Resources;
 using BLITTEngine.GameToolkit;
+using BLITTEngine.GameToolkit.Animation;
+using BLITTEngine.GameToolkit.Particles;
+using PowerArgs;
 
 namespace BLITTDemo
 {
-    // BLITT DEMO 2 - Game Objects : Particle Effect, Sprite, Text, Timer, RandomEx
+    // BLITT DEMO 2 - Game Toolkit : Particle Effect, Sprite, Animated Sprite, SpriteText, TiledSprite, Timer, Random
     public class Demo2 : Scene
     {
-        private int color_task;
+        public enum CharDir
+        {
+            Left = 0,
+            Right = 1,
+            Up = 2,
+            Down = 3
+        }
+        
+        private TiledSprite background;
 
         private Effect bump_sfx;
-        
-        private ParticleEmitter emitter;
+
         private readonly float friction = 0.98f;
-        private RandomEx random;
+
         private Size size;
 
-        private readonly float speed = 130;
+        private readonly float speed = 4;
 
         private Sprite sprite;
 
-        private Timer timer;
-        private Sprite trail;
+        private Sprite tweenedSprite;
 
-        private float x = 100.0f, y = 100.0f, dx, dy;
+        private RangedValue tweenedValue;
+
+        private Tweener tweener;
+
+        private Timer timer;
+
+        private int elapsed;
+
+        private MultiframeSprite animated_sprite;
+
+        private ParticleEmitter _emitter;
+
+        private float particle_x = 100.0f, particle_y = 100.0f, particle_dx, particle_dy;
+
+        private float char_x = 100.0f;
+
+        private float char_y = 200.0f;
+
+        private float char_sx = 200.0f;
+
+        private float char_sy = 200.0f;
+
+        private CharDir char_dir = CharDir.Right; 
 
         public override void Load()
         {
+            bump_sfx = Content.Get<Effect>("menu");
+
+            size = Game.ScreenSize;
+
+            background = new TiledSprite(Content.Get<Texture2D>("bg3"), size.W, size.H);
+            background.SetScrollSpeed(0.02f, 0.02f);
+
+            sprite = new Sprite(Content.Get<Texture2D>("particles"), 96, 64, 32, 32);
+
+            tweenedSprite = new Sprite(Content.Get<Texture2D>("zazaka"));
+            
+            tweenedValue = new RangedValue(50, 300);
+            
+            tweener = new Tweener();
+            
+            tweener
+                .Tween(0, tweenedValue,50)
+                .Easing(EasingFunctions.QuadraticInOut)
+                .RepeatForever()
+                .AutoReverse();
+            
+            
+            sprite.SetColor(Color.Red);
+            sprite.SetOrigin(0.5f, 0.5f);
+
+            timer = new Timer();
+
+            animated_sprite = new MultiframeSprite(
+                TextureAtlas.FromGrid(
+                    Content.Get<Texture2D>("spritesheet"), 4, 4
+                )
+            );
+            
+            timer.Every(16, () => animated_sprite.SetColor(RandomEx.NextColor()));
+            
+            animated_sprite.SetFrameSpeed(5);
+
+            animated_sprite
+                .AddAnimation(
+                    "idle_up",
+                    0
+                )
+                .AddAnimation(
+                    "idle_horiz",
+                    
+                    4
+                )
+                .AddAnimation(
+                    "idle_down",
+                    8
+                )
+                .AddAnimation(
+                    "walk_up",
+                    0, 1, 2, 3
+                )
+                .AddAnimation(
+                    "walk_horiz",
+                    4, 5, 6, 7
+                )
+                .AddAnimation(
+                    "walk_down",
+                    8, 9, 10, 11
+                )
+                .SetAnimation("idle_horiz");
+            
+            
+            _emitter = new ParticleEmitter(
+                new Sprite(Content.Get<Texture2D>("particles"), 0, 0, 32, 32),
+                new ParticleEmitterProps
+                {
+                    MaxParticles = 500,
+                    Emission = 200,
+                    LifeTime = -1,
+                    Relative = true,
+                    ParticleLife = new Range<float>(0.5f, 1.0f),
+                    InitialPositionDisplacement = new Range<Vector2>(new Vector2(-10, -10), new Vector2(10, 10)),
+                    Direction = 0,
+                    StartColor = Color.Cyan,
+                    EndColor = Color.Fuchsia,
+                    StartOpacity = 1.0f,
+                    EndOpacity = 0.0f,
+                    StartScale = new Range<float>(1.0f, 2.0f),
+                    EndScale = 0.5f,
+                    Speed = new Range<float>(20.0f, 100.0f),
+                    Spread = 0.1f,
+                    Gravity = 100.0f,
+                    SpinSpeed = 10.0f,
+                    RadialAccel = 20.0f,
+                    TangentialAccel = 30.0f
+                
+                 });
+            
+            _emitter.FireAt(particle_x, particle_y);
+
         }
 
         public override void Init()
         {
-            random = new RandomEx();
-
-            bump_sfx = Content.Get<Effect>("menu");
-            
-            size = Game.ScreenSize;
-
-            sprite = new Sprite(Content.Get<Texture2D>("particles"), 96, 64, 32, 32);
-
-            sprite.SetColor(Color.Cyan);
-            sprite.SetOrigin(0.5f, 0.5f);
-
-            trail = new Sprite(Content.Get<Texture2D>("particles"), 32, 32, 32, 32)
-            {
-                BlendMode = BlendMode.AlphaAdd
-            };
-
-            trail.SetOrigin(0.5f, 0.5f);
-            trail.SetColor(Color.White);
-
-            var particles_info = new ParticleEmitterInfo
-            {
-                MaxParticles = 500,
-                Emission = 30,
-                Direction = 0,
-                Spread = 0,
-                GravityMax = 2,
-                GravityMin = 2,
-                ParticleLifeMin = 0.3f,
-                ParticleLifeMax = 0.3f,
-                LifeTime = -1.0f,
-                RadialAccelMax = 0,
-                RadialAccelMin = 0,
-                Relative = false,
-                SizeStart = 1f,
-                SizeEnd = 0.0f,
-                SizeVariation = 0,
-                SpeedMax = 0,
-                SpeedMin = 0,
-                SpinEnd = 0,
-                SpinStart = 0,
-                SpinVariation = 0,
-                TangentialAccelMax = 0,
-                TangentialAccelMin = 0,
-                ColorStart = Color.Red,
-                ColorEnd = Color.Green.WithAlpha(0.0f),
-                ColorVariation = 00f
-            };
-
-            emitter = new ParticleEmitter(particles_info, trail);
-            emitter.Fire();
-
-            timer = new Timer();
-
-            //color_task = timer.Every(0.5f, () => sprite.SetColor(random.NextColor()));
         }
 
         public override void End()
         {
         }
 
-        public override void Update(float dt)
+        public override void Update(GameTime gameTime)
         {
-            //timer.Update(dt);
+            timer.Update();
 
+            elapsed = gameTime.ElapsedGameTime.Milliseconds;
+            
+            background.Update();
+            
+            tweener.Update();
+            
             if (Input.KeyPressed(Key.Escape)) Game.Quit();
+            
 
             if (Input.KeyPressed(Key.F11))
                 Game.ToggleFullscreen();
-            else if (Input.KeyPressed(Key.C))
-                timer.Cancel(color_task);
-            else if (Input.KeyPressed(Key.T))
-                color_task = timer.Every(0.5f, () => sprite.SetColor(random.NextColor()));
-            else if (Input.KeyPressed(Key.D))
-                timer.After(1.0f, () => sprite.SetColor(Color.Green));
             else if (Input.KeyPressed(Key.D1))
                 Game.ScreenSize = new Size(size.W, size.H);
             else if (Input.KeyPressed(Key.D2))
                 Game.ScreenSize = new Size(size.W * 2, size.H * 2);
             else if (Input.KeyPressed(Key.D3)) Game.ScreenSize = new Size(size.W * 3, size.H * 3);
 
-            if (Input.KeyDown(Key.Left)) dx -= speed * dt;
+            if (Input.KeyDown(Key.Left)) particle_dx -= speed;
 
-            if (Input.KeyDown(Key.Right)) dx += speed * dt;
+            if (Input.KeyDown(Key.Right)) particle_dx += speed;
 
-            if (Input.KeyDown(Key.Up)) dy -= speed * dt;
+            if (Input.KeyDown(Key.Up)) particle_dy -= speed;
 
-            if (Input.KeyDown(Key.Down)) dy += speed * dt;
+            if (Input.KeyDown(Key.Down)) particle_dy += speed;
 
-            dx *= friction;
-            dy *= friction;
+            particle_dx *= friction;
+            particle_dy *= friction;
 
-            if (dx > 0.05f && dx < 0.05f || dx < 0 && dx > -0.05f) dx = 0;
+            if (particle_dx > 0.05f && particle_dx < 0.05f || particle_dx < 0 && particle_dx > -0.05f) particle_dx = 0;
 
-            if (dy > 0.05f && dy < 0.05f || dy < 0.05f && dy > -0.05f) dy = 0;
+            if (particle_dy > 0.05f && particle_dy < 0.05f || particle_dy < 0.05f && particle_dy > -0.05f)
+                particle_dy = 0;
 
-            x += dx;
-            y += dy;
+            particle_x += particle_dx;
+            particle_y += particle_dy;
 
-            if (x > Canvas.Width - 16)
+            if (particle_x > Canvas.Width - 16)
             {
-                x = Canvas.Width - 16;
-                dx = -dx;
+                particle_x = Canvas.Width - 16;
+                particle_dx = -particle_dx;
                 PlayBump();
             }
-            else if (x < 16)
+            else if (particle_x < 16)
             {
-                x = 16;
-                dx = -dx;
-                PlayBump();
-            }
-
-            if (y > Canvas.Height - 16)
-            {
-                y = Canvas.Height - 16;
-                dy = -dy;
-                PlayBump();
-            }
-            else if (y < 16)
-            {
-                y = 16;
-                dy = -dy;
+                particle_x = 16;
+                particle_dx = -particle_dx;
                 PlayBump();
             }
 
-            emitter.Info.Emission = (int) ((dx * dx + dy * dy) * 2);
-            emitter.MoveTo(x, y);
-            emitter.Update(dt);
+            if (particle_y > Canvas.Height - 16)
+            {
+                particle_y = Canvas.Height - 16;
+                particle_dy = -particle_dy;
+                PlayBump();
+            }
+            else if (particle_y < 16)
+            {
+                particle_y = 16;
+                particle_dy = -particle_dy;
+                PlayBump();
+            }
+            
+            bool up = Input.KeyDown(Key.W);
+            bool down = Input.KeyDown(Key.S);
+            bool left = Input.KeyDown(Key.A);
+            bool right = Input.KeyDown(Key.D);
+
+            if (left)
+            {
+                if (!up && !down)
+                {
+                    char_sx = -5.0f;
+                    char_dir = CharDir.Left;
+                }
+                else
+                {
+                    char_sx = -4.0f;
+                }
+            }
+            else if (right)
+            {
+                if (!up && !down)
+                {
+                    char_sx = 5.0f;
+                    char_dir = CharDir.Right;
+                }
+                else
+                {
+                    char_sx = 4.0f;
+                }
+            }
+
+            if (up)
+            {
+                if (!left && !right)
+                {
+                    char_sy = -5.0f;
+                    char_dir = CharDir.Up;
+                }
+                else
+                {
+                    char_sy = -4.0f;
+                }
+            }
+            else if (down)
+            {
+                if (!left && !right)
+                {
+                    char_sy = 5.0f;
+                    char_dir = CharDir.Down;
+                }
+                else
+                {
+                    char_sy = 4.0f;
+                }
+            }
+
+            switch (char_dir)
+            {
+                case CharDir.Left:
+                    animated_sprite.SetAnimation("walk_horiz");
+                    animated_sprite.SetFlipH(true);
+                    break;
+                case CharDir.Right:
+                    animated_sprite.SetAnimation("walk_horiz");
+                    animated_sprite.SetFlipH(false);
+                    break;
+                case CharDir.Up:
+                    animated_sprite.SetAnimation("walk_up");
+                    animated_sprite.SetFlipH(false);
+                    break;
+                case CharDir.Down:
+                    animated_sprite.SetAnimation("walk_down");
+                    animated_sprite.SetFlipH(false);
+                    break;
+            }
+            
+
+            if (!left && !right)
+            {
+                char_sx = 0.0f;
+            }
+            
+            if (!up && !down)
+            {
+                char_sy = 0.0f;
+            }
+
+            char_x += char_sx;
+            char_y += char_sy;
+
+            if (char_sx == 0.0f && char_sy == 0.0f)
+            {
+                switch (char_dir)
+                {
+                    case CharDir.Left:
+                    case CharDir.Right:
+                        animated_sprite.SetAnimation("idle_horiz");
+                        break;
+                    case CharDir.Up:
+                        animated_sprite.SetAnimation("idle_up");
+                        break;
+                    case CharDir.Down:
+                        animated_sprite.SetAnimation("idle_down");
+                        break;
+                }
+            }
+
+            animated_sprite.Update();
+            
+            _emitter.MoveTo(particle_x, particle_y);
+            _emitter.Update((float) gameTime.ElapsedGameTime.TotalSeconds);
         }
 
-        public override void Draw(Canvas canvas)
+        public override void Draw(Canvas canvas, GameTime gameTime)
         {
             canvas.Begin();
 
-            sprite.Draw(canvas, x, y);
+            canvas.Clear(Color.Black);
 
-            emitter.Render(canvas);
+            //background.Draw(canvas, 0, 0);
             
-            canvas.DrawString(10, 10, $"FPS: {Game.Clock.FPS}, DT: {Game.Clock.DeltaTime}, FrameRate: {Game.Clock.FrameRate}", 0.5f);
+            sprite.Draw(canvas, particle_x, particle_y);
+
+            animated_sprite.Draw(canvas, char_x, char_y);
+            
+            tweenedSprite.Draw(canvas, tweenedValue.Value, 200);
+            
+            _emitter.Draw(canvas);
+            
+            canvas.DrawString(10, 10,
+                $"Elapsed Update: {elapsed}, Elapsed Draw: {gameTime.ElapsedGameTime.Milliseconds}", 0.25f);
+            
+            
+            canvas.DrawString(10, 60, $"Active Particles: {_emitter.ParticlesAlive}", 0.25f);
+            
+            canvas.DrawString(10, 80, $"Tweener Allocations: {tweener.AllocationCount}", 0.25f);
             
 
             canvas.End();
         }
-        
+
         private void PlayBump()
         {
-            MediaPlayer.Play(bump_sfx, 0f, random.NextFloat(0.1f, 1.0f));
+            MediaPlayer.Play(bump_sfx, 0f, RandomEx.Range(0.1f, 1.0f));
         }
     }
 }

@@ -1,5 +1,4 @@
 using BLITTEngine.Core.Foundation;
-using BLITTEngine.Core.Graphics;
 
 namespace BLITTEngine.Core.Resources
 {
@@ -9,11 +8,11 @@ namespace BLITTEngine.Core.Resources
 
         internal TextureFlags TexFlags;
 
-        public readonly int Width;
+        public int Width { get; protected set; }
 
-        public readonly int Height;
+        public int Height  { get; protected set; }
 
-        public readonly bool RenderTarget;
+        public bool RenderTarget { get; }
 
         public bool Tiled
         {
@@ -24,7 +23,7 @@ namespace BLITTEngine.Core.Resources
 
                 tiled = value;
 
-                GraphicsContext.UpdateTexFlags(this);
+                UpdateTexFlags();
             }
         }
 
@@ -37,7 +36,7 @@ namespace BLITTEngine.Core.Resources
 
                 filtered = value;
 
-                GraphicsContext.UpdateTexFlags(this);
+                UpdateTexFlags();
             }
         }
 
@@ -53,6 +52,9 @@ namespace BLITTEngine.Core.Resources
             this.RenderTarget = render_target;
             this.filtered = filtered;
             this.tiled = tiled;
+
+            this.UpdateTexFlags();
+
         }
 
         public void SetData(Pixmap pixmap)
@@ -63,6 +65,26 @@ namespace BLITTEngine.Core.Resources
         internal override void Dispose()
         {
             this.Texture.Dispose();
+        }
+
+        private void UpdateTexFlags()
+        {
+            var flags = BuildTexFlags(Tiled, Filtered, RenderTarget);
+
+            this.TexFlags = flags;
+        }
+
+        internal static TextureFlags BuildTexFlags(bool tiled, bool filtered, bool render_target)
+        {
+            var tex_flags = TextureFlags.None;
+
+            if (!tiled) tex_flags = TextureFlags.ClampU | TextureFlags.ClampV;
+
+            if (!filtered) tex_flags |= TextureFlags.MinFilterPoint | TextureFlags.MagFilterPoint;
+
+            if (render_target) tex_flags |= (TextureFlags.RenderTarget | TextureFlags.RenderTargetWriteOnly);
+
+            return tex_flags;
         }
     }
 }

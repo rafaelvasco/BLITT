@@ -16,11 +16,11 @@ namespace BLITTEngine
         {
         }
 
-        public override void Update(float dt)
+        public override void Update(GameTime gameTime)
         {
         }
 
-        public override void Draw(Canvas canvas)
+        public override void Draw(Canvas canvas, GameTime gameTime)
         {
         }
     }

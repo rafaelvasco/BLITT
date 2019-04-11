@@ -47,15 +47,13 @@ namespace BLITTEngine.Core.Graphics
             };
 
             Bgfx.Init(settings);
-
-            Console.WriteLine($" > GFX INIT : {timer.Elapsed.TotalSeconds}");
+            
+            Console.WriteLine($" > GFX INIT : {timer.Elapsed.TotalSeconds.ToString()}");
 
             var caps = Bgfx.GetCaps();
             Info = new GraphicsInfo(caps.Backend, caps.MaxTextureSize);
 
-            Console.WriteLine($"GRAPHICS BACKEND : {Info.RendererBackend}");
-
-            Bgfx.SetDebugFeatures(DebugFeatures.DisplayText);
+            Console.WriteLine($"GRAPHICS BACKEND : {Info.RendererBackend.ToString()}");
 
             index_buffers = new IndexBuffer[16];
         }
@@ -63,6 +61,11 @@ namespace BLITTEngine.Core.Graphics
         public void SetClearColor(ushort view, int color)
         {
             Bgfx.SetViewClear(view, ClearTargets.Color, color);
+        }
+
+        public void Touch(byte view_id)
+        {
+            Bgfx.Touch(view_id);
         }
 
         public void Submit(
@@ -82,7 +85,10 @@ namespace BLITTEngine.Core.Graphics
 
             Bgfx.SetVertexBuffer(0, vertex_buffer, 0, vertex_count);
 
+            shader.SubmitValues();
+            
             Bgfx.Submit(view, shader.Program);
+            
         }
 
         public void SwapBuffers()
@@ -109,15 +115,20 @@ namespace BLITTEngine.Core.Graphics
 
         public void SetRenderTarget(ushort view, RenderTarget render_target)
         {
-            Bgfx.SetViewFrameBuffer(view, render_target.FrameBuffer);
+            Bgfx.SetViewFrameBuffer(view, render_target?.FrameBuffer ?? FrameBuffer.Invalid);
         }
 
-        public void SetViewport(ushort view, int x, int y, int w, int h)
+        public void SetDrawOrderMode(ushort view, ViewMode mode)
+        {
+            Bgfx.SetViewMode(view, mode);
+        }
+
+        public void SetViewport(byte view, int x, int y, int w, int h)
         {
             Bgfx.SetViewRect(view, x, y, w, h);
         }
 
-        public void SetTransform(ushort view, float* matrix)
+        public void SetProjection(ushort view, float* matrix)
         {
             Bgfx.SetViewTransform(view, null, matrix);
         }
@@ -144,7 +155,7 @@ namespace BLITTEngine.Core.Graphics
         internal Texture2D CreateTexture(Pixmap pixmap, bool tiled = true, bool filtered = false,
             bool render_target = false)
         {
-            var tex_flags = BuildTexFlags(tiled, filtered, render_target);
+            var tex_flags = Texture2D.BuildTexFlags(tiled, filtered, render_target);
 
             var tex_object = Texture.Create2D(
                 pixmap.Width,
@@ -156,10 +167,7 @@ namespace BLITTEngine.Core.Graphics
             );
 
 
-            var tex_2d = new Texture2D(tex_object, render_target, filtered, tiled)
-            {
-                TexFlags = tex_flags
-            };
+            var tex_2d = new Texture2D(tex_object, render_target, filtered, tiled);
 
             UpdateTextureData(tex_2d, pixmap);
 
@@ -169,7 +177,8 @@ namespace BLITTEngine.Core.Graphics
         internal Texture2D CreateTexture(int width, int height, bool tiled = true, bool filtered = false,
             bool render_target = false)
         {
-            var tex_flags = BuildTexFlags(tiled, filtered, render_target);
+
+            var flags = Texture2D.BuildTexFlags(filtered, tiled, render_target);
 
             var tex_object = Texture.Create2D(
                 width,
@@ -177,27 +186,22 @@ namespace BLITTEngine.Core.Graphics
                 false,
                 0,
                 TextureFormat.BGRA8,
-                tex_flags
+                flags
             );
 
-            var tex = new Texture2D(tex_object, render_target, filtered, tiled) {TexFlags = tex_flags};
-
+            var tex = new Texture2D(tex_object, render_target, filtered, tiled);
 
             return tex;
         }
 
         internal RenderTarget CreateRenderTarget(int width, int height)
         {
-            var texture = CreateTexture(width, height, filtered: false, tiled: false, render_target: true);
+            var frame_buffer = new FrameBuffer(width, height, TextureFormat.BGRA8, TextureFlags.ClampU | TextureFlags.ClampV | TextureFlags.FilterPoint);
 
-            Attachment[] attachments = {new Attachment {Texture = texture.Texture, Mip = 0, Layer = 0}};
-
-            var frame_buffer = new FrameBuffer(attachments, true);
-
-            return new RenderTarget(frame_buffer, texture);
+            return new RenderTarget(frame_buffer, width, height);
         }
 
-        internal ShaderProgram CreateShader(byte[] vertex_src, byte[] frag_src)
+        internal ShaderProgram CreateShader(byte[] vertex_src, byte[] frag_src, string[] samplers, string[] _params)
         {
             if (vertex_src.Length == 0 || frag_src.Length == 0)
                 throw new Exception("Cannot load ShaderProgram with empty shader sources");
@@ -207,7 +211,7 @@ namespace BLITTEngine.Core.Graphics
 
             var program = new Program(vertex_shader, frag_shader, true);
 
-            var shader_program = new ShaderProgram(program);
+            var shader_program = new ShaderProgram(program, samplers, _params);
 
             return shader_program;
         }
@@ -221,26 +225,7 @@ namespace BLITTEngine.Core.Graphics
             return index_buffer;
         }
 
-        internal static void UpdateTexFlags(Texture2D tex)
-        {
-            var flags = BuildTexFlags(tex.Tiled, tex.Filtered, tex.RenderTarget);
-
-            tex.TexFlags = flags;
-        }
-
-        private static TextureFlags BuildTexFlags(bool tiled, bool filtered, bool render_target)
-        {
-            var tex_flags = TextureFlags.None;
-
-            if (!tiled) tex_flags = TextureFlags.ClampU | TextureFlags.ClampV;
-
-            if (!filtered) tex_flags |= TextureFlags.MinFilterPoint | TextureFlags.MagFilterPoint;
-
-
-            if (render_target) tex_flags |= TextureFlags.RenderTarget;
-
-            return tex_flags;
-        }
+        
 
         private void FreeInternalResources()
         {

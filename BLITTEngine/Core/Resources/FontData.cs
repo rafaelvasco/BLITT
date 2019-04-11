@@ -1,5 +1,5 @@
 using System;
-using BLITTEngine.Core.Numerics;
+using BLITTEngine.Core.Common;
 
 namespace BLITTEngine.Core.Resources
 {

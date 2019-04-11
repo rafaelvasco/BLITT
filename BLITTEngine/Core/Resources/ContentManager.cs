@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using BLITTEngine.Core.Common;
 using BLITTEngine.Core.Graphics;
 
 namespace BLITTEngine.Core.Resources
@@ -29,7 +30,9 @@ namespace BLITTEngine.Core.Resources
                 return (T) resource;
             }
             
-            throw new Exception("Can't find resource with ID: " + resource_id);
+            Game.Instance.ThrowError("Can't find resource with ID: {0}", resource_id);
+
+            return null;
         }
 
         public Texture2D LoadTexture(string texture_path) 
@@ -225,7 +228,7 @@ namespace BLITTEngine.Core.Resources
         {
             var render_target = Game.Instance.GraphicsContext.CreateRenderTarget(width, height);
 
-            render_target.Id = $"Render Target: [{width}, {height}]";
+            render_target.Id = $"Render Target: [{width.ToString()}, {height.ToString()}]";
 
             RegisterRuntimeLoaded(render_target);
 
@@ -239,7 +242,7 @@ namespace BLITTEngine.Core.Resources
 
         internal void FreeEverything()
         {
-            Console.WriteLine($" > Diposing {_loaded_resources.Count} loaded resources.");
+            Console.WriteLine($" > Diposing {_loaded_resources.Count.ToString()} loaded resources.");
 
             foreach (var resource in _loaded_resources)
             {
@@ -247,7 +250,7 @@ namespace BLITTEngine.Core.Resources
                 resource.Value.Dispose();
             }
 
-            Console.WriteLine($" > Disposing {_runtime_resources.Count} runtime resources.");
+            Console.WriteLine($" > Disposing {_runtime_resources.Count.ToString()} runtime resources.");
 
             foreach (var resource in _runtime_resources)
             {

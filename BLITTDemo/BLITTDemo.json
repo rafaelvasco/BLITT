@@ -20,16 +20,25 @@
       "Textures/objects.png",
       "Textures/particles.png",
       "Textures/res_test.png",
-      "Textures/zazaka.png"
+      "Textures/zazaka.png",
+      "Textures/awesomeface.png",
+      "Textures/cat.png",
+      "Textures/seiken.png",
+      "Textures/parrots.png",
+      "Textures/spritesheet.png",
+      "Textures/greySheet.png",
+      "Shaders/color_shader.vs",
+      "Shaders/color_shader.fs",
+      "Shaders/scanlines.vs",
+      "Shaders/scanlines.fs"
     ],
     
     "base" : [
       
       "Base/Fonts/default_font.fnt",
       "Base/Fonts/default_font2.fnt",
-     
-      "Base/Shaders/hlsl/dx_base_2d.vs",
-      "Base/Shaders/hlsl/dx_base_2d.fs",
+      "Base/Shaders/base_2d.vs",
+      "Base/Shaders/base_2d.fs",
       "Base/TextFiles/gamecontrollerdb.txt"
     ]
   },

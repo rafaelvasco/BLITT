@@ -41,7 +41,7 @@ namespace BLITTBuilder
                 File.WriteAllBytes(Path.Combine(root_path, "Content", pak.Name + ".pak"), bytes);
             }
             
-            BuildGameConfigFile(root_path, project);
+            //BuildGameConfigFile(root_path, project);
             
             Console.WriteLine("Project Built Successfully");
         }

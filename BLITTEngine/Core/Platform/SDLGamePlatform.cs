@@ -15,8 +15,10 @@ namespace BLITTEngine.Core.Platform
         private int screen_h;
         private int screen_w;
         private IntPtr window;
+        private bool _isActive = true;
 
         public override bool IsFullscreen => is_fullscreen;
+        public override bool IsActive => _isActive;
 
         public override void Init(string title, int width, int height, bool fullscreen)
         {
@@ -24,7 +26,7 @@ namespace BLITTEngine.Core.Platform
             prev_win_h = height;
             is_fullscreen = fullscreen;
 
-            const uint init_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER |
+            const uint init_flags = SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER |
                                     SDL_INIT_HAPTIC;
 
             SDL_SetHint("SDL_WINDOWS_DISABLE_THREAD_NAMING", "1");
@@ -109,6 +111,8 @@ namespace BLITTEngine.Core.Platform
                 "Invalid OS, could not retrive native renderer surface handle.");
         }
 
+      
+
         public override void Shutdown()
         {
             Console.WriteLine(" > Closing GamePlatform");
@@ -170,7 +174,7 @@ namespace BLITTEngine.Core.Platform
                             case SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
                                 OnQuit?.Invoke();
                                 break;
-
+                            
                             case SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
 
                                 var w = ev.window.data1;
@@ -185,6 +189,30 @@ namespace BLITTEngine.Core.Platform
 
                                 OnWinResized?.Invoke(w, h);
                                 break;
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
+                                
+                                OnMouseOver?.Invoke();
+                                
+                                break;
+                            
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
+                                
+                                OnMouseLeave?.Invoke();
+                                
+                                break;
+                            
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+
+                                _isActive = false;
+                                
+                                break;
+                            
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+
+                                _isActive = true;
+                                
+                                break;
+                                
                         }
 
                         break;

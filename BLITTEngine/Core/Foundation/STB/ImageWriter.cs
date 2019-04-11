@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using BLITTEngine.Core.Graphics;
+using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Foundation.STB
 {

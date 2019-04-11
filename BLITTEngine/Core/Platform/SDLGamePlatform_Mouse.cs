@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
-using BLITTEngine.Core.Input.Mouse;
+using BLITTEngine.Core.Common;
+using BLITTEngine.Core.Control.Mouse;
+using BLITTEngine.Core.Foundation.SDL;
 
 namespace BLITTEngine.Core.Platform
 {
@@ -12,7 +14,7 @@ namespace BLITTEngine.Core.Platform
         {
             switch (button)
             {
-                case 0:
+                case 1:
 
                     return MouseButton.Left;
 
@@ -20,7 +22,7 @@ namespace BLITTEngine.Core.Platform
 
                     return MouseButton.Middle;
 
-                case 1:
+                case 3:
 
                     return MouseButton.Right;
             }
@@ -39,6 +41,14 @@ namespace BLITTEngine.Core.Platform
             OnMouseScroll?.Invoke(value);
         }
 
+        public override void GetMousePosition(out Point2 pos)
+        {
+            SDL.SDL_GetMouseState(out int x, out int y);
+            
+            pos.X = x;
+            pos.Y = y;
+        }
+        
         public override ref readonly MouseState GetMouseState()
         {
             return ref mouse_state;

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using BLITTEngine.Core.Common;
+using BLITTEngine.Core.Control.GamePad;
 using BLITTEngine.Core.Foundation.SDL;
-using BLITTEngine.Core.Input.GamePad;
-using BLITTEngine.Core.Numerics;
 using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Platform

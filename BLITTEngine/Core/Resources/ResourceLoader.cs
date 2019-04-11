@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using BLITTEngine.Core.Common;
 using BLITTEngine.Core.Foundation;
 using BLITTEngine.Core.Foundation.STB;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Core.Numerics;
 using BLITTEngine.GameToolkit;
 
 namespace BLITTEngine.Core.Resources
@@ -89,7 +89,11 @@ namespace BLITTEngine.Core.Resources
         public ShaderProgram LoadShader(ShaderProgramData shader_data)
         {
             var shader_program =
-                Game.Instance.GraphicsContext.CreateShader(shader_data.VertexShader, shader_data.FragmentShader);
+                Game.Instance.GraphicsContext.CreateShader(
+                    shader_data.VertexShader, 
+            shader_data.FragmentShader, 
+                    shader_data.Samplers, 
+                    shader_data.Params);
 
             shader_program.Id = shader_data.Id;
 
@@ -197,16 +201,17 @@ namespace BLITTEngine.Core.Resources
 
         public ShaderProgramData LoadShaderProgramData(string vs_path, string fs_path)
         {
-            var vs_bytes = File.ReadAllBytes(vs_path);
-            var fs_bytes = File.ReadAllBytes(fs_path);
+            var result = ShaderBuilder.Build(vs_path, fs_path);
 
-            var id = Path.GetFileNameWithoutExtension(vs_path).Replace("vs_", "");
+            var id = Path.GetFileNameWithoutExtension(vs_path);
 
             var shader_program_data = new ShaderProgramData()
             {
                 Id = id,
-                VertexShader = vs_bytes,
-                FragmentShader = fs_bytes
+                VertexShader = result.VsBytes,
+                FragmentShader = result.FsBytes,
+                Samplers = result.Samplers,
+                Params = result.Params
             };
 
             return shader_program_data;

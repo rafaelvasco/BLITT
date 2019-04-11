@@ -8,5 +8,7 @@ namespace BLITTEngine.Core.Resources
         public string Id;
         public byte[] VertexShader;
         public byte[] FragmentShader;
+        public string[] Samplers;
+        public string[] Params;
     }
 }

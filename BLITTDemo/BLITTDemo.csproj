@@ -23,10 +23,10 @@
 
     <ItemGroup>
       <None Update="Content\base.pak">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="Content\main.pak">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="Config.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

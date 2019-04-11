@@ -1,7 +1,8 @@
 using System;
-using BLITTEngine.Core.Input.GamePad;
-using BLITTEngine.Core.Input.Keyboard;
-using BLITTEngine.Core.Input.Mouse;
+using BLITTEngine.Core.Common;
+using BLITTEngine.Core.Control.GamePad;
+using BLITTEngine.Core.Control.Keyboard;
+using BLITTEngine.Core.Control.Mouse;
 
 namespace BLITTEngine.Core.Platform
 {
@@ -10,9 +11,13 @@ namespace BLITTEngine.Core.Platform
         public Action OnQuit;
         public Action<int> OnMouseScroll;
         public Action<int, int> OnWinResized;
+        public Action OnMouseOver;
+        public Action OnMouseLeave;
 
         public abstract bool IsFullscreen { get; }
 
+        public abstract bool IsActive { get; }
+        
         /* CORE */
 
         public abstract void Init(string title, int width, int height, bool fullscreen);
@@ -44,6 +49,8 @@ namespace BLITTEngine.Core.Platform
         public abstract ref readonly KeyboardState GetKeyboardState();
 
         public abstract ref readonly MouseState GetMouseState();
+
+        public abstract void GetMousePosition(out Point2 pos);
 
         public abstract ref readonly GamepadState GetGamepadState();
 

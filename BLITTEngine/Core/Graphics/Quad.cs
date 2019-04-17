@@ -17,7 +17,8 @@ namespace BLITTEngine.Core.Graphics
         public float Width => Calc.Abs(V1.X - V0.X);
         public float Height => Calc.Abs(V2.Y - V1.Y);
         
-
+        
+        
         public Quad(Texture2D texture=null, Rect src_rect = default, Rect dest_rect = default)
         {
             //this.Texture = texture;
@@ -90,6 +91,11 @@ namespace BLITTEngine.Core.Graphics
             this.V3.Tx = ax;
             this.V3.Ty = by;
             this.V3.Col = 0xFFFFFFFF;
+        }
+
+        public Rect GetRegionRect(Texture2D texture)
+        {
+            return new Rect(V0.Tx * texture.Width, V0.Ty * texture.Height, V2.X * texture.Width, V2.Y * texture.Height);
         }
     }
 }

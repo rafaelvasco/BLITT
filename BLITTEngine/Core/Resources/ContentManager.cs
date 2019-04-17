@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using BLITTEngine.Core.Common;
-using BLITTEngine.Core.Graphics;
+using BLITTEngine.Core.Foundation;
 
 namespace BLITTEngine.Core.Resources
 {
@@ -206,22 +206,31 @@ namespace BLITTEngine.Core.Resources
             return pixmap;
         }
 
-        public Texture2D CreateTexture(Pixmap pixmap)
+        public Texture2D CreateTexture(Pixmap pixmap, bool tiled, bool filtered)
         {
-            var texture = Game.Instance.GraphicsContext.CreateTexture(pixmap);
+            var texture = Game.Instance.GraphicsContext.CreateTexture(pixmap, tiled, filtered);
 
-            texture.Id = $"Pixmap [{texture.Width},{texture.Height}]";
+            texture.Id = $"Texture [{texture.Width},{texture.Height}]";
             
             RegisterRuntimeLoaded(texture);
 
             return texture;
         }
 
-        public Texture2D CreateTexture(int width, int height, Color color)
+        public Texture2D CreateTexture(Texture2D texture, int srcX, int srcY, int srcW, int srcH, bool tiled, bool filtered)
+        {
+            var pixmapRegion = texture.GetData(srcX, srcY, srcW, srcH);
+
+            return CreateTexture(pixmapRegion, tiled, filtered);
+        }
+
+        public Texture2D CreateTexture(int width, int height, bool tiled, bool filtered, Color color)
         {
             var pixmap = new Pixmap(width, height);
             
-            return CreateTexture(pixmap);
+            pixmap.Fill(color);
+            
+            return CreateTexture(pixmap, tiled, filtered);
         }
 
         public RenderTarget CreateRenderTarget(int width, int height)

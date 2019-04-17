@@ -1,82 +1,71 @@
-using BLITTEngine.Core.Control.Mouse;
-using BLITTEngine.Core.Foundation.STB;
+using System;
+using BLITTEngine.Core.Common;
 using BLITTEngine.Core.Graphics;
 
 namespace BLITTEngine.GameToolkit.UI
 {
-    public class GuiButton : GuiObject
+    public class GuiButton : GuiControl
     {
-        public class Props
-        {
-            public int Id;
-            public float X;
-            public float Y;
-            public float W;
-            public float H;
-            public Sprite UpSprite;
-            public Sprite DownSprite;
-            public string Label;
-        }
+        public static Size DefaultSize => new Size(100, 30);
 
-        public override void Update()
-        {
-        
-        }
+        public event EventHandler OnClick;
+        public event EventHandler OnPressed;
+        public event EventHandler OnReleased;
 
-        public override void Draw(Canvas canvas)
+        public string Label { get; set; } = "Click Me";
+
+        internal override void Update(GuiMouseState mouseState)
         {
-            if (_pressed)
+            if (this.ContainsPoint(mouseState.MouseX, mouseState.MouseY))
             {
-                _down_sprite.Draw(canvas, _rect.X1, _rect.Y1);
+                if (!this.Hovered)
+                {
+                    this.Hovered = true;
+                    Invalidate();
+                }
+
+                if (mouseState.MouseLeftDown && !this.Active)
+                {
+                    this.Active = true;
+                    OnPressed?.Invoke(this, EventArgs.Empty);
+                    Invalidate();
+                }
+                else if (!mouseState.MouseLeftDown && this.Active)
+                {
+                    this.Active = false;
+                    OnReleased?.Invoke(this, EventArgs.Empty);
+                    OnClick?.Invoke(this, EventArgs.Empty);
+                    Invalidate();
+                }
             }
             else
             {
-                _up_sprite.Draw(canvas, _rect.X1, _rect.Y1);
+                if (this.Hovered)
+                {
+                    
+                    if (this.Active)
+                    {
+                        this.Active = false;
+                        
+                    }
+                    
+                    this.Hovered = false;
+                    
+                    Invalidate();
+                    
+                }
             }
-            
         }
 
-        public override bool OnMouseButton(MouseButton button, bool down)
+        internal override void Draw(Canvas canvas, GuiTheme theme)
         {
-            if (button == MouseButton.Left && down)
-            {
-                _old_state = _pressed;
-                _pressed = true;
-
-                
-                return false;
-            }
-
-            if (_trigger)
-            {
-                _pressed = !_old_state;
-            }
-            else
-            {
-                _pressed = false;
-            }
-
-            return true;
+            theme.DrawButton(canvas, this);
         }
 
-        public GuiButton(Props props) 
-            : base(props.Id, props.X, props.Y, props.W, props.H)
+        internal GuiButton(Gui gui, GuiContainer parent) : base(gui, parent)
         {
-            _static = false;
-            _visible = true;
-            _enabled = true;
-            _pressed = false;
-            _trigger = false;
-            _label = props.Label;
-            _up_sprite = props.UpSprite;
-            _down_sprite = props.DownSprite;
+            W = DefaultSize.W;
+            H = DefaultSize.H;
         }
-
-        private bool _trigger;
-        private bool _pressed;
-        private bool _old_state;
-        private Sprite _up_sprite;
-        private Sprite _down_sprite;
-        private string _label;
     }
 }

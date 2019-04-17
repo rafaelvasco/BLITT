@@ -27,6 +27,7 @@
       "Textures/parrots.png",
       "Textures/spritesheet.png",
       "Textures/greySheet.png",
+      "Textures/grid9panel.png",
       "Shaders/color_shader.vs",
       "Shaders/color_shader.fs",
       "Shaders/scanlines.vs",

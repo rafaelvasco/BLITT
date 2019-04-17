@@ -8,6 +8,7 @@ namespace BLITTEngine.GameToolkit.Particles
         public int Emission;
         public float LifeTime;
         public bool Relative;
+        public bool ImmediateFullEmission;
         public Range<float> ParticleLife;
         public Range<Vector2> InitialPositionDisplacement;
         public Color StartColor;
@@ -23,6 +24,5 @@ namespace BLITTEngine.GameToolkit.Particles
         public Range<float> Gravity;
         public Range<float> RadialAccel;
         public Range<float> TangentialAccel;
-
     }
 }

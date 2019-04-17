@@ -5,8 +5,7 @@ namespace BLITTEngine.Core.Common
 {
     public readonly struct Color : IEquatable<Color>, IComparable<Color>
     {
-        public static readonly Color TransparentBlack = new Color(0);
-        public static readonly Color Transparent = new Color(0);
+        public static readonly Color Transparent = new Color(0x00000000);
         public static readonly Color AliceBlue = new Color(0xfffff8f0);
         public static readonly Color AntiqueWhite = new Color(0xffd7ebfa);
         public static readonly Color Aqua = new Color(0xffffff00);
@@ -202,6 +201,7 @@ namespace BLITTEngine.Core.Common
             {
                 _abgr |= ((uint)b << 16) | ((uint)g << 8) | (uint)r;
             }
+
         }
         
         public Color(int r, int g, int b, int alpha)
@@ -340,6 +340,22 @@ namespace BLITTEngine.Core.Common
         {
             return new Color(value1.Rf - value2.Rf, value1.Gf - value2.Gf, value1.Bf - value2.Bf, value1.Af - value2.Af);
         }
+
+        public static implicit operator Color(uint rgba)
+        {
+            return new Color((rgba << 24) | (rgba >> 8 << 16) | (rgba >> 16 << 8) | (rgba >> 24));
+        }
+
+        public static implicit operator uint(Color color)
+        {
+            return color._abgr;
+        }
+
+        public static implicit operator int(Color color)
+        {
+            return color.RGBA;
+        }
+            
         
         public void Deconstruct(out float r, out float g, out float b)
         {

@@ -54,6 +54,41 @@ namespace BLITTEngine.Core.Resources
             Unsafe.CopyBlock((void*) PixelDataPtr, (void*) data, (uint) length);
         }
 
+        public Pixmap(Texture2D texture)
+        {
+            this.Width = texture.Width;
+            this.Height = texture.Height;
+            
+            var length = this.Width * this.Height * 4;
+
+            this.SizeBytes = length;
+            this.PixelData = new byte[length];
+            gc_handle = GCHandle.Alloc(this.PixelData, GCHandleType.Pinned);
+            PixelDataPtr = Marshal.UnsafeAddrOfPinnedArrayElement(this.PixelData, 0);
+
+            texture.Texture.Read(PixelDataPtr, 0);
+
+        }
+
+        public Pixmap(Texture2D texture, int srcX, int srcY, int srcW, int srcH)
+        {
+            this.Width = srcW;
+            this.Height = srcH;
+            
+            var length = srcW * srcH * 4;
+
+            this.SizeBytes = length;
+            this.PixelData = new byte[length];
+            gc_handle = GCHandle.Alloc(this.PixelData, GCHandleType.Pinned);
+            PixelDataPtr = Marshal.UnsafeAddrOfPinnedArrayElement(this.PixelData, 0);
+
+            IntPtr texturePointer = texture.Texture.GetDirectAccess();
+
+            IntPtr textureRegionPointer = IntPtr.Add(texturePointer, (srcX + srcY * srcW)*4);
+            
+            Unsafe.CopyBlock((void*) PixelDataPtr, (void*)textureRegionPointer, (uint) length);
+        }
+
         public Pixmap(int width, int height)
         {
             this.Width = width;
@@ -70,10 +105,10 @@ namespace BLITTEngine.Core.Resources
         public void Fill(Color color)
         {
             var pd = PixelData;
-            byte r = (byte) (color.R * 255);
-            byte g = (byte) (color.G * 255);
-            byte b = (byte) (color.B * 255);
-            byte a = (byte) (color.A * 255);
+            byte r = color.R;
+            byte g = color.G;
+            byte b = color.B;
+            byte a = color.A;
 
             fixed (byte* p = pd)
             {
@@ -97,11 +132,6 @@ namespace BLITTEngine.Core.Resources
             image_writer.WritePng(this, path);
 
             SwizzleToBGRA();
-        }
-
-        public void FlipY()
-        {
-            STBImage.stbi__vertical_flip((void*) PixelDataPtr, Width, Height, 4);
         }
 
         private void SwizzleToRGBA()

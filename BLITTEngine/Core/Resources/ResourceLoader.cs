@@ -43,7 +43,7 @@ namespace BLITTEngine.Core.Resources
         {
             var pixmap = new Pixmap(pixmap_data.Data, pixmap_data.Width, pixmap_data.Height);
 
-            var texture = Game.Instance.GraphicsContext.CreateTexture(pixmap);
+            var texture = Game.Instance.GraphicsContext.CreateTexture(pixmap, false, false);
 
             texture.Id = pixmap_data.Id;
 

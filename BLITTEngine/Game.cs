@@ -27,7 +27,7 @@ namespace BLITTEngine
 
         public TimeSpan InactiveSleepTime
         {
-            get => _inactiveSleepTime;
+            get => inactive_sleep_time;
             set
             {
                 if (value < TimeSpan.Zero)
@@ -35,13 +35,13 @@ namespace BLITTEngine
                     value = TimeSpan.FromSeconds(0.02);
                 }
 
-                _inactiveSleepTime = value;
+                inactive_sleep_time = value;
             }
         }
 
         public TimeSpan MaxElapsedTime
         {
-            get => _maxElapsedTime;
+            get => max_elapsed_time;
             set
             {
                 if (value < TimeSpan.Zero)
@@ -49,18 +49,18 @@ namespace BLITTEngine
                     value = TimeSpan.FromMilliseconds(500);
                 }
 
-                if (value < _targetElapsedTime)
+                if (value < target_elapsed_time)
                 {
-                    value = _targetElapsedTime;
+                    value = target_elapsed_time;
                 }
 
-                _maxElapsedTime = value;
+                max_elapsed_time = value;
             }
         }
 
         public TimeSpan TargetElapsedTime
         {
-            get => _targetElapsedTime;
+            get => target_elapsed_time;
             set
             {
                 if (value <= TimeSpan.Zero)
@@ -68,14 +68,14 @@ namespace BLITTEngine
                     value = TimeSpan.FromTicks(166667);
                 }
 
-                _targetElapsedTime = value;
+                target_elapsed_time = value;
             }
         }
 
         public bool IsFixedTimeStep
         {
-            get => _isFixedTimestep;
-            set => _isFixedTimestep = value;
+            get => is_fixed_timestep;
+            set => is_fixed_timestep = value;
         }
         
         public readonly ContentManager ContentManager;
@@ -96,23 +96,23 @@ namespace BLITTEngine
 
         private readonly string[] paks_to_preload;
 
-        private bool _isFixedTimestep = true;
+        private bool is_fixed_timestep = true;
         
-        private TimeSpan _targetElapsedTime = TimeSpan.FromTicks(166667);
+        private TimeSpan target_elapsed_time = TimeSpan.FromTicks(166667);
 
-        private TimeSpan _inactiveSleepTime = TimeSpan.FromSeconds(0.02);
+        private TimeSpan inactive_sleep_time = TimeSpan.FromSeconds(0.02);
         
-        private TimeSpan _maxElapsedTime = TimeSpan.FromMilliseconds(500);
+        private TimeSpan max_elapsed_time = TimeSpan.FromMilliseconds(500);
 
-        private TimeSpan _accumulatedElapsedTime;
+        private TimeSpan accum_elapsed_time;
 
-        private readonly GameTime _gameTime = new GameTime();
+        private readonly GameTime game_time = new GameTime();
 
-        private Stopwatch _gameTimer;
+        private Stopwatch game_timer;
 
-        private long _previousTicks;
+        private long previous_ticks;
 
-        private int _updateFrameLag;
+        private int update_frame_lag;
         
 
         /* ========================================================================================================== */
@@ -231,7 +231,7 @@ namespace BLITTEngine
             CurrentScene = scene ?? new EmptyScene();
             CurrentScene.Load();
             CurrentScene.Init();
-            CurrentScene.Update(_gameTime);
+            CurrentScene.Update(game_time);
 
             Running = true;
 
@@ -337,95 +337,97 @@ namespace BLITTEngine
         private void _Tick()
         {
             
-            _gameTimer = Stopwatch.StartNew();
+            game_timer = Stopwatch.StartNew();
 
             while (Running)
             {
 
                 RetryTick:
                 
-                if (!IsActive && _inactiveSleepTime.TotalMilliseconds > 1.0)
+                if (!IsActive && inactive_sleep_time.TotalMilliseconds > 1.0)
                 {
-                    Thread.Sleep((int) _inactiveSleepTime.TotalMilliseconds);
+                    Thread.Sleep((int) inactive_sleep_time.TotalMilliseconds);
                 }
 
-                var currentTicks = _gameTimer.Elapsed.Ticks;
+                var currentTicks = game_timer.Elapsed.Ticks;
 
-                _accumulatedElapsedTime += TimeSpan.FromTicks(currentTicks - _previousTicks);
+                accum_elapsed_time += TimeSpan.FromTicks(currentTicks - previous_ticks);
 
-                if (_accumulatedElapsedTime > _maxElapsedTime)
+                if (accum_elapsed_time > max_elapsed_time)
                 {
-                    _accumulatedElapsedTime = _maxElapsedTime;
+                    accum_elapsed_time = max_elapsed_time;
                 }
                 
-                _previousTicks = currentTicks;
+                previous_ticks = currentTicks;
 
-                if (_isFixedTimestep && _accumulatedElapsedTime < _targetElapsedTime)
+                if (is_fixed_timestep && accum_elapsed_time < target_elapsed_time)
                 {
                     goto RetryTick;
                 }
 
-                if (_isFixedTimestep)
+                if (is_fixed_timestep)
                 {
-                    _gameTime.ElapsedGameTime = _targetElapsedTime;
+                    game_time.ElapsedGameTime = target_elapsed_time;
 
                     var stepCount = 0;
                     
-                    while (_accumulatedElapsedTime >= _targetElapsedTime && Running)
+                    while (accum_elapsed_time >= target_elapsed_time && Running)
                     {
-                        _gameTime.TotalGameTime += _targetElapsedTime;
-                        _accumulatedElapsedTime -= _targetElapsedTime;
+                        game_time.TotalGameTime += target_elapsed_time;
+                        accum_elapsed_time -= target_elapsed_time;
                         ++stepCount;
                         
                         Platform.PollEvents();
                         
                         Input.Update();
                         
-                        CurrentScene.Update(_gameTime);
+                        CurrentScene.Update(game_time);
                         
                         Input.PostUpdate();
 
                     }
 
-                    _updateFrameLag += Calc.Max(0, stepCount - 1);
+                    update_frame_lag += Calc.Max(0, stepCount - 1);
 
-                    if (_gameTime.IsRunningSlowly)
+                    if (game_time.IsRunningSlowly)
                     {
-                        if (_updateFrameLag == 0)
+                        if (update_frame_lag == 0)
                         {
-                            _gameTime.IsRunningSlowly = false;
+                            game_time.IsRunningSlowly = false;
                         }
                     }
-                    else if (_updateFrameLag >= 5)
+                    else if (update_frame_lag >= 5)
                     {
-                        _gameTime.IsRunningSlowly = true;
+                        game_time.IsRunningSlowly = true;
                     }
 
-                    if (stepCount == 1 && _updateFrameLag > 0)
+                    if (stepCount == 1 && update_frame_lag > 0)
                     {
-                        _updateFrameLag--;
+                        update_frame_lag--;
                     }
 
-                    _gameTime.ElapsedGameTime = TimeSpan.FromTicks(_targetElapsedTime.Ticks * stepCount);
+                    game_time.ElapsedGameTime = TimeSpan.FromTicks(target_elapsed_time.Ticks * stepCount);
                 }
                 else
                 {
-                    _gameTime.ElapsedGameTime = _accumulatedElapsedTime;
-                    _gameTime.TotalGameTime += _accumulatedElapsedTime;
-                    _accumulatedElapsedTime = TimeSpan.Zero;
+                    game_time.ElapsedGameTime = accum_elapsed_time;
+                    game_time.TotalGameTime += accum_elapsed_time;
+                    accum_elapsed_time = TimeSpan.Zero;
                     
                     Platform.PollEvents();
                     
                     Input.Update();
                         
-                    CurrentScene.Update(_gameTime);
+                    CurrentScene.Update(game_time);
                         
                     Input.PostUpdate();
                 }
                 
-                CurrentScene.Draw(Canvas, _gameTime);
+                Canvas.BeginRendering();
                 
-                Canvas.EndRender();
+                CurrentScene.Draw(Canvas, game_time);
+                
+                Canvas.EndRendering();
                 
                 GraphicsContext.SwapBuffers();
                 

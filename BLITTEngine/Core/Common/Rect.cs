@@ -137,6 +137,11 @@ namespace BLITTEngine.Core.Common
             return Inflated(amount, amount);
         }
 
+        public Rect Translated(float dx, float dy)
+        {
+            return new Rect(X1 + dx, Y1 + dy, X2 + dx, Y2 + dy);
+        }
+
         public override string ToString()
         {
             return $"{X1},{Y1},{X2},{Y2}";

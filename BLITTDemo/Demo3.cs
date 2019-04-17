@@ -23,12 +23,17 @@ namespace BLITTDemo
         private readonly float speed = 5;
 
         private Sprite sprite;
-
+        private Sprite sprite2;
+        
         private Timer timer;
         
-        private RenderTarget render_target;
+        private RenderTarget render_target1;
 
-        private Sprite spr_target;
+        private Sprite spr_target1;
+        
+        private RenderTarget render_target2;
+
+        private Sprite spr_target2;
 
         private float x = 100.0f, y = 100.0f, dx, dy;
 
@@ -42,15 +47,30 @@ namespace BLITTDemo
 
             sprite.SetColor(Color.Cyan);
             sprite.SetOrigin(0.5f, 0.5f);
+            
+            sprite2 = new Sprite(Content.Get<Texture2D>("particles"), 32, 32, 32, 32);
 
-            render_target = Content.CreateRenderTarget(320, 240);
-            render_target.Filtered = true;
+            sprite2.SetColor(Color.Red);
+            sprite2.SetOrigin(0.5f, 0.5f);
+
+            render_target1 = Content.CreateRenderTarget(320, 240);
+            render_target1.Filtered = true;
 
 
-            spr_target = new Sprite(render_target, 0, 0, 320, 240)
+            spr_target1 = new Sprite(render_target1, 0, 0, 320, 240)
             {
                 BlendMode = BlendMode.AlphaAdd
             };
+            
+            render_target2 = Content.CreateRenderTarget(320, 240);
+            render_target2.Filtered = true;
+
+
+            spr_target2 = new Sprite(render_target2, 0, 0, 320, 240)
+            {
+                BlendMode = BlendMode.AlphaAdd
+            };
+            
         }
 
         public override void Init()
@@ -66,6 +86,7 @@ namespace BLITTDemo
         {
             //timer.Update(dt);
 
+            
             if (Input.KeyPressed(Key.Escape)) Game.Quit();
 
             if (Input.KeyPressed(Key.F11))
@@ -100,9 +121,9 @@ namespace BLITTDemo
             x += dx;
             y += dy;
 
-            if (x > render_target.Width - 16)
+            if (x > render_target1.Width - 16)
             {
-                x = render_target.Width - 16;
+                x = render_target1.Width - 16;
                 dx = -dx;
                 PlayBump();
             }
@@ -113,9 +134,9 @@ namespace BLITTDemo
                 PlayBump();
             }
 
-            if (y > render_target.Height - 16)
+            if (y > render_target1.Height - 16)
             {
-                y = render_target.Height - 16;
+                y = render_target1.Height - 16;
                 dy = -dy;
                 PlayBump();
             }
@@ -131,30 +152,33 @@ namespace BLITTDemo
         public override void Draw(Canvas canvas, GameTime gameTime)
         {
             /* DRAW TO RENDER TARGET */
-            
-            canvas.Begin(render_target);
 
-            canvas.Clear(Color.Black);
-            
+            canvas.SetRenderTarget(render_target1);
+
             sprite.Draw(canvas, x, y);
-
-            canvas.End();
             
-            /* DRAW SEVERAL COPIES OF RENDER TARGET TO SCREEN */
+            canvas.SetRenderTarget(render_target2);
             
-            canvas.Begin();
+            sprite2.Draw(canvas, x, y);
             
-            canvas.Clear(Color.Black);
-
-            for (int i = 0; i < 6; i++)
+            canvas.SetRenderTarget();
+            
+            /* DRAW SEVERAL COPIES OF RENDER TARGETS TO SCREEN */
+            
+            for (int i = 0; i < 3; i++)
             {
-                spr_target.DrawEx(canvas, i * 100.0f, i * 50.0f, i * Calc.PI / 8, 1.0f - i * 0.1f);
+                spr_target1.DrawEx(canvas, i * 100.0f, i * 50.0f, i * Calc.PI / 8, 1.0f - i * 0.1f);
             }
-
-            //canvas.DrawString(10, 10, $"FPS: {Game.Clock.FPS}, DT: {Game.Clock.DeltaTime}, FrameRate: {Game.Clock.FrameRate}", 0.5f);
             
+            for (int i = 3; i < 6; i++)
+            {
+                spr_target2.DrawEx(canvas, i * 100.0f, i * 50.0f, i * Calc.PI / 8, 1.0f - i * 0.1f);
+            }
+            
+            canvas.DrawText(20, 20, $"MousePos: {Input.MousePosition}", Color.White, 0.25f);
 
-            canvas.End();
+            //canvas.End();
+            
         }
         
         private void PlayBump()

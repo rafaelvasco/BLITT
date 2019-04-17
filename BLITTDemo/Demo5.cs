@@ -119,9 +119,6 @@ namespace BLITTDemo
 
         public override void Draw(Canvas canvas, GameTime gameTime)
         {
-            canvas.Begin();
-            
-            canvas.Clear(Color.Black);
             
             canvas.SetShader(current_shader);
             
@@ -134,9 +131,8 @@ namespace BLITTDemo
             canvas.SetShader(null);
             
             //canvas.DrawString(10, 10, $"FPS: {Game.Clock.FPS}, DT: {Game.Clock.DeltaTime}, FrameRate: {Game.Clock.FrameRate}", 0.25f);
-            canvas.DrawString(10, 30, "Press: 1: ColorShader; 2: Scanlines Shader", 0.25f);
+            canvas.DrawText(10, 30, "Press: 1: ColorShader; 2: Scanlines Shader", Color.White, 0.25f);
             
-            canvas.End();
             
         }
     }

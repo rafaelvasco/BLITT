@@ -23,6 +23,7 @@ namespace BLITTEngine.GameToolkit
             _tile_height = texture.Height;
             
             _texture = texture;
+            _texture.Tiled = true;
             _quad.Blend = BlendMode.AlphaBlend;
             
             SetSize(_width, _height);

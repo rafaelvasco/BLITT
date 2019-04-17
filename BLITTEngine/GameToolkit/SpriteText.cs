@@ -1,4 +1,5 @@
 using System;
+using BLITTEngine.Core.Common;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Resources;
 
@@ -41,6 +42,8 @@ namespace BLITTEngine.GameToolkit
         private bool text_changed = true;
 
         private float text_width;
+
+        private Color _color = Color.White;
 
         public SpriteText(Font font, string text = null)
         {
@@ -126,6 +129,7 @@ namespace BLITTEngine.GameToolkit
 
         public float Height { get; private set; }
 
+        
         public void SetText(string text)
         {
             text_changed = true;
@@ -160,6 +164,11 @@ namespace BLITTEngine.GameToolkit
             text_changed = false;
         }
 
+        public void SetColor(Color color)
+        {
+            _color = color;
+        }
+
         public void Draw(Canvas canvas, float x, float y)
         {
             if (string_length == 0) return;
@@ -176,21 +185,24 @@ namespace BLITTEngine.GameToolkit
                 for (var i = 0; i < string_length; ++i)
                 {
                     int ch_idx = string_buffer[i];
-
+                    
                     if (letters[ch_idx] == null) ch_idx = '?';
 
-                    if (letters[ch_idx] != null)
+                    var letter = letters[ch_idx];
+
+                    if (letter != null)
                     {
                         dx += pre_spacings[ch_idx] * scale * proportion;
-                        letters[ch_idx].DrawEx(canvas, dx, y, 0.0f, scale * proportion, scale);
+                        
+                        letter.SetColor(_color);
+                        letter.DrawEx(canvas, dx, y, 0.0f, scale * proportion, scale);
+                        
                         dx += (letters[ch_idx].Width + post_spacings[ch_idx] + letter_spacing) * scale * proportion;
                     }
                 }
             }
             else
             {
-                canvas.DrawRect(x, y, text_width, Height);
-
                 for (var i = 0; i < string_length; ++i)
                 {
                     var ch = string_buffer[i];
@@ -206,11 +218,16 @@ namespace BLITTEngine.GameToolkit
                         int ch_idx = string_buffer[i];
 
                         if (letters[ch_idx] == null) ch_idx = '?';
+                        
+                        var letter = letters[ch_idx];
 
-                        if (letters[ch_idx] != null)
+                        if (letter != null)
                         {
                             dx += pre_spacings[ch_idx] * scale * proportion;
-                            letters[ch_idx].DrawEx(canvas, dx, dy, 0.0f, scale * proportion, scale);
+                            
+                            letter.SetColor(_color);
+                            letter.DrawEx(canvas, dx, dy, 0.0f, scale * proportion, scale);
+                            
                             dx += (letters[ch_idx].Width + post_spacings[ch_idx] + letter_spacing) * scale * proportion;
                         }
                     }

@@ -41,6 +41,8 @@ namespace BLITTDemo
         public override void Update(GameTime gameTime)
         {
 
+            t += (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             int i, j;
 
             if (Input.KeyPressed(Key.F11))
@@ -122,17 +124,13 @@ namespace BLITTDemo
 
         public override void Draw(Canvas canvas, GameTime gameTime)
         {
-            canvas.Begin();
-
-            canvas.Clear(Color.Black);
+            //canvas.Begin();
 
             mesh.DrawEx(canvas, 112, 52, 0.5f);
 
-            canvas.SetColor(Color.Red);
-            
             //canvas.DrawString(5, 15, $"Dt: {Game.Clock.DeltaTime}, FPS: {Game.Clock.FPS}, Use your SPACE!", 0.25f);
 
-            canvas.End();
+            //canvas.End();
         }
     }
 }

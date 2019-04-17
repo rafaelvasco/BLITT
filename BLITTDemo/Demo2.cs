@@ -3,6 +3,7 @@ using BLITTEngine.Core.Audio;
 using BLITTEngine.Core.Common;
 using BLITTEngine.Core.Control;
 using BLITTEngine.Core.Control.Keyboard;
+using BLITTEngine.Core.Control.Mouse;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Resources;
 using BLITTEngine.GameToolkit;
@@ -47,7 +48,9 @@ namespace BLITTDemo
 
         private MultiframeSprite animated_sprite;
 
-        private ParticleEmitter _emitter;
+        private ParticleEmitter _trail;
+
+        private ParticleEmitter _explosion;
 
         private float particle_x = 100.0f, particle_y = 100.0f, particle_dx, particle_dy;
 
@@ -129,12 +132,13 @@ namespace BLITTDemo
                 .SetAnimation("idle_horiz");
             
             
-            _emitter = new ParticleEmitter(
+            _trail = new ParticleEmitter(
                 new Sprite(Content.Get<Texture2D>("particles"), 0, 0, 32, 32),
                 new ParticleEmitterProps
                 {
                     MaxParticles = 500,
-                    Emission = 200,
+                    Emission = 500,
+                    ImmediateFullEmission = false,
                     LifeTime = -1,
                     Relative = true,
                     ParticleLife = new Range<float>(0.5f, 1.0f),
@@ -155,8 +159,41 @@ namespace BLITTDemo
                 
                  });
             
-            _emitter.FireAt(particle_x, particle_y);
+            _explosion = new ParticleEmitter(
+                new Sprite(Content.Get<Texture2D>("particles"), 0, 64, 32, 32),
+                new ParticleEmitterProps
+                {
+                    MaxParticles = 1000,
+                    Emission = 200,
+                    ImmediateFullEmission = true,
+                    LifeTime = 0.2f,
+                    Relative = false,
+                    ParticleLife = new Range<float>(0.2f, 0.5f),
+                    InitialPositionDisplacement = new Range<Vector2>(new Vector2(-10, -10), new Vector2(10, 10)),
+                    Direction = 0,
+                    Spread = Calc.TWO_PI,
+                    StartColor = Color.Red,
+                    EndColor = Color.Gray,
+                    StartOpacity = 1.0f,
+                    EndOpacity = 0.0f,
+                    StartScale = 1.0f,
+                    EndScale = 0.5f,
+                    Speed = new Range<float>(100.0f, 150.0f),
+                    Gravity = 500.0f,
+                    SpinSpeed = 50.0f,
+                    RadialAccel = 50.0f,
+                    TangentialAccel = 50.0f
+                }
+            );
+            
+            _trail.FireAt(particle_x, particle_y);
 
+        }
+
+        public override void Unload()
+        {
+            _trail.Dispose();
+            _explosion.Dispose();
         }
 
         public override void Init()
@@ -339,38 +376,50 @@ namespace BLITTDemo
                 }
             }
 
+            float dt = (float) gameTime.ElapsedGameTime.TotalSeconds;
+            
             animated_sprite.Update();
             
-            _emitter.MoveTo(particle_x, particle_y);
-            _emitter.Update((float) gameTime.ElapsedGameTime.TotalSeconds);
+            _trail.MoveTo(particle_x, particle_y);
+            _trail.Update(dt);
+            _explosion.Update(dt);
+
+
+            if (Input.MousePressed(MouseButton.Left))
+            {
+                _explosion.FireAt(Input.MousePosition.X, Input.MousePosition.Y);
+            }
         }
 
         public override void Draw(Canvas canvas, GameTime gameTime)
         {
-            canvas.Begin();
-
-            canvas.Clear(Color.Black);
-
-            //background.Draw(canvas, 0, 0);
+            background.Draw(canvas, 0, 0);
             
             sprite.Draw(canvas, particle_x, particle_y);
 
             animated_sprite.Draw(canvas, char_x, char_y);
             
+            tweenedSprite.SetColor(Color.DodgerBlue);
             tweenedSprite.Draw(canvas, tweenedValue.Value, 200);
             
-            _emitter.Draw(canvas);
+            _trail.Draw(canvas);
             
-            canvas.DrawString(10, 10,
-                $"Elapsed Update: {elapsed}, Elapsed Draw: {gameTime.ElapsedGameTime.Milliseconds}", 0.25f);
-            
-            
-            canvas.DrawString(10, 60, $"Active Particles: {_emitter.ParticlesAlive}", 0.25f);
-            
-            canvas.DrawString(10, 80, $"Tweener Allocations: {tweener.AllocationCount}", 0.25f);
-            
+            _explosion.Draw(canvas);
 
-            canvas.End();
+            canvas.FillRect(100, 100, 100, 100, Color.DodgerBlue);
+            
+            canvas.DrawText(10, 10,
+                $"Elapsed Update: {elapsed}, Elapsed Draw: {gameTime.ElapsedGameTime.Milliseconds}", Color.DodgerBlue, 0.25f);
+            
+            
+            canvas.DrawText(10, 60, $"Trail Particles: {_trail.ParticlesAlive}", Color.White, 0.25f);
+            
+            canvas.DrawText(10, 80, $"Explosion Particles: {_explosion.ParticlesAlive}", Color.White, 0.25f);
+            
+            canvas.DrawText(10, 100, $"Tweener Allocations: {tweener.AllocationCount}", Color.White, 0.25f);
+            
+            canvas.DrawText(10, 120, $"Draw Calls: {canvas.MaxDrawCalls}", Color.White, 0.25f);
+
         }
 
         private void PlayBump()

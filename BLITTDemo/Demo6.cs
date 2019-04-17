@@ -1,50 +1,91 @@
-using System.Collections.Generic;
+using System;
+using System.Transactions;
 using BLITTEngine;
 using BLITTEngine.Core.Common;
 using BLITTEngine.Core.Control;
 using BLITTEngine.Core.Graphics;
-using BLITTEngine.Core.Resources;
-using BLITTEngine.GameToolkit;
 using BLITTEngine.GameToolkit.UI;
 
 namespace BLITTDemo
 {
     public class Demo6 : Scene
     {
-        private Gui gui;
-        private TextureAtlas gui_sheet;
+        // Gui Demo
+        
+        //private TextureAtlas gui_sheet;
+
+        private Gui _gui;
+        private bool btn_down;
+        private bool check_checked;
+        private float slider_value;
         
         public override void Load()
         {
-            var atlas = new Dictionary<string, Rect>
+            /*var atlas = new Dictionary<string, Rect>
             {
-               
                 {"grey_button00", Rect.FromBox(0,143,190,45)},
                 {"grey_button01", Rect.FromBox(0,188,190,49)}
-            };
-            
-            
-            
-            gui = new Gui();
+            };*/
 
-            gui_sheet = TextureAtlas.FromAtlas(Content.Get<Texture2D>("greySheet"), atlas);
+            //gui_sheet = TextureAtlas.FromAtlas(Content.Get<Texture2D>("greySheet"), atlas);
+    
+            _gui = new Gui(0, 0, Game.ScreenSize.W, Game.ScreenSize.H);
 
-            var btn_props = new GuiButton.Props()
-            {
-                DownSprite = new Sprite(gui_sheet.Texture, gui_sheet["grey_button00"]),
-                UpSprite = new Sprite(gui_sheet.Texture, gui_sheet["grey_button01"]),
-                Id = 0,
-                X = 100,
-                Y = 100,
-                W = 190,
-                H = 45,
-                Label = "Button0"
-            };
-            
-            GuiObject btn = new GuiButton(btn_props);
-            
-            gui.AddCtrl(btn);
+            var panel = _gui.Root.AddPanel();
 
+            panel.X = 10;
+            panel.Y = 10;
+            panel.W = Game.ScreenSize.W - 20;
+            panel.H = Game.ScreenSize.H - 20;
+
+            var container = panel.AddVerticalContainer();
+
+            container.AlignVertical = VAlignment.Top;
+            container.AlignHorizontal = HAlignment.Stretch;
+
+            
+            var btn = container.AddButton("Click Me");
+            btn.OnPressed += BtnOnOnPressed;
+            btn.OnReleased += BtnOnOnReleased;
+            
+            var check = container.AddCheckbox();
+
+            check.OnCheck += CheckOnOnCheck;
+
+            var slider = container.AddSlider(0, 100, 1, Orientation.Horizontal);
+            
+            slider.OnValueChange += SliderOnOnValueChange;
+
+            var panel2 = container.AddPanel();
+            
+            var horiz_container = panel2.AddHorizontalContainer();
+
+            horiz_container.AlignVertical = VAlignment.Center;
+            horiz_container.AlignHorizontal = HAlignment.Center;
+
+            horiz_container.AddButton("Button1");
+            horiz_container.AddButton("Button2");
+            horiz_container.AddButton("Button3");
+        }
+
+        private void SliderOnOnValueChange(object sender, int value)
+        {
+            slider_value = value;
+        }
+
+        private void CheckOnOnCheck(object sender, bool check)
+        {
+            check_checked = check;
+        }
+
+        private void BtnOnOnReleased(object sender, EventArgs e)
+        {
+            btn_down = false;
+        }
+
+        private void BtnOnOnPressed(object sender, EventArgs e)
+        {
+            btn_down = true;
         }
 
         public override void Init()
@@ -57,20 +98,19 @@ namespace BLITTDemo
 
         public override void Update(GameTime gameTime)
         {
-            gui.Update();
+            _gui.Update();
+           
         }
 
         public override void Draw(Canvas canvas, GameTime gameTime)
         {
-            canvas.Begin();
+            _gui.Draw(canvas);
             
-            canvas.Clear(Color.CornflowerBlue);
             
-            gui.Draw(canvas);
-            
-            canvas.DrawString(10, 10, $"MousePos: {Input.MousePosition}", 0.25f);
-            
-            canvas.End();
+            //canvas.DrawText(20, 10, $"Draw Calls: {canvas.MaxDrawCalls}", Color.White, 0.25f);
+            //canvas.DrawText(20, 30, $"Button Down: {btn_down}", Color.White, 0.25f);
+            //canvas.DrawText(20, 50, $"Check Checked: {check_checked}", Color.White, 0.25f);
+            //canvas.DrawText(20, 70, $"Slider Value: {slider_value}", Color.White, 0.25f);
         }
     }
 }

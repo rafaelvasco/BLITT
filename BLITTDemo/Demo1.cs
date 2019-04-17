@@ -58,7 +58,7 @@ namespace BLITTDemo
 
 
             ball_texture = Content.Get<Texture2D>("particles");
-            ball_quad.Blend = BlendMode.AlphaAdd;
+            ball_quad.Blend = BlendMode.AlphaBlend;
 
             ball_quad.V0.X = x - 16;
             ball_quad.V0.Y = y - 16;
@@ -84,19 +84,20 @@ namespace BLITTDemo
 
             bg_texture = Content.Get<Texture2D>("bg3");
             bg_texture.Filtered = true;
+            bg_texture.Tiled = true;
             bg_quad.Blend = BlendMode.AlphaBlend;
 
             bg_quad.V0.X = 0;
             bg_quad.V0.Y = 0;
             bg_quad.V0.Col = 0xFFFFFFFF;
-            bg_quad.V1.X = 800;
+            bg_quad.V1.X = Canvas.Width;
             bg_quad.V1.Y = 0;
             bg_quad.V1.Col = 0xFFFFFFFF;
-            bg_quad.V2.X = 800;
-            bg_quad.V2.Y = 600;
+            bg_quad.V2.X = Canvas.Width;
+            bg_quad.V2.Y = Canvas.Height;
             bg_quad.V2.Col = 0xFFFFFFFF;
             bg_quad.V3.X = 0;
-            bg_quad.V3.Y = 600;
+            bg_quad.V3.Y = Canvas.Height;
             bg_quad.V3.Col = 0xFFFFFFFF;
 
             bg_quad.V0.Tx = 0;
@@ -223,17 +224,14 @@ namespace BLITTDemo
 
         public override void Draw(Canvas canvas, GameTime gameTime)
         {
-            canvas.Begin();
-            
-            canvas.Clear(Color.Black);
-
             canvas.DrawQuad(bg_texture, ref bg_quad);
 
             canvas.DrawQuad(ball_texture, ref ball_quad);
             
             ui_text.Draw(canvas, 0, 0);
             
-            canvas.End();
+            canvas.DrawText(20, 100, $"Draw Calls: {canvas.MaxDrawCalls}", Color.White, 0.25f);
+            
         }
     }
 }

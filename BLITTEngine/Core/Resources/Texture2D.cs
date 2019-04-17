@@ -62,6 +62,21 @@ namespace BLITTEngine.Core.Resources
             Game.Instance.GraphicsContext.UpdateTextureData(this, pixmap);
         }
 
+        public Pixmap GetData()
+        {
+            return new Pixmap(this);
+        }
+
+        public Pixmap GetData(int srcX, int srcY, int srcW, int srcH)
+        {
+            return new Pixmap(this, srcX, srcY, srcW, srcH);
+        }
+
+        public void BlitTo(Texture2D texture, int srcX, int srcY, int srcW, int srcH)
+        {
+            this.Texture.BlitTo(0, texture.Texture, 0, 0, srcX, srcY, srcW, srcH);
+        }
+
         internal override void Dispose()
         {
             this.Texture.Dispose();

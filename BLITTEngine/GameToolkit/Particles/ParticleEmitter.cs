@@ -49,6 +49,11 @@ namespace BLITTEngine.GameToolkit.Particles
 
         public void FireAt(float x, float y)
         {
+            if (_age != 1.0f)
+            {
+                Stop();
+            }
+            
             MoveTo(x, y);
             Fire();
         }
@@ -107,6 +112,7 @@ namespace BLITTEngine.GameToolkit.Particles
         public void Stop(bool killParticles=false)
         {
             _age = -2.0f;
+            _firstBurst = false;
 
             if (killParticles)
             {
@@ -129,6 +135,7 @@ namespace BLITTEngine.GameToolkit.Particles
                 if (_age >= Props.LifeTime)
                 {
                     _age = -2.0f;
+                    _firstBurst = false;
                 }
             }
 
@@ -191,7 +198,7 @@ namespace BLITTEngine.GameToolkit.Particles
             
             // Generate New Particles
 
-            if (_age != -2.0f)
+            if (_age != -2.0f) // Age -2.0 = Stopped, Age = -1.0 = Infinite, Age > 0.0f = Finite
             {
                 
                 if (Props.Emission == 0)
@@ -199,20 +206,40 @@ namespace BLITTEngine.GameToolkit.Particles
                     goto End;
                 }
 
-                float particlesNeeded = (Props.Emission * elapsedSeconds) + _emissionResidue;
-                
-                int particlesCreated = (int) particlesNeeded;
+                if (Props.ImmediateFullEmission && _age > 0.0f && _firstBurst)
+                {
+                    goto End;
+                }
 
-                _emissionResidue = particlesNeeded - particlesCreated;
+                int particlesCreated;
+
+                if (Props.ImmediateFullEmission)
+                {
+                    particlesCreated = Props.Emission;
+                    _firstBurst = true;
+                }
+                else
+                {
+                    float particlesNeeded = Props.Emission * elapsedSeconds + _emissionResidue;
+
+                    particlesCreated = (int) particlesNeeded;
+
+                    _emissionResidue = particlesNeeded - particlesCreated;
+                }
                 
                 if (particlesCreated == 0)
                 {
                     goto End;
                 }
 
-                if (_particlesAlive >= Props.MaxParticles)
+                if (_particlesAlive + particlesCreated >= Props.MaxParticles)
                 {
-                    goto End;
+                    particlesCreated = Props.MaxParticles - _particlesAlive;
+
+                    if (particlesCreated == 0)
+                    {
+                        goto End;
+                    }
                 }
                 
                 particle = (Particle*) IntPtr.Add(_particlePointer, ParticlesAlive * particleSize);
@@ -339,5 +366,7 @@ namespace BLITTEngine.GameToolkit.Particles
         private float _emissionResidue;
         
         private int _particlesAlive;
+
+        private bool _firstBurst;
     }
 }

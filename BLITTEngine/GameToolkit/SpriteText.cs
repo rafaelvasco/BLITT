@@ -5,9 +5,9 @@ using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.GameToolkit
 {
-    public enum TextAlign
+    public enum TextAlign : byte
     {
-        Left,
+        Left = 0,
         Right,
         Center,
         Top,

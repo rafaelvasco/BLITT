@@ -8,19 +8,19 @@ namespace BLITTEngine.Core.Common
     public struct Rect : IEquatable<Rect>
     {
         private static readonly Rect _empty = new Rect(0, 0, 0, 0);
-        public static ref readonly Rect Empty => ref _empty;
+        public ref readonly Rect Empty => ref _empty;
 
-        public float X1;
-        public float Y1;
-        public float X2;
-        public float Y2;
+        public int X1;
+        public int Y1;
+        public int X2;
+        public int Y2;
 
-        public static Rect FromBox(float x, float y, float w, float h)
+        public static Rect FromBox(int x, int y, int w, int h)
         {
             return new Rect(x, y, x + w, y + h);
         }
 
-        public Rect(float x1, float y1, float x2, float y2)
+        public Rect(int x1, int y1, int x2, int y2)
         {
             X1 = x1;
             Y1 = y1;
@@ -28,27 +28,28 @@ namespace BLITTEngine.Core.Common
             Y2 = y2;
         }
 
-        public float Width => X2 - X1;
+        public int Width => X2 - X1;
 
-        public float Height => Y2 - Y1;
+        public int Height => Y2 - Y1;
 
         public bool IsEmpty => Width == 0 && Height == 0;
 
         public bool IsRegular => X2 > X1 && Y2 > Y1;
 
-        public Rect Normalized => new Rect(Calc.Min(X1, X2), Calc.Min(Y1, Y2), Calc.Max(X1, X2), Calc.Max(Y1, Y2));
+        public Rect Normalized =>
+            new Rect(Calc.Min(X1, X2), Calc.Min(Y1, Y2), Calc.Max(X1, X2), Calc.Max(Y1, Y2));
 
-        public float Area => Math.Abs(Width * Height);
+        public int Area => Math.Abs(Width * Height);
 
-        public Vector2 TopLeft => new Vector2(X1, Y1);
+        public Point2 TopLeft => new Point2(X1, Y1);
 
-        public Vector2 TopRight => new Vector2(X2, Y1);
+        public Point2 TopRight => new Point2(X2, Y1);
 
-        public Vector2 BottomLeft => new Vector2(X1, Y2);
+        public Point2 BottomLeft => new Point2(X1, Y2);
 
-        public Vector2 BottomRight => new Vector2(X2, Y2);
+        public Point2 BottomRight => new Point2(X2, Y2);
 
-        public Vector2 Center => new Vector2(Calc.Abs(X2 - X1) / 2, Calc.Abs(Y2 - Y1) / 2);
+        public Point2 Center => new Point2(Calc.Abs(X2 - X1) / 2, Calc.Abs(Y2 - Y1) / 2);
 
         public override bool Equals(object obj)
         {
@@ -68,12 +69,6 @@ namespace BLITTEngine.Core.Common
         public bool Contains(Point2 p)
         {
             return p.X >= X1 && p.X <= X2 && p.Y >= Y1 && p.Y <= Y2;
-        }
-
-
-        public bool Contains(int x, int y)
-        {
-            return x >= X1 && x <= X2 && y >= Y1 && y <= Y2;
         }
 
         public bool Contains(ref Rect rect)
@@ -112,15 +107,15 @@ namespace BLITTEngine.Core.Common
             unchecked
             {
                 var hash = 17;
-                hash = (int) (hash * 23 + X1);
-                hash = (int) (hash * 23 + Y1);
-                hash = (int) (hash * 23 + X2);
-                hash = (int) (hash * 23 + Y2);
+                hash = hash * 23 + X1;
+                hash = hash * 23 + Y1;
+                hash = hash * 23 + X2;
+                hash = hash * 23 + Y2;
                 return hash;
             }
         }
 
-        public Rect Inflated(float x, float y)
+        public Rect Inflated(int x, int y)
         {
             var copy = this;
 
@@ -132,19 +127,14 @@ namespace BLITTEngine.Core.Common
             return copy;
         }
 
-        public Rect Inflated(float amount)
+        public Rect Inflated(int amount)
         {
             return Inflated(amount, amount);
         }
 
-        public Rect Translated(float dx, float dy)
-        {
-            return new Rect(X1 + dx, Y1 + dy, X2 + dx, Y2 + dy);
-        }
-
         public override string ToString()
         {
-            return $"{X1},{Y1},{X2},{Y2}";
+            return $"{X1},{Y1},{Width},{Height}";
         }
 
         public static bool operator ==(Rect a, Rect b)

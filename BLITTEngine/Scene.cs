@@ -13,6 +13,8 @@ namespace BLITTEngine
         
         public virtual void Unload() {}
 
+        public virtual void OnCanvasResize(int width, int height) {}
+
         public abstract void Init();
 
         public abstract void End();

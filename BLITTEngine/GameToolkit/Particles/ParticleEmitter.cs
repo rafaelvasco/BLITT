@@ -8,27 +8,27 @@ namespace BLITTEngine.GameToolkit.Particles
     public unsafe class ParticleEmitter : IDisposable
     {
         public ParticleEmitterProps Props { get; }
-        public int ParticlesAlive => _particlesAlive;
+        public int ParticlesAlive => particles_alive;
 
         public float Scale
         {
-            get => _scale;
-            set => _scale = value;
+            get => scale;
+            set => scale = value;
         }
 
-        public Vector2 Position => _position;
+        public Vector2 Position => position;
 
-        public Vector2 Transposition => new Vector2(_transposeX, _transposeY);
+        public Vector2 Transposition => new Vector2(transpose_x, transpose_y);
         
         
         public ParticleEmitter(Sprite sprite, ParticleEmitterProps props)
         {
             Props = props;
-            _sprite = sprite;
-            _sprite.SetOrigin(0.5f, 0.5f);
-            _sprite.BlendMode = BlendMode.AlphaAdd;
-            _scale = 1.0f;
-            _age = -2.0f;
+            this.sprite = sprite;
+            this.sprite.SetOrigin(0.5f, 0.5f);
+            this.sprite.SetBlendMode(BlendMode.AlphaAdd);
+            scale = 1.0f;
+            age = -2.0f;
 
 
             if (props.Emission > props.MaxParticles)
@@ -36,9 +36,9 @@ namespace BLITTEngine.GameToolkit.Particles
                 props.Emission = props.MaxParticles;
             }
             
-            _particles = new Particle[props.MaxParticles];
-            _gcHandle = GCHandle.Alloc(_particles, GCHandleType.Pinned);
-            _particlePointer = Marshal.UnsafeAddrOfPinnedArrayElement(_particles, 0);
+            particles = new Particle[props.MaxParticles];
+            gc_handle = GCHandle.Alloc(particles, GCHandleType.Pinned);
+            particle_pointer = Marshal.UnsafeAddrOfPinnedArrayElement(particles, 0);
             
         }
 
@@ -49,7 +49,7 @@ namespace BLITTEngine.GameToolkit.Particles
 
         public void FireAt(float x, float y)
         {
-            if (_age != 1.0f)
+            if (age != 1.0f)
             {
                 Stop();
             }
@@ -62,11 +62,11 @@ namespace BLITTEngine.GameToolkit.Particles
         {
             if (Props.LifeTime == -1.0f)
             {
-                _age = -1.0f;
+                age = -1.0f;
             }
             else
             {
-                _age = 0.0f;
+                age = 0.0f;
             }
         }
 
@@ -76,66 +76,66 @@ namespace BLITTEngine.GameToolkit.Particles
 
             if (!moveParticles)
             {
-                if (_age == -2.0f)
+                if (age == -2.0f)
                 {
-                    _previousPosition.X = x;
-                    _previousPosition.Y = y;
+                    previous_position.X = x;
+                    previous_position.Y = y;
                 }
                 else
                 {
-                    _previousPosition.X = _position.X;
-                    _previousPosition.Y = _position.Y;
+                    previous_position.X = position.X;
+                    previous_position.Y = position.Y;
                 }
 
             }
             else
             {
-                var dx = x - _position.X;
-                var dy = y - _position.Y;
+                var dx = x - position.X;
+                var dy = y - position.Y;
 
-                var particle = (Particle*)_particlePointer;
+                var particle = (Particle*)particle_pointer;
 
-                for (int i = 0; i < _particlesAlive; ++i)
+                for (int i = 0; i < particles_alive; ++i)
                 {
                     (particle + i)->Position.X += dx;
                     (particle + i)->Position.Y += dy;
                 }
 
-                _previousPosition.X += dx;
-                _previousPosition.Y += dy;
+                previous_position.X += dx;
+                previous_position.Y += dy;
             }
 
-            _position.X = x;
-            _position.Y = y;
+            position.X = x;
+            position.Y = y;
         }
 
         public void Stop(bool killParticles=false)
         {
-            _age = -2.0f;
-            _firstBurst = false;
+            age = -2.0f;
+            first_burst = false;
 
             if (killParticles)
             {
-                _particlesAlive = 0;
+                particles_alive = 0;
             }
         }
 
         public void Transpose(float x, float y)
         {
-            _transposeX = x;
-            _transposeY = y;
+            transpose_x = x;
+            transpose_y = y;
         }
 
         public void Update(float elapsedSeconds)
         {
-            if (_age >= 0)
+            if (age >= 0)
             {
-                _age += elapsedSeconds;
+                age += elapsedSeconds;
 
-                if (_age >= Props.LifeTime)
+                if (age >= Props.LifeTime)
                 {
-                    _age = -2.0f;
-                    _firstBurst = false;
+                    age = -2.0f;
+                    first_burst = false;
                 }
             }
 
@@ -143,25 +143,25 @@ namespace BLITTEngine.GameToolkit.Particles
             
             float angle;
 
-            var particle = (Particle*) _particlePointer;
-            var firstParticle = (Particle*) _particlePointer;
+            var particle = (Particle*) particle_pointer;
+            var firstParticle = (Particle*) particle_pointer;
 
-            for (int i = 0; i < _particlesAlive; ++i)
+            for (int i = 0; i < particles_alive; ++i)
             {
                 particle->Age += elapsedSeconds;
 
                 if (particle->Age >= particle->TerminalAge)
                 {
-                    _particlesAlive--;
+                    particles_alive--;
                     
-                    *particle = *(firstParticle + _particlesAlive);
+                    *particle = *(firstParticle + particles_alive);
 
                     i--;
 
                     continue;
                 }
 
-                var vecAccel = particle->Position - _position;
+                var vecAccel = particle->Position - position;
                 vecAccel.Normalize();
 
                 var vecAccel2 = vecAccel;
@@ -198,7 +198,7 @@ namespace BLITTEngine.GameToolkit.Particles
             
             // Generate New Particles
 
-            if (_age != -2.0f) // Age -2.0 = Stopped, Age = -1.0 = Infinite, Age > 0.0f = Finite
+            if (age != -2.0f) // Age -2.0 = Stopped, Age = -1.0 = Infinite, Age > 0.0f = Finite
             {
                 
                 if (Props.Emission == 0)
@@ -206,7 +206,7 @@ namespace BLITTEngine.GameToolkit.Particles
                     goto End;
                 }
 
-                if (Props.ImmediateFullEmission && _age > 0.0f && _firstBurst)
+                if (Props.ImmediateFullEmission && age > 0.0f && first_burst)
                 {
                     goto End;
                 }
@@ -216,15 +216,15 @@ namespace BLITTEngine.GameToolkit.Particles
                 if (Props.ImmediateFullEmission)
                 {
                     particlesCreated = Props.Emission;
-                    _firstBurst = true;
+                    first_burst = true;
                 }
                 else
                 {
-                    float particlesNeeded = Props.Emission * elapsedSeconds + _emissionResidue;
+                    float particlesNeeded = Props.Emission * elapsedSeconds + emission_residue;
 
                     particlesCreated = (int) particlesNeeded;
 
-                    _emissionResidue = particlesNeeded - particlesCreated;
+                    emission_residue = particlesNeeded - particlesCreated;
                 }
                 
                 if (particlesCreated == 0)
@@ -232,9 +232,9 @@ namespace BLITTEngine.GameToolkit.Particles
                     goto End;
                 }
 
-                if (_particlesAlive + particlesCreated >= Props.MaxParticles)
+                if (particles_alive + particlesCreated >= Props.MaxParticles)
                 {
-                    particlesCreated = Props.MaxParticles - _particlesAlive;
+                    particlesCreated = Props.MaxParticles - particles_alive;
 
                     if (particlesCreated == 0)
                     {
@@ -242,7 +242,7 @@ namespace BLITTEngine.GameToolkit.Particles
                     }
                 }
                 
-                particle = (Particle*) IntPtr.Add(_particlePointer, ParticlesAlive * particleSize);
+                particle = (Particle*) IntPtr.Add(particle_pointer, ParticlesAlive * particleSize);
 
                 for (int i = 0; i < particlesCreated; ++i)
                 {
@@ -251,12 +251,12 @@ namespace BLITTEngine.GameToolkit.Particles
 
                     var initialPositionDisplacement = RandomEx.Range(Props.InitialPositionDisplacement);
 
-                    particle->Position.X = _previousPosition.X +
-                                           (_position.X - _previousPosition.X) * RandomEx.NextFloat() +
+                    particle->Position.X = previous_position.X +
+                                           (position.X - previous_position.X) * RandomEx.NextFloat() +
                                            initialPositionDisplacement.X;
                         
-                    particle->Position.Y = _previousPosition.Y +
-                                           (_position.Y - _previousPosition.Y) * RandomEx.NextFloat() +
+                    particle->Position.Y = previous_position.Y +
+                                           (position.Y - previous_position.Y) * RandomEx.NextFloat() +
                                            initialPositionDisplacement.Y;
 
                     var spread = RandomEx.Range(Props.Spread);
@@ -265,7 +265,7 @@ namespace BLITTEngine.GameToolkit.Particles
 
                     if (Props.Relative)
                     {
-                        angle += (_previousPosition - _position).Angle() + Calc.PI_OVER2;
+                        angle += (previous_position - position).Angle() + Calc.PI_OVER2;
                     }
                     
                     var speed = RandomEx.Range(Props.Speed);
@@ -298,7 +298,7 @@ namespace BLITTEngine.GameToolkit.Particles
 
                     particle->Color = particle->StartColor;
 
-                    _particlesAlive++;
+                    particles_alive++;
 
                     particle++;
                 }
@@ -307,66 +307,75 @@ namespace BLITTEngine.GameToolkit.Particles
             End: return;
         }
 
+        public void SetBlendMode(BlendMode blend)
+        {
+            sprite.SetBlendMode(blend);
+        }
+            
+        
         public void Draw(Canvas canvas)
         {
-            var par = (Particle*) _particlePointer;
-            var spr = _sprite;
-
-            for (var i = 0; i < _particlesAlive; ++i)
+            var par = (Particle*) particle_pointer;
+            var spr = sprite;
+            
+            for (var i = 0; i < particles_alive; ++i)
             {
                 spr.SetColor(par->Color.WithOpacity(par->Opacity));
 
                 spr.DrawEx(
                     canvas,
-                    par->Position.X * _scale + _transposeX,
-                    par->Position.Y * _scale + _transposeY,
+                    par->Position.X * scale + transpose_x,
+                    par->Position.Y * scale + transpose_y,
                     par->Spin * par->Age,
-                    par->Scale * _scale
+                    par->Scale * scale
                 );
 
                 par++;
             }
+            
         }
         
 
         public void Dispose()
         {
-            if (!_disposed)
+            if (!disposed)
             {
-                _gcHandle.Free();
-                _particles = null;
-                _disposed = true;
+                gc_handle.Free();
+                particles = null;
+                disposed = true;
             }
 
             GC.SuppressFinalize(this);
         }
         
-        private GCHandle _gcHandle;
+        private GCHandle gc_handle;
         
-        private Particle[] _particles;
+        private Particle[] particles;
         
-        private readonly IntPtr _particlePointer;
-        
-        private bool _disposed;
-        
-        private readonly Sprite _sprite;
-        
-        private float _age;
-        
-        private Vector2 _position;
-        
-        private Vector2 _previousPosition;
-        
-        private float _scale;
-        
-        private float _transposeX;
-        
-        private float _transposeY;
-        
-        private float _emissionResidue;
-        
-        private int _particlesAlive;
+        private readonly IntPtr particle_pointer;
 
-        private bool _firstBurst;
+        private BlendMode blend_mode = BlendMode.AlphaAdd;
+        
+        private bool disposed;
+        
+        private readonly Sprite sprite;
+        
+        private float age;
+        
+        private Vector2 position;
+        
+        private Vector2 previous_position;
+        
+        private float scale;
+        
+        private float transpose_x;
+        
+        private float transpose_y;
+        
+        private float emission_residue;
+        
+        private int particles_alive;
+
+        private bool first_burst;
     }
 }

@@ -9,7 +9,7 @@ namespace BLITTEngine.Core.Resources
         public string Id;
         
         public PixmapData FontSheet;
-        public Rect[] GlyphRects;
+        public RectF[] GlyphRects;
         public float[] PreSpacings;
         public float[] PostSpacings;
     }

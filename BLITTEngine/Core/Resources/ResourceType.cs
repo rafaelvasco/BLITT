@@ -1,8 +1,8 @@
 namespace BLITTEngine.Core.Resources
 {
-    public enum ResourceType
+    public enum ResourceType : byte
     {
-        Image,
+        Image = 0,
         Font,
         Shader,
         Sfx,

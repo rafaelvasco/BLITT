@@ -29,49 +29,50 @@ namespace BLITTEngine.GameToolkit.UI
         public bool Moved => MouseX != LastMouseX || MouseY != LastMouseY;
     }
 
-    public enum Orientation
+    public enum Orientation : byte
     {
-        Horizontal,
+        Horizontal = 0,
         Vertical
     }
 
-
     public class Gui
     {
-        public GuiContainer Root => root;
-
-       
-        public Gui(int x, int y, int width, int height)
+        public GuiContainer Main => root;
+        
+        public Gui()
         {
-            surface = Game.Instance.ContentManager.CreateRenderTarget(width, height);
+            var width = Game.Instance.Canvas.Width;
+            var height = Game.Instance.Canvas.Height;
             
-            surface_quad = new Quad(surface)
-            {
-                V0 = {X = x, Y = y},
-                V1 = {X = x + width, Y = y},
-                V2 = {X = x + width, Y = y + height},
-                V3 = {X = x, Y = y + height},
-                Blend = BlendMode.AlphaBlend
-            };
+            surface = new CanvasSurface(Rect.FromBox(0, 0, width, height));
+            
+            Game.Instance.Platform.OnWinResized += OnWinResized;
 
             mouse_state = new GuiMouseState();
 
             theme = new DefaultTheme(Game.Instance.Canvas.DefaultFont);
             
             root = new GuiContainer(this, width, height);
+            
+            Game.Instance.Canvas.AddSurface(surface);
+        }
+
+        private void OnWinResized(int arg1, int arg2)
+        {
+            layout_invalidated = true;
+            visual_invalidated = true;
+            surface_invalidated = true;
+
         }
 
         public void Resize(int width, int height)
         {
-            root.W = width;
-            root.H = height;
-
-            invalidated = true;
+            root.Resize(width, height);
         }
 
         public void Update()
         {
-            mouse_state.UpdatePosition(Input.MousePosition.X, Input.MousePosition.Y);
+            mouse_state.UpdatePosition(Input.MousePos.X, Input.MousePos.Y);
 
             var leftDown = Input.MouseDown(MouseButton.Left);
             var middleDown = Input.MouseDown(MouseButton.Middle);
@@ -83,42 +84,88 @@ namespace BLITTEngine.GameToolkit.UI
 
             root.Update(mouse_state);
 
+            if (layout_invalidated)
+            {
+                RecalculateSize(root);
+                
+                RecalculateLayout(root);
+
+                layout_invalidated = false;
+            }
+
+
         }
 
         public void Draw(Canvas canvas)
         {
-            if (invalidated)
+            if (visual_invalidated)
             {
-                canvas.SetRenderTarget(surface);
+                Console.WriteLine("Gui Redraw");
+            
+                canvas.SetSurface(surface);
 
-                if (invalidated)
-                {
-                    root.Draw(canvas, theme);
+                root.Draw(canvas, theme);
 
-                }
-                
-                canvas.SetRenderTarget();
+                canvas.SetSurface();
 
-                invalidated = false;
+                visual_invalidated = false;
             }
-            
-            
-            canvas.DrawQuad(surface, ref surface_quad);
-            
             
         }
 
-        public void Invalidate()
+        internal void InvalidateVisual()
         {
-            invalidated = true;
-        } 
+            visual_invalidated = true;
+        }
+
+        internal void InvalidateLayout()
+        {
+            layout_invalidated = true;
+        }
+
+        private void RecalculateSize(GuiContainer container)
+        {
+            for (int i = 0; i < container.children.Count; i++)
+            {
+                var control = container.children[i];
+
+                if (control is GuiContainer containerChild)
+                {
+                    RecalculateSize(containerChild);
+                }
+            }
+            
+            container.DoAutoSize();
+            
+        }
+        
+        private void RecalculateLayout(GuiContainer container)
+        {
+            
+            container.DoLayout();
+            
+            for (int i = 0; i < container.children.Count; i++)
+            {
+                var control = container.children[i];
+
+                if (control is GuiContainer containerChild)
+                {
+                    RecalculateLayout(containerChild);
+                }
+            }
+            
+            
+        }
         
         private readonly GuiMouseState mouse_state;
         private readonly GuiTheme theme;
         private readonly GuiContainer root;
-        private bool invalidated = true;
-        private readonly RenderTarget surface;
-        private Quad surface_quad;
+
+        private bool layout_invalidated = true;
+        private bool visual_invalidated = true;
+        private bool surface_invalidated;
+        
+        private readonly CanvasSurface surface;
 
 
     }

@@ -24,7 +24,6 @@ namespace BLITTEngine.GameToolkit
             
             _texture = texture;
             _texture.Tiled = true;
-            _quad.Blend = BlendMode.AlphaBlend;
             
             SetSize(_width, _height);
         }

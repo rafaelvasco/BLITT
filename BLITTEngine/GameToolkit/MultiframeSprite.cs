@@ -12,9 +12,9 @@ namespace BLITTEngine.GameToolkit
 
         private const int DEFAULT_FRAME_DELAY = 5;
 
-        public enum AnimationMode
+        public enum AnimationMode : byte
         {
-            OneTime,
+            OneTime = 0,
             Loop,
             PingPong
         }

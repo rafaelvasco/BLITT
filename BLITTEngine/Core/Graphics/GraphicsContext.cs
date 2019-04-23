@@ -202,18 +202,18 @@ namespace BLITTEngine.Core.Graphics
 
         internal RenderTarget CreateRenderTarget(int width, int height)
         {
-            var texture = Texture.Create2D(
+            /*var texture = Texture.Create2D(
                 width,
                 height,
                 false,
                 0,
                 TextureFormat.BGRA8,
                 TextureFlags.FilterPoint | TextureFlags.ClampU | TextureFlags.ClampV | TextureFlags.RenderTarget
-            );
+            );*/
             
-            //var frame_buffer = new FrameBuffer(width, height, TextureFormat.BGRA8, TextureFlags.ClampU | TextureFlags.ClampV | TextureFlags.FilterPoint);
+            var frame_buffer = new FrameBuffer(width, height, TextureFormat.BGRA8, TextureFlags.ClampU | TextureFlags.ClampV | TextureFlags.FilterPoint);
             
-            var frame_buffer = new FrameBuffer(new []{texture}, true);
+            //var frame_buffer = new FrameBuffer(new []{texture}, true);
 
             return new RenderTarget(frame_buffer, width, height);
         }

@@ -221,7 +221,7 @@ namespace BLITTEngine.Core.Resources
         {
             var sheet_data = LoadPixmapData(image_path);
 
-            var glyphs = new Rect[255];
+            var glyphs = new RectF[255];
             var pre_spacings = new float[255];
             var post_spacings = new float[255];
 
@@ -270,7 +270,7 @@ namespace BLITTEngine.Core.Resources
                             int letter_pre_spac = int.Parse(char_def_attrs[5]);
                             int letter_post_spac = int.Parse(char_def_attrs[6]);
 
-                            glyphs[ch_idx] = Rect.FromBox(letter_reg_x, letter_reg_y, letter_reg_w,
+                            glyphs[ch_idx] = RectF.FromBox(letter_reg_x, letter_reg_y, letter_reg_w,
                                 letter_reg_h);
 
                             pre_spacings[ch_idx] = letter_pre_spac;

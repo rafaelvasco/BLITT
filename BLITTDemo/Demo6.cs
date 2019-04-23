@@ -14,7 +14,7 @@ namespace BLITTDemo
         
         //private TextureAtlas gui_sheet;
 
-        private Gui _gui;
+        private Gui gui;
         private bool btn_down;
         private bool check_checked;
         private float slider_value;
@@ -29,18 +29,16 @@ namespace BLITTDemo
 
             //gui_sheet = TextureAtlas.FromAtlas(Content.Get<Texture2D>("greySheet"), atlas);
     
-            _gui = new Gui(0, 0, Game.ScreenSize.W, Game.ScreenSize.H);
+            gui = new Gui();
 
-            var panel = _gui.Root.AddPanel();
-
-            panel.X = 10;
-            panel.Y = 10;
-            panel.W = Game.ScreenSize.W - 20;
-            panel.H = Game.ScreenSize.H - 20;
+            var panel = gui.Main.AddPanel();
+            panel.Docking = GuiDocking.Center;
 
             var container = panel.AddVerticalContainer();
 
-            container.AlignVertical = VAlignment.Top;
+            container.Docking = GuiDocking.Center;
+
+            container.AlignVertical = VAlignment.Stretch;
             container.AlignHorizontal = HAlignment.Stretch;
 
             
@@ -55,13 +53,11 @@ namespace BLITTDemo
             var slider = container.AddSlider(0, 100, 1, Orientation.Horizontal);
             
             slider.OnValueChange += SliderOnOnValueChange;
-
-            var panel2 = container.AddPanel();
             
-            var horiz_container = panel2.AddHorizontalContainer();
+            var horiz_container = container.AddHorizontalContainer();
 
-            horiz_container.AlignVertical = VAlignment.Center;
-            horiz_container.AlignHorizontal = HAlignment.Center;
+            horiz_container.AlignVertical = VAlignment.Stretch;
+            horiz_container.AlignHorizontal = HAlignment.Stretch;
 
             horiz_container.AddButton("Button1");
             horiz_container.AddButton("Button2");
@@ -98,15 +94,15 @@ namespace BLITTDemo
 
         public override void Update(GameTime gameTime)
         {
-            _gui.Update();
+            gui.Update();
            
         }
 
         public override void Draw(Canvas canvas, GameTime gameTime)
         {
-            _gui.Draw(canvas);
+            gui.Draw(canvas);
             
-            
+            canvas.DrawText(20, 20, $"Mouse Pos: {Input.MousePos}", Color.Fuchsia, 0.25f);
             //canvas.DrawText(20, 10, $"Draw Calls: {canvas.MaxDrawCalls}", Color.White, 0.25f);
             //canvas.DrawText(20, 30, $"Button Down: {btn_down}", Color.White, 0.25f);
             //canvas.DrawText(20, 50, $"Check Checked: {check_checked}", Color.White, 0.25f);

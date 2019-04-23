@@ -8,7 +8,7 @@ namespace BLITTDemo
         {
             using (var game = new Game())
             {
-                game.Start(new Demo6());
+                game.Start(new Demo7());
             }
         }
     }

@@ -14,21 +14,21 @@ namespace BLITTEngine.Core.Graphics
 
         public BlendMode Blend;
 
+        public static readonly int SizeInBytes = Marshal.SizeOf(typeof(Quad));
+
         public float Width => Calc.Abs(V1.X - V0.X);
         public float Height => Calc.Abs(V2.Y - V1.Y);
-        
-        
-        
-        public Quad(Texture2D texture=null, Rect src_rect = default, Rect dest_rect = default)
-        {
-            //this.Texture = texture;
-            this.Blend = BlendMode.AlphaBlend;
 
+
+        public Quad(Texture2D texture, RectF src_rect = default, RectF dest_rect = default)
+        {
             this.V0 = new Vertex2D();
             this.V1 = new Vertex2D();
             this.V2 = new Vertex2D();
             this.V3 = new Vertex2D();
 
+            this.Blend = BlendMode.AlphaBlend;
+            
             if (texture == null) return;
 
             float ax, ay, bx, by;
@@ -37,6 +37,8 @@ namespace BLITTEngine.Core.Graphics
             
             if (src_rect.IsEmpty)
             {
+                src_rect = RectF.FromBox(0, 0, texture.Width, texture.Height);
+                
                 ax = 0;
                 ay = 0;
                 bx = 1;
@@ -93,9 +95,9 @@ namespace BLITTEngine.Core.Graphics
             this.V3.Col = 0xFFFFFFFF;
         }
 
-        public Rect GetRegionRect(Texture2D texture)
+        public RectF GetRegionRect(Texture2D texture)
         {
-            return new Rect(V0.Tx * texture.Width, V0.Ty * texture.Height, V2.X * texture.Width, V2.Y * texture.Height);
+            return new RectF(V0.Tx * texture.Width, V0.Ty * texture.Height, V2.X * texture.Width, V2.Y * texture.Height);
         }
     }
 }

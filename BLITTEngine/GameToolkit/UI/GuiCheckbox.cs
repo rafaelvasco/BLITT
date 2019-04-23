@@ -14,7 +14,7 @@ namespace BLITTEngine.GameToolkit.UI
             set
             {
                 label = value;
-                W = CheckboxSize.W + label.Length * 8 + 2 * Padding; // TODO: Measure String
+                Resize(CheckboxSize.W + label.Length * 8 + 2 * Padding, h);
                 
             }
         }
@@ -24,7 +24,7 @@ namespace BLITTEngine.GameToolkit.UI
             set
             {
                 is_checked = value;
-                Invalidate();
+                Gui.InvalidateVisual();
             }
         }
         
@@ -36,8 +36,8 @@ namespace BLITTEngine.GameToolkit.UI
         {
             label = "Check Me";
             
-            W = CheckboxSize.W + label.Length * 8 + 2 * Padding; // TODO:
-            H = CheckboxSize.H + 2 * Padding;
+            w = CheckboxSize.W + label.Length * 8 + 2 * Padding; // TODO:
+            h = CheckboxSize.H + 2 * Padding;
 
             FixedSize = true;
         }
@@ -53,14 +53,14 @@ namespace BLITTEngine.GameToolkit.UI
                     if (mouseState.MouseLeftDown && !this.Active)
                     {
                         this.Active = true;
-                        Invalidate();
+                        Gui.InvalidateVisual();
                     }
                     else if (!mouseState.MouseLeftDown && this.Active)
                     {
                         this.is_checked = true;
                         OnCheck?.Invoke(this, true);
                         this.Active = false;
-                        Invalidate();
+                        Gui.InvalidateVisual();
                     }
                 }
                 else
@@ -68,14 +68,14 @@ namespace BLITTEngine.GameToolkit.UI
                     if (mouseState.MouseLeftDown && !this.Active)
                     {
                         this.Active = true;
-                        Invalidate();
+                        Gui.InvalidateVisual();
                     }
                     else if (!mouseState.MouseLeftDown && this.Active)
                     {
                         this.is_checked = false;
                         OnCheck?.Invoke(this, false);
                         this.Active = false;
-                        Invalidate();
+                        Gui.InvalidateVisual();
                     }
                 }
 
@@ -86,7 +86,7 @@ namespace BLITTEngine.GameToolkit.UI
                 {
                     this.is_checked = !this.is_checked;
                     this.Active = false;
-                    Invalidate();
+                    Gui.InvalidateVisual();
                 }
             }
         }

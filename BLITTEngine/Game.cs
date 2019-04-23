@@ -13,6 +13,7 @@ using BLITTEngine.Core.Control;
 using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Platform;
 using BLITTEngine.Core.Resources;
+using BLITTEngine.GameToolkit.Particles;
 using Utf8Json;
 
 namespace BLITTEngine
@@ -113,6 +114,8 @@ namespace BLITTEngine
         private long previous_ticks;
 
         private int update_frame_lag;
+
+        private bool initialized;
         
 
         /* ========================================================================================================== */
@@ -121,13 +124,13 @@ namespace BLITTEngine
         {
             Instance = this;
 
-            var props = _LoadGameProperties();
+            var props = LoadGameProperties();
 
             var timer = Stopwatch.StartNew();
 
             Platform = new SDLGamePlatform();
-            Platform.OnQuit += _OnPlatformQuit;
-            Platform.OnWinResized += _OnScreenResized;
+            Platform.OnQuit += OnPlatformQuit;
+            Platform.OnWinResized += OnScreenResized;
 
             Title = props.Title;
             
@@ -160,10 +163,12 @@ namespace BLITTEngine
 
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
-            /* CONVENIENCE REFERENCES FOR SCENES */
+            /* CONVENIENCE GLOBAL REFERENCES */
             Scene.Game = this;
             Scene.Content = ContentManager;
             Scene.Canvas = Canvas;
+
+            Input.Canvas = Canvas;
         }
 
         public static Game Instance { get; private set; }
@@ -181,7 +186,15 @@ namespace BLITTEngine
 
                 full_screen = value;
 
-                toggle_fullscreen_requested = true;
+                if (initialized)
+                {
+                    toggle_fullscreen_requested = true;
+                }
+                else
+                {
+                    Platform.SetFullscreen(full_screen); //TODO: Check Necessity of Delaying Screen resize update
+                }
+                
             }
         }
 
@@ -199,10 +212,19 @@ namespace BLITTEngine
 
                 if (value.W == w && value.H == h) return;
 
-                screen_resize_requested = true;
+                if (initialized)
+                {
+                    screen_resize_requested = true;
 
-                requested_screen_w = value.W;
-                requested_screen_h = value.H;
+                    requested_screen_w = value.W;
+                    requested_screen_h = value.H;
+                }
+                else
+                {
+                    Platform.SetScreenSize(value.W, value.H);
+                }
+
+                
             }
         }
 
@@ -232,14 +254,18 @@ namespace BLITTEngine
             CurrentScene.Load();
             CurrentScene.Init();
             CurrentScene.Update(game_time);
+            Canvas.BeginRendering();
+            CurrentScene.Draw(Canvas, game_time);
+            Canvas.EndRendering();
+            GraphicsContext.SwapBuffers();
 
             Running = true;
 
             Platform.ShowScreen(true);
             
-            GraphicsContext.SwapBuffers();
-            
-            _Tick();
+            Tick();
+
+            initialized = true;
         }
 
         public void Quit()
@@ -281,7 +307,7 @@ namespace BLITTEngine
             throw new Exception(msg);
         }
 
-        private static GameProperties _LoadGameProperties()
+        private static GameProperties LoadGameProperties()
         {
             GameProperties props;
             
@@ -324,17 +350,25 @@ namespace BLITTEngine
             return props;
         }
         
-        private void _OnScreenResized(int w, int h)
+        private void OnScreenResized(int w, int h)
         {
+            int old_w = Canvas.Width;
+            int old_h = Canvas.Height;
+            
             Canvas.OnScreenResized(w, h);
+
+            if (old_w != Canvas.Width || old_h != Canvas.Height)
+            {
+                CurrentScene?.OnCanvasResize(Canvas.Width, Canvas.Height);
+            }
         }
 
-        private void _OnPlatformQuit()
+        private void OnPlatformQuit()
         {
             Quit();
         }
 
-        private void _Tick()
+        private void Tick()
         {
             
             game_timer = Stopwatch.StartNew();

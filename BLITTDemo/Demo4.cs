@@ -25,7 +25,6 @@ namespace BLITTDemo
         {
             mesh = new Mesh(n_cols, n_rows);
             mesh.SetTexture(Content.Get<Texture2D>("awesomeface"));
-            mesh.SetBlendMode(BlendMode.AlphaBlend);
             mesh.Clear(Color.White);
           
         }

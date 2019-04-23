@@ -21,9 +21,9 @@ namespace BLITTEngine.GameToolkit
             public CenterFillMode FillMode;
         }
         
-        public enum CenterFillMode
+        public enum CenterFillMode : byte
         {
-            Stretch,
+            Stretch = 0,
             Tile,
             Transparent
         }
@@ -87,15 +87,15 @@ namespace BLITTEngine.GameToolkit
             var center_w = w - _left_margin - _right_margin;
             var center_h = h - _top_margin - _bottom_margin;
             
-            _top_left = new Quad(_texture, Rect.FromBox(0, 0, _left_margin, _top_margin));
-            _top = new Quad(_texture, Rect.FromBox(_left_margin, 0, center_w, _top_margin));
-            _top_right = new Quad(_texture, Rect.FromBox(w -_right_margin, 0, _right_margin, _top_margin));
-            _left = new Quad(_texture, Rect.FromBox(0, _top_margin, _left_margin, center_h));
-            _center = new Quad(_texture, Rect.FromBox(_left_margin, _top_margin, center_w, center_h));
-            _right = new Quad(_texture, Rect.FromBox(w-_right_margin, _top_margin, _right_margin, center_h));
-            _bottom_left = new Quad(_texture, Rect.FromBox(0, h - _bottom_margin, _left_margin, _bottom_margin));
-            _bottom = new Quad(_texture, Rect.FromBox(_left_margin, h - _bottom_margin, center_w, _bottom_margin));
-            _bottom_right = new Quad(_texture, Rect.FromBox(w - _right_margin, h - _bottom_margin, _right_margin, _bottom_margin));
+            _top_left = new Quad(_texture, RectF.FromBox(0, 0, _left_margin, _top_margin));
+            _top = new Quad(_texture, RectF.FromBox(_left_margin, 0, center_w, _top_margin));
+            _top_right = new Quad(_texture, RectF.FromBox(w -_right_margin, 0, _right_margin, _top_margin));
+            _left = new Quad(_texture, RectF.FromBox(0, _top_margin, _left_margin, center_h));
+            _center = new Quad(_texture, RectF.FromBox(_left_margin, _top_margin, center_w, center_h));
+            _right = new Quad(_texture, RectF.FromBox(w-_right_margin, _top_margin, _right_margin, center_h));
+            _bottom_left = new Quad(_texture, RectF.FromBox(0, h - _bottom_margin, _left_margin, _bottom_margin));
+            _bottom = new Quad(_texture, RectF.FromBox(_left_margin, h - _bottom_margin, center_w, _bottom_margin));
+            _bottom_right = new Quad(_texture, RectF.FromBox(w - _right_margin, h - _bottom_margin, _right_margin, _bottom_margin));
 
             var left = _rect.X1;
             var top = _rect.Y1;
@@ -362,7 +362,7 @@ namespace BLITTEngine.GameToolkit
 
         private void RebuildCenterSprite()
         {
-            var centerRegion = new Rect(
+            var centerRegion = new RectF(
                 _left_margin, 
                 _top_margin, 
                 _texture.Width - _right_margin, _texture.Height - _bottom_margin);
@@ -392,6 +392,6 @@ namespace BLITTEngine.GameToolkit
                 _rect.Height - _top_margin - _bottom_margin);
         }
 
-        private Rect _rect;
+        private RectF _rect;
     }
 }

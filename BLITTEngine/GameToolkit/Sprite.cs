@@ -60,7 +60,6 @@ namespace BLITTEngine.GameToolkit
             _quad.V3.Ty = v2;
             _quad.V3.Col = 0xFFFFFFFF;
             
-            _quad.Blend = BlendMode.AlphaBlend;
         }
 
         public Vector2 Origin => new Vector2(_origin_x, _origin_y);
@@ -68,12 +67,6 @@ namespace BLITTEngine.GameToolkit
         public float Width { get; protected set; }
 
         public float Height { get; protected set; }
-
-        public BlendMode BlendMode
-        {
-            get => _quad.Blend;
-            set => _quad.Blend = value;
-        }
 
         public void Draw(Canvas canvas, float x, float y)
         {
@@ -90,7 +83,7 @@ namespace BLITTEngine.GameToolkit
             _quad.V2.Y = ty2;
             _quad.V3.X = tx1;
             _quad.V3.Y = ty2;
-
+            
             canvas.DrawQuad(_texture, ref _quad);
         }
 
@@ -132,10 +125,10 @@ namespace BLITTEngine.GameToolkit
                 _quad.V3.X = tx1 + x;
                 _quad.V3.Y = ty2 + y;
             }
+            
 
             canvas.DrawQuad(_texture, ref _quad);
         }
-
 
         public void SetFlipH(bool flip, bool flip_origin = true)
         {
@@ -369,9 +362,14 @@ namespace BLITTEngine.GameToolkit
             _origin_y = Height * orig.Y;
         }
 
-        public Rect GetBoundingBox(float ref_x, float ref_y)
+        public void SetBlendMode(BlendMode blend)
         {
-            return Rect.FromBox(ref_x - _origin_x, ref_y - _origin_y, ref_x - _origin_x + Width,
+            this._quad.Blend = blend;
+        }
+        
+        public RectF GetBoundingBox(float ref_x, float ref_y)
+        {
+            return RectF.FromBox(ref_x - _origin_x, ref_y - _origin_y, ref_x - _origin_x + Width,
                 ref_y - _origin_y + Height);
         }
 
@@ -384,6 +382,8 @@ namespace BLITTEngine.GameToolkit
         protected float _origin_y;
 
         protected readonly Texture2D _texture;
+
+        protected BlendMode blend_mode = BlendMode.AlphaBlend;
         
         protected Quad _quad;
 

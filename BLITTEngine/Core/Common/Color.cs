@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BLITTEngine.Core.Common
@@ -402,5 +403,7 @@ namespace BLITTEngine.Core.Common
         {
             return _abgr.CompareTo(other._abgr);
         }
+        
+        public static readonly int SizeInBytes = Marshal.SizeOf(typeof(Color));
     }
 }

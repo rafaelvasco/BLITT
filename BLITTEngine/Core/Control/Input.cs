@@ -2,17 +2,22 @@
 using BLITTEngine.Core.Control.GamePad;
 using BLITTEngine.Core.Control.Keyboard;
 using BLITTEngine.Core.Control.Mouse;
+using BLITTEngine.Core.Graphics;
 using BLITTEngine.Core.Platform;
 
 namespace BLITTEngine.Core.Control
 {
     public static class Input
     {
+        internal static Canvas Canvas;
+        
         public static bool AnyKeyDown => kb_current_state.PressedCount > 0;
 
         public static bool IsMouseOver { get; internal set; }
 
-        public static Point2 MousePosition => _mouse_position;
+        public static Point2 MousePos => new Point2(
+            (int)(_mouse_position.X / Canvas.RenderScaleX - Canvas.RenderAreaTopLeft.X / Canvas.RenderScaleX) , 
+            (int)(_mouse_position.Y / Canvas.RenderScaleY - Canvas.RenderAreaTopLeft.Y / Canvas.RenderScaleY)); 
         
         public static int MouseWheel => _mouse_wheel;
         

@@ -204,6 +204,11 @@ namespace BLITTDemo
         {
         }
 
+        public override void OnCanvasResize(int width, int height)
+        {
+            background.SetSize(width, height);
+        }
+
         public override void Update(GameTime gameTime)
         {
             timer.Update();
@@ -387,7 +392,7 @@ namespace BLITTDemo
 
             if (Input.MousePressed(MouseButton.Left))
             {
-                _explosion.FireAt(Input.MousePosition.X, Input.MousePosition.Y);
+                _explosion.FireAt(Input.MousePos.X, Input.MousePos.Y);
             }
         }
 

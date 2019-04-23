@@ -6,43 +6,26 @@ namespace BLITTEngine.GameToolkit.UI
     public abstract class GuiControl
     {
 
-        public int X
-        {
-            get => x;
-            set
-            {
-                x = value;
-                Invalidate();
-            }
-        }
+        public int X => x;
 
-        public int Y
-        {
-            get => y;
-            set
-            {
-                y = value;
-                Invalidate();
-            }
-        }
+        public int Y => y;
 
-        public int W
-        {
-            get => w;
-            set
-            {
-                w = value;
-                Invalidate();
-            }
-        }
+        public int W => w;
 
-        public int H
+        public int H => h;
+
+        public GuiDocking Docking
         {
-            get => h;
+            get => docking;
             set
             {
-                h = value;
-                Invalidate();
+                if (docking != value)
+                {
+                    docking = value;
+                    
+                    Gui.InvalidateVisual();
+                    Gui.InvalidateLayout();
+                }
             }
         }
 
@@ -57,13 +40,9 @@ namespace BLITTEngine.GameToolkit.UI
 
         public bool Hovered { get; protected set; }
         public bool Active { get; protected set; }
-        public bool IsContainer { get; internal set; }
-        
         public bool FixedSize { get; set; }
 
-        public Rect BoundingRect => Rect.FromBox(GlobalX, GlobalY, W, H);
-
-       
+        public RectF BoundingRect => RectF.FromBox(GlobalX, GlobalY, W, H);
 
         protected GuiControl(Gui gui)
         {
@@ -75,6 +54,26 @@ namespace BLITTEngine.GameToolkit.UI
         {
             Gui = gui;
             Parent = parent;
+        }
+
+        public void SetPosition(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+
+            Gui.InvalidateVisual();
+            Gui.InvalidateLayout();
+        }
+
+        public void Resize(int newW, int newH)
+        {
+            if (this.w == newW && this.h == newH) return;
+            
+            this.w = newW;
+            this.h = newH;
+            
+            Gui.InvalidateVisual();
+            Gui.InvalidateLayout();
         }
 
         public virtual bool ContainsPoint(int px, int py)
@@ -91,19 +90,16 @@ namespace BLITTEngine.GameToolkit.UI
             return true;
         }
 
-        protected void Invalidate()
-        {
-            Gui.Invalidate();
-        }
-
         internal abstract void Update(GuiMouseState mouseState);
         internal abstract void Draw(Canvas canvas, GuiTheme theme);
         
         protected readonly Gui Gui;
 
-        private int x;
-        private int y;
-        private int w;
-        private int h;
+        internal int x;
+        internal int y;
+        internal int w;
+        internal int h;
+
+        private GuiDocking docking = GuiDocking.None;
     }
 }

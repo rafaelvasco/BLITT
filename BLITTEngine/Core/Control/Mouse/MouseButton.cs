@@ -3,7 +3,7 @@ using System;
 namespace BLITTEngine.Core.Control.Mouse
 {
     [Flags]
-    public enum MouseButton
+    public enum MouseButton : byte
     {
         None = 0,
         Left = 1 << 1,

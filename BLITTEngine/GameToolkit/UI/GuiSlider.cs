@@ -14,7 +14,7 @@ namespace BLITTEngine.GameToolkit.UI
             set
             {
                 _value = Calc.Clamp(value, _minValue, _maxValue);
-                Invalidate();
+                Gui.InvalidateVisual();
             }
         }
 
@@ -35,7 +35,7 @@ namespace BLITTEngine.GameToolkit.UI
                     _value = _minValue;
                 }
 
-                Invalidate();
+                Gui.InvalidateVisual();
             }
         }
 
@@ -56,7 +56,7 @@ namespace BLITTEngine.GameToolkit.UI
                     _value = _maxValue;
                 }
 
-                Invalidate();
+                Gui.InvalidateVisual();
             }
         }
 
@@ -77,7 +77,7 @@ namespace BLITTEngine.GameToolkit.UI
                     _step = _maxValue - _minValue;
                 }
 
-                Invalidate();
+                Gui.InvalidateVisual();
             }
         }
 
@@ -90,12 +90,11 @@ namespace BLITTEngine.GameToolkit.UI
 
                 if (_orientation == Orientation.Vertical)
                 {
-                    int temp = W;
-                    W = H;
-                    H = temp;
+                    Resize(H, W);
+                    
                 }
 
-                Invalidate();
+                Gui.InvalidateVisual();
             }
         }
 
@@ -146,7 +145,7 @@ namespace BLITTEngine.GameToolkit.UI
             _value = (int)(((_maxValue - _minValue) * factor + _minValue) / _step) * _step;
             OnValueChange?.Invoke(this, _value);
 
-            Invalidate();
+            Gui.InvalidateVisual();
 
         }
 
@@ -157,8 +156,8 @@ namespace BLITTEngine.GameToolkit.UI
 
         internal GuiSlider(Gui gui, GuiContainer parent, int value, int minValue, int maxValue, int step, Orientation orientation) : base(gui, parent)
         {
-            W = DefaultSize.W;
-            H = DefaultSize.H;
+            w = DefaultSize.W;
+            h = DefaultSize.H;
 
             this._minValue = minValue;
             this._maxValue = maxValue;
@@ -177,8 +176,8 @@ namespace BLITTEngine.GameToolkit.UI
             if (_orientation == Orientation.Vertical)
             {
                 int temp = W;
-                W = H;
-                H = temp;
+                w = H;
+                h = temp;
             }
         }
     }

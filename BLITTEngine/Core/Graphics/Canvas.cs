@@ -1,28 +1,42 @@
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using BLITTEngine.Core.Common;
 using BLITTEngine.Core.Foundation;
 using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.Core.Graphics
 {
-    public enum CanvasFullscreenStretchMode
+    public enum CanvasStretchMode : byte
     {
-        PixelPerfect,
+        PixelPerfect = 0,
         LetterBox,
         Stretch,
-        Fit
+        Resize
     }
 
     public unsafe class Canvas
     {
         public Font DefaultFont => default_font;
 
-        public ShaderProgram ScreenShader
+        public int Width { get; private set; }
+
+        public int Height { get; private set; }
+
+        public CanvasStretchMode StretchMode
         {
-            get => screen_shader;
-            set => screen_shader = value;
+            get => stretch_mode;
+            set => stretch_mode = value;
         }
+
+        public Point2 RenderAreaTopLeft => render_area.TopLeft;
+        
+        public int RenderWidth => render_area.Width;
+        public int RenderHeight => render_area.Height;
+
+        public float RenderScaleX => render_scale_x;
+
+        public float RenderScaleY => render_scale_y;
 
         public Font DefaultFont2 => default_font2;
         
@@ -33,12 +47,14 @@ namespace BLITTEngine.Core.Graphics
             gfx = graphics_context;
 
             vertex_max_count = max_vertex_count;
-
+            
             Width = width;
 
             Height = height;
 
-            renderer_surface = Game.Instance.ContentManager.CreateRenderTarget(width, height);
+            render_area = Rect.FromBox(0, 0, width, height);
+            
+            main_surface = new CanvasSurface(render_area);
 
             default_shader = Game.Instance.ContentManager.Get<ShaderProgram>("base_2d");
 
@@ -46,35 +62,30 @@ namespace BLITTEngine.Core.Graphics
             default_font2 = Game.Instance.ContentManager.Get<Font>("default_font2");            
 
             current_shader = default_shader;
+            
+            aditional_surfaces = new CanvasSurface[2];
 
-            OnScreenResized(width, height);
-
+            OnScreenResized(Game.Instance.ScreenSize.W, Game.Instance.ScreenSize.H);
+            
             SetBlendMode(BlendMode.AlphaBlend);
 
             var prim_pixmap = new Pixmap(10, 10);
             
             prim_pixmap.Fill(Color.White);
 
-            primitives_blend_mode = BlendMode.AlphaBlend;
-
             prim_texture = Game.Instance.ContentManager.CreateTexture(prim_pixmap, false, false);
 
             prim_pixmap.Dispose();
 
-            _InitRenderBuffers();
+            InitRenderBuffers();
             
         }
 
-        public int Width { get; }
-
-        public int Height { get; }
         
-        
-        
-        public void SetBlendMode(BlendMode blend_mode)
+        private void SetBlendMode(BlendMode blend_mode)
         {
             if (current_blend_mode == blend_mode) return;
-
+            
             current_blend_mode = blend_mode;
 
             switch (blend_mode)
@@ -108,7 +119,7 @@ namespace BLITTEngine.Core.Graphics
 
         public void SetShader(ShaderProgram shader)
         {
-            _RenderBatch();
+            RenderBatch();
             
             current_shader = shader ?? default_shader;
         }
@@ -119,14 +130,30 @@ namespace BLITTEngine.Core.Graphics
             
             current_render_pass = 0;
             
-            SetRenderTarget();
+            SetSurface();
         }
 
-        public void SetRenderTarget(RenderTarget target=null)
+        internal void EndRendering()
         {
-            _RenderBatch();
+            RenderBatch();
             
-            if (target != null)
+            ResetRenderState();
+            
+            RenderSurface(main_surface, (byte) (max_render_pass+1));
+
+            if (aditional_surface_idx == 0)
+            {
+                return;
+            }
+            
+            RenderAditionalSurfaces();
+        }
+
+        public void SetSurface(CanvasSurface surface=null)
+        {
+            RenderBatch();
+            
+            if (surface != null)
             {
                 current_render_pass++;
 
@@ -137,48 +164,18 @@ namespace BLITTEngine.Core.Graphics
             }
             else
             {
-                target = renderer_surface;
+                surface = main_surface;
                 current_render_pass = 0;
             }
             
-            gfx.SetRenderTarget(current_render_pass, target);
+            Matrix4x4 projection = surface.Projection;
+            
+            gfx.SetRenderTarget(current_render_pass, surface.RenderTarget);
             gfx.Touch(current_render_pass);
             Bgfx.SetViewMode(current_render_pass, ViewMode.Sequential);
-            gfx.SetClearColor(current_render_pass, 0x000000FF);
-            
-            gfx.SetViewport(current_render_pass, 0, 0, target.Width, target.Height);
-
-            Matrix4x4 projection;
-            
-            if (target != renderer_surface)
-            {
-                projection = Matrix4x4.CreateOrthographicOffCenter(
-                    0,
-                    target.Width,
-                    target.Height,
-                    0,
-                    0.0f,
-                    1000.0f
-                );
-                
-            }
-            else
-            {
-                projection = render_surface_proj_matrix;
-            }
-            
+            gfx.SetClearColor(current_render_pass, surface != main_surface ? 0x00000000 : 0x000000FF);
+            gfx.SetViewport(current_render_pass, 0, 0, surface.Width, surface.Height);
             gfx.SetProjection(current_render_pass, &projection.M11);
-        }
-        
-        
-
-        internal void EndRendering()
-        {
-            _RenderBatch();
-            
-            ResetRenderState();
-            
-            _DrawScreenQuad();
         }
 
         public void BeginClip(int x, int y, int w, int h)
@@ -194,12 +191,14 @@ namespace BLITTEngine.Core.Graphics
         public void DrawQuad(Texture2D texture, ref Quad quad)
         {
             if (vertex_index >= vertex_max_count ||
-                current_texture != texture ||
-                current_blend_mode != quad.Blend)
+                current_texture != texture || current_blend_mode != quad.Blend)
             {
-                _RenderBatch();
+                RenderBatch();
 
-                if (current_blend_mode != quad.Blend) SetBlendMode(quad.Blend);
+                if (current_blend_mode != quad.Blend)
+                {
+                    SetBlendMode(quad.Blend);
+                }
 
                 current_texture = texture;
             }
@@ -229,12 +228,14 @@ namespace BLITTEngine.Core.Graphics
         public void DrawRect(float x, float y, float w, float h, Color color)
         {
             if (vertex_index >= vertex_max_count ||
-                current_texture != prim_texture ||
-                current_blend_mode != primitives_blend_mode)
+                current_texture != prim_texture || current_blend_mode != BlendMode.AlphaBlend)
             {
-                _RenderBatch();
+                RenderBatch();
 
-                if (current_blend_mode != primitives_blend_mode) SetBlendMode(primitives_blend_mode);
+                if (current_blend_mode != BlendMode.AlphaBlend)
+                {
+                    SetBlendMode(BlendMode.AlphaBlend);
+                }
 
                 current_texture = prim_texture;
             }
@@ -253,10 +254,10 @@ namespace BLITTEngine.Core.Graphics
                 *(vertex_ptr + vidx++) = new Vertex2D(x, y + 1, 0, 0, col);
 
                 // Bottom Edge
-                *(vertex_ptr + vidx++) = new Vertex2D(x, y + h, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x, y + h-1, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x + w, y + h-1, 0, 0, col);
                 *(vertex_ptr + vidx++) = new Vertex2D(x + w, y + h, 0, 0, col);
-                *(vertex_ptr + vidx++) = new Vertex2D(x + w, y + h + 1, 0, 0, col);
-                *(vertex_ptr + vidx++) = new Vertex2D(x, y + h + 1, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x, y + h, 0, 0, col);
 
                 // Left Edge
                 *(vertex_ptr + vidx++) = new Vertex2D(x, y, 0, 0, col);
@@ -265,10 +266,10 @@ namespace BLITTEngine.Core.Graphics
                 *(vertex_ptr + vidx++) = new Vertex2D(x, y + h, 0, 0, col);
 
                 // Right Edge
+                *(vertex_ptr + vidx++) = new Vertex2D(x + w-1, y, 0, 0, col);
                 *(vertex_ptr + vidx++) = new Vertex2D(x + w, y, 0, 0, col);
-                *(vertex_ptr + vidx++) = new Vertex2D(x + w + 1, y, 0, 0, col);
-                *(vertex_ptr + vidx++) = new Vertex2D(x + w + 1, y + h + 1, 0, 0, col);
-                *(vertex_ptr + vidx) = new Vertex2D(x + w, y + h + 1, 0, 0, col);
+                *(vertex_ptr + vidx++) = new Vertex2D(x + w, y + h, 0, 0, col);
+                *(vertex_ptr + vidx) = new Vertex2D(x + w-1, y + h, 0, 0, col);
             }
 
             unchecked
@@ -280,13 +281,15 @@ namespace BLITTEngine.Core.Graphics
         public void FillRect(float x, float y, float w, float h, Color color)
         {
             if (vertex_index >= vertex_max_count ||
-                current_texture != prim_texture ||
-                current_blend_mode != primitives_blend_mode)
+                current_texture != prim_texture || current_blend_mode != BlendMode.AlphaBlend)
             {
-                _RenderBatch();
-
-                if (current_blend_mode != primitives_blend_mode) SetBlendMode(primitives_blend_mode);
+                RenderBatch();
                 
+                if (current_blend_mode != BlendMode.AlphaBlend)
+                {
+                    SetBlendMode(BlendMode.AlphaBlend);
+                }
+
                 current_texture = prim_texture;
             }
 
@@ -350,18 +353,26 @@ namespace BLITTEngine.Core.Graphics
             gfx.TakeScreenShot(path);
         }
 
+        public void AddSurface(CanvasSurface surface)
+        {
+            if (aditional_surface_idx >= aditional_surfaces.Length)
+            {
+                Array.Resize(ref aditional_surfaces, aditional_surface_idx+1);
+            }
+            
+            aditional_surfaces[aditional_surface_idx++] = surface;
+        }
+        
         internal void OnScreenResized(int width, int height)
         {
-            Console.WriteLine($"CANVAS : ON SCREEN RESIZED: {width.ToString()}, {height.ToString()}");
-
             gfx.ResizeBackBuffer(width, height);
             
-            var canvas_w = Width;
-            var canvas_h = Height;
+            var canvas_w = this.Width;
+            var canvas_h = this.Height;
 
             switch (stretch_mode)
             {
-                case CanvasFullscreenStretchMode.PixelPerfect:
+                case CanvasStretchMode.PixelPerfect:
 
                     if (width > canvas_w || height > canvas_h)
                     {
@@ -378,16 +389,19 @@ namespace BLITTEngine.Core.Graphics
 
                         var margin_x = (width - canvas_w * scale_w) / 2;
                         var margin_y = (height - canvas_h * scale_h) / 2;
+                        
+                        render_scale_x = scale_w;
+                        render_scale_y = scale_h;
 
-                        render_area = IntRect.FromBox(margin_x, margin_y, canvas_w * scale_w, canvas_h * scale_h);
+                        render_area = Rect.FromBox(margin_x, margin_y, canvas_w * scale_w, canvas_h * scale_h);
                     }
                     else
                     {
-                        render_area = IntRect.FromBox(0, 0, canvas_w, canvas_h);
+                        render_area = Rect.FromBox(0, 0, canvas_w, canvas_h);
                     }
 
                     break;
-                case CanvasFullscreenStretchMode.LetterBox:
+                case CanvasStretchMode.LetterBox:
 
                     if (width > canvas_w || height > canvas_h)
                     {
@@ -404,37 +418,57 @@ namespace BLITTEngine.Core.Graphics
 
                         var margin_x = (int) ((width - canvas_w * scale_w) / 2);
                         var margin_y = (int) ((height - canvas_h * scale_h) / 2);
+                        
+                        render_scale_x = scale_w;
+                        render_scale_y = scale_h;
 
-                        render_area = IntRect.FromBox(margin_x, margin_y, (int) (canvas_w * scale_w),
+                        render_area = Rect.FromBox(margin_x, margin_y, (int) (canvas_w * scale_w),
                             (int) (canvas_h * scale_h));
                     }
                     else
                     {
-                        render_area = IntRect.FromBox(0, 0, canvas_w, canvas_h);
+                        render_scale_x = 1.0f;
+                        render_scale_y = 1.0f;
+                        render_area = Rect.FromBox(0, 0, canvas_w, canvas_h);
                     }
 
                     break;
-                case CanvasFullscreenStretchMode.Stretch:
+                case CanvasStretchMode.Stretch:
 
-                    render_area = IntRect.FromBox(0, 0, width, height);
+                    render_scale_x = (float)width / canvas_w;
+                    render_scale_y = (float)height / canvas_h;;
+                    render_area = Rect.FromBox(0, 0, width, height);
 
                     break;
-                case CanvasFullscreenStretchMode.Fit:
+                case CanvasStretchMode.Resize:
+
+                    if (width == canvas_w && height == canvas_h)
+                    {
+                        break;
+                    }
+                    
+                    render_scale_x = 1.0f;
+                    render_scale_y = 1.0f;
+                    
+                    render_area = Rect.FromBox(0, 0, width, height);
+                    
+                    Console.WriteLine($"Stretch Resize: {width}, {height}");
+                    
+                    main_surface.ResizeSurface(width, height);
+                    
+                    for (int i = 0; i < aditional_surface_idx; ++i)
+                    {
+                        aditional_surfaces[i].ResizeSurface(width, height);
+                    }
+
+                    this.Width = width;
+                    this.Height = height;
 
                     break;
             }
 
             Console.WriteLine(
                 $"Render Area: {render_area.X1.ToString()}, {render_area.Y1.ToString()}, {render_area.Width.ToString()}, {render_area.Height.ToString()}");
-
-            render_surface_proj_matrix = Matrix4x4.CreateOrthographicOffCenter(
-                0,
-                render_area.Width,
-                render_area.Height,
-                0,
-                0.0f,
-                1000.0f
-            );
 
             screen_proj_matrix = Matrix4x4.CreateOrthographicOffCenter(
                 0,
@@ -445,14 +479,23 @@ namespace BLITTEngine.Core.Graphics
                 1.0f
             );
 
+            main_surface.SetArea(render_area);
+
+            if (aditional_surface_idx == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < aditional_surface_idx; ++i)
+            {
+                aditional_surfaces[i].SetArea(render_area);
+            }
            
         }
 
-        private void _InitRenderBuffers()
+        private void InitRenderBuffers()
         {
             vertex_array = new Vertex2D[vertex_max_count];
-
-            render_surface_vertex_array = new Vertex2D[4];
 
             index_array = new ushort[vertex_max_count / 4 * 6];
 
@@ -471,7 +514,7 @@ namespace BLITTEngine.Core.Graphics
             index_buffer = gfx.CreateIndexBuffer(index_array);
         }
 
-        private void _RenderBatch()
+        private void RenderBatch()
         {
             if (vertex_index == 0) return;
 
@@ -489,63 +532,52 @@ namespace BLITTEngine.Core.Graphics
             vertex_index = 0;
         }
 
-        private void _DrawScreenQuad()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void RenderAditionalSurfaces()
         {
-
-            if (screen_shader != null)
+            // Render Main Surface
+            
+            for (int i = 0; i < aditional_surface_idx; ++i)
             {
-                SetShader(screen_shader);
+                RenderSurface(aditional_surfaces[i], (byte) (max_render_pass+i+1));
             }
-            
-            //gfx.SetClearColor(current_render_pass, 0x000000FF);
-            
-            var rx = render_area.X1;
-            var ry = render_area.Y1;
-            var rx2 = render_area.X2;
-            var ry2 = render_area.Y2;
-            
-            fixed (Vertex2D* vertex_ptr = render_surface_vertex_array)
-            {
-                *(vertex_ptr + 0) = new Vertex2D(rx, ry, 0, 0, 0xFFFFFFFF);
-                *(vertex_ptr + 1) = new Vertex2D(rx2, ry, 1, 0, 0xFFFFFFFF);
-                *(vertex_ptr + 2) = new Vertex2D(rx2, ry2, 1, 1, 0xFFFFFFFF);
-                *(vertex_ptr + 3) = new Vertex2D(rx, ry2, 0, 1, 0xFFFFFFFF);
-            }
+        }
 
-            var vertex_buffer = gfx.StreamVertices2D(render_surface_vertex_array, 4);
-
-            gfx.SetViewport((byte) (max_render_pass+1), 0, 0, Game.Instance.ScreenSize.W, Game.Instance.ScreenSize.H);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void RenderSurface(CanvasSurface surface, byte render_pass)
+        {
+            var vertex_buffer = gfx.StreamVertices2D(surface.Vertices, 4);
+                
+            gfx.SetViewport(render_pass, 0, 0, Game.Instance.ScreenSize.W, Game.Instance.ScreenSize.H);
 
             var projection = screen_proj_matrix;
 
-            gfx.SetProjection((byte) (max_render_pass+1), &projection.M11);
+            gfx.SetProjection(render_pass, &projection.M11);
             
-            gfx.Submit((byte) (max_render_pass+1), 4, current_shader, index_buffer, vertex_buffer, renderer_surface,
-               RenderState.WriteRGB | RenderState.WriteA);
+            gfx.Submit(render_pass, 4, surface.Shader ?? default_shader, index_buffer, vertex_buffer, surface.RenderTarget,
+                RenderState.WriteRGB | RenderState.WriteA | RenderState.BlendAlpha);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ResetRenderState()
         {
-            render_state = RenderState.WriteRGB | RenderState.WriteA |
-                           RenderState.BlendFunction(RenderState.BlendSourceAlpha,
-                               RenderState.BlendInverseSourceAlpha);
-            
-            
             SetShader(null);
         }
         
         
         private readonly GraphicsContext gfx;
 
-        private readonly RenderTarget renderer_surface;
-
-        private BlendMode current_blend_mode;
+        private BlendMode current_blend_mode = BlendMode.None;
 
         private ShaderProgram current_shader;
 
-        private ShaderProgram screen_shader;
-        
         private readonly ShaderProgram default_shader;
+
+        private readonly CanvasSurface main_surface;
+        
+        private CanvasSurface[] aditional_surfaces;
+
+        private int aditional_surface_idx;
 
         private Texture2D current_texture;
 
@@ -559,15 +591,11 @@ namespace BLITTEngine.Core.Graphics
 
         private readonly Texture2D prim_texture;
 
-        private readonly BlendMode primitives_blend_mode;
-
-        private IntRect render_area;
+        private Rect render_area;
 
         private RenderState render_state;
 
-        private Vertex2D[] render_surface_vertex_array;
-
-        private readonly CanvasFullscreenStretchMode stretch_mode = CanvasFullscreenStretchMode.LetterBox;
+        private CanvasStretchMode stretch_mode = CanvasStretchMode.PixelPerfect;
 
         private Vertex2D[] vertex_array;
 
@@ -575,13 +603,15 @@ namespace BLITTEngine.Core.Graphics
 
         private readonly int vertex_max_count;
 
-        private Matrix4x4 render_surface_proj_matrix;
-
         private Matrix4x4 screen_proj_matrix;
 
         private byte current_render_pass;
 
         private byte max_render_pass;
+
+        private float render_scale_x = 1.0f;
+
+        private float render_scale_y = 1.0f;
 
         private int draw_calls;
 

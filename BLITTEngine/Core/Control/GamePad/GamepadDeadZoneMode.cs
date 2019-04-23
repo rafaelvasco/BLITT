@@ -19,9 +19,9 @@
     //     The values of each stick are not processed and are returned by GetState as
     //     "raw" values. This is best if you intend to implement your own dead zone
     //     processing.
-    public enum GamepadDeadZoneMode
+    public enum GamepadDeadZoneMode : byte
     {
-        None,
+        None = 0,
         IndependentAxis,
         Circular
     }

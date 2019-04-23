@@ -58,7 +58,6 @@ namespace BLITTDemo
 
 
             ball_texture = Content.Get<Texture2D>("particles");
-            ball_quad.Blend = BlendMode.AlphaBlend;
 
             ball_quad.V0.X = x - 16;
             ball_quad.V0.Y = y - 16;
@@ -85,7 +84,6 @@ namespace BLITTDemo
             bg_texture = Content.Get<Texture2D>("bg3");
             bg_texture.Filtered = true;
             bg_texture.Tiled = true;
-            bg_quad.Blend = BlendMode.AlphaBlend;
 
             bg_quad.V0.X = 0;
             bg_quad.V0.Y = 0;

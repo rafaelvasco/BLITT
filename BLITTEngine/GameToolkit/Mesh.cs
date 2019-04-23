@@ -4,18 +4,16 @@ using BLITTEngine.Core.Resources;
 
 namespace BLITTEngine.GameToolkit
 {
-    public enum MeshDisplacementReference
+    public enum MeshDisplacementReference : byte
     {
-        Node,
+        Node = 0,
         TopLeft,
         Center
     }
 
     public class Mesh
     {
-        public BlendMode BlendMode => _quad.Blend;
-        
-        public Rect TextureRect => new Rect(_src_x, _src_y, _src_w, _src_h);
+        public RectF TextureRect => new RectF(_src_x, _src_y, _src_w, _src_h);
 
         public int Rows => _rows;
         
@@ -29,7 +27,6 @@ namespace BLITTEngine.GameToolkit
             _rows = rows;
             _cols = cols;
             _cell_w = _cell_h = 0;
-            _quad.Blend = BlendMode.AlphaBlend;
             _mesh_vertices = new Vertex2D[rows * cols];
 
             for (int i = 0; i < rows * cols; ++i)
@@ -74,7 +71,6 @@ namespace BLITTEngine.GameToolkit
                     _quad.V3.Y = y + _mesh_vertices[idx+_cols].Y;
                     _quad.V3.Col = _mesh_vertices[idx+_cols].Col;
                     
-                    
                     canvas.DrawQuad(_texture, ref _quad);
                 }
             }
@@ -117,15 +113,10 @@ namespace BLITTEngine.GameToolkit
                     _quad.V3.Y = y + _mesh_vertices[idx+_cols].Y*scale_y;
                     _quad.V3.Col = _mesh_vertices[idx+_cols].Col;
                     
-                    
                     canvas.DrawQuad(_texture, ref _quad);
-                    //canvas.SetColor(Color.Red);
-                    //canvas.DrawRect(_quad.V0.X, _quad.V0.Y, _quad.V1.X - _quad.V0.X, _quad.V2.Y - _quad.V0.Y);
                 }
             }
         }
-        
-        
 
         public void Clear(Color color)
         {
@@ -188,11 +179,6 @@ namespace BLITTEngine.GameToolkit
             }
         }
 
-        public void SetBlendMode(BlendMode blend)
-        {
-            _quad.Blend = blend;
-        }
-
         public void SetColor(int col, int row, Color color)
         {
             if (row < _rows && col < _cols)
@@ -236,6 +222,11 @@ namespace BLITTEngine.GameToolkit
             }
 
             return 0;
+        }
+
+        public void SetBlendMode(BlendMode mode)
+        {
+            _quad.Blend = mode;
         }
 
         public void GetDisplacement(int col, int row, out float dx, out float dy, MeshDisplacementReference reference)

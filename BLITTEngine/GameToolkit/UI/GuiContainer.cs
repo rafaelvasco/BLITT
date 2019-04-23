@@ -1,19 +1,17 @@
 using System.Collections.Generic;
+using BLITTEngine.Core.Common;
 using BLITTEngine.Core.Graphics;
+using BLITTEngine.GameToolkit.UI.Layouts;
 
 namespace BLITTEngine.GameToolkit.UI
 {
-    
     public class GuiContainer : GuiControl
     {
-        
-
         public int Padding { get; set; } = 10;
-
+        
         public GuiButton AddButton(string label)
         {
             var button = new GuiButton(Gui, this) {Label = label};
-
 
             AddWidget( button);
 
@@ -31,10 +29,7 @@ namespace BLITTEngine.GameToolkit.UI
 
         public GuiPanel AddPanel()
         {
-            var panel = new GuiPanel(Gui, this)
-            {
-                IsContainer = true
-            };
+            var panel = new GuiPanel(Gui, this);
 
             AddWidget(panel);
 
@@ -57,9 +52,10 @@ namespace BLITTEngine.GameToolkit.UI
             return slider;
         }
 
+        
         public GuiContainer AddContainer()
         {
-            var container = new GuiContainer(Gui, this) { IsContainer = true };
+            var container = new GuiContainer(Gui, this);
 
             AddWidget(container);
 
@@ -68,7 +64,7 @@ namespace BLITTEngine.GameToolkit.UI
 
         public HorizontalContainer AddHorizontalContainer()
         {
-            var container = new HorizontalContainer(Gui, this) { IsContainer = true };
+            var container = new HorizontalContainer(Gui, this);
 
             AddWidget(container);
 
@@ -77,18 +73,126 @@ namespace BLITTEngine.GameToolkit.UI
 
         public VerticalContainer AddVerticalContainer()
         {
-            var container = new VerticalContainer(Gui, this) { IsContainer = true };
+            var container = new VerticalContainer(Gui, this);
 
             AddWidget(container);
 
             return container;
         }
+        
+        internal virtual void DoLayout()
+        {
+            ProcessDocking();
 
-        protected virtual void DoLayout() { }
+            for (int i = 0; i < children.Count; i++)
+            {
+                var control = children[i];
+
+                control.SetPosition(
+                    Calc.Clamp(control.X, this.Padding, this.W - this.Padding - control.W), 
+                    Calc.Clamp(control.Y, this.Padding, this.H - this.Padding - control.H)
+                );
+
+                int newW = control.W;
+                int newH = control.H;
+                
+                if (control.X + control.W > this.W - Padding)
+                {
+                    newW = this.W - control.X - Padding;
+                }
+                
+                if (control.Y + control.H > this.H - Padding)
+                {
+                    newH = this.H - control.Y - Padding;
+                }
+                
+                control.Resize(newW, newH);
+                
+            }
+        }
+
+        internal virtual void DoAutoSize()
+        {
+            if (children.Count == 0)
+            {
+                return;
+            }
+            
+            int maxW = 2*Padding;
+            int maxH = 2*Padding;
+
+            for (int i = 0; i < children.Count; i++)
+            {
+                var control = children[i];
+
+                if (control.X + control.W  > maxW )
+                {
+                    maxW = control.X + control.W + Padding;
+                }
+
+                if (control.Y + control.H > maxH)
+                {
+                    maxH = control.Y + control.H + Padding;
+                }
+            }
+
+            this.w = Calc.Max(maxW, this.w);
+            this.h = Calc.Max(maxH, this.h);
+
+        }
+        
+        protected virtual void ProcessDocking()
+        {
+            for (int i = 0; i < children.Count; i++)
+            {
+                var control = children[i];
+                
+                switch (control.Docking)
+                {
+                    case GuiDocking.Top:
+
+                        control.Resize(this.W - 2 * this.Padding, control.H);
+                        control.x = this.Padding;
+                        control.y = this.Padding;
+                    
+                        break;
+                    case GuiDocking.Center:
+
+                        control.Resize(this.W - 2 * this.Padding, this.H - 2 * this.Padding);
+                        control.x = this.Padding;
+                        control.y = this.Padding;
+                        
+                        break;
+                    case GuiDocking.Bottom:
+
+                        control.Resize(this.W - 2 * this.Padding, control.H);
+                        
+                        control.x = this.Padding;
+                        control.y = this.H - this.Padding - control.h;
+                        
+                        break;
+                    case GuiDocking.Left:
+                        
+                        control.Resize(control.W, this.H - 2 * this.Padding);
+
+                        control.x = this.Padding;
+                        control.y = this.Padding;
+                        
+                        break;
+                    case GuiDocking.Right:
+                        
+                        control.Resize(control.W, this.H - 2 * this.Padding);
+
+                        control.x = this.W - this.Padding - control.W;
+                        control.y = this.Padding;
+                        
+                        break;
+                }
+            }
+        }
 
         internal override void Update(GuiMouseState mouseState)
         {
-            
             foreach (var widget in children)
             {
                 if ( this.BoundingRect.Intersects(widget.BoundingRect))
@@ -107,6 +211,8 @@ namespace BLITTEngine.GameToolkit.UI
 
             canvas.BeginClip(x, y, w, h);
             
+            canvas.DrawRect(x, y, w, h, Color.Fuchsia);
+            
             foreach (var widget in children)
             {
                 widget.Draw(canvas, theme);
@@ -117,16 +223,18 @@ namespace BLITTEngine.GameToolkit.UI
 
         internal GuiContainer(Gui gui, int width, int height) : base(gui)
         {
-            W = width;
-            H = height;
+            w = width;
+            h = height;
             children =
                 new List<GuiControl>();
         } 
 
         internal GuiContainer(Gui gui, GuiContainer parent) : base(gui, parent)
         {
-            W = parent.W ;
-            H = parent.H;
+            w = 0;
+            h = 0;
+            x = 0;
+            y = 0;
             children = 
                 new List<GuiControl>();
         }
@@ -134,273 +242,13 @@ namespace BLITTEngine.GameToolkit.UI
         private void AddWidget(GuiControl guiControl)
         {
             children.Add(guiControl);
-            DoLayout();
-        }
-        
-        protected readonly List<GuiControl> children;
-        
-    }
-    
-    public enum HAlignment
-    {
-        Left,
-        Center, 
-        Right,
-        Stretch
-    }
-        
-    public enum VAlignment
-    {
-        Top,
-        Center,
-        Bottom,
-        Stretch
-    }
-
-    public class VerticalContainer : GuiContainer
-    {
-        
-        public int ItemSpacing { get; set; } = 10;
-        public VAlignment AlignVertical { get; set; } = VAlignment.Top;
-        public HAlignment AlignHorizontal { get; set; } = HAlignment.Left;
-
-        internal VerticalContainer(Gui gui, GuiContainer parent) : base(gui, parent)
-        {
-        }
-
-        protected override void DoLayout()
-        {
-
-            int length = children.Count;
-
-            if (length == 0)
-            {
-                return;
-            }
-
-            int total_height = 0;
-
-            for (int i = 0; i < length; i++)
-            {
-                total_height += children[i].H;
-            }
-
-            total_height += (length - 1) * ItemSpacing;
-
-            for (int i = 0; i < length; i++)
-            {
-                var widget = children[i];
-
-                switch (AlignHorizontal)
-                {
-                    case HAlignment.Left:
-
-                        widget.X = this.X + this.Padding;
-                        
-                        break;
-                    case HAlignment.Center:
-
-                        widget.X = this.X + this.W / 2 - widget.W / 2; 
-                            
-                        
-                        break;
-                    case HAlignment.Right:
-
-                        widget.X = this.X + this.W - widget.W - this.Padding;
-                        
-                        break;
-                    
-                    case HAlignment.Stretch:
-
-                        widget.X = this.X + this.Padding;
-
-                        if (!widget.FixedSize)
-                        {
-                            widget.W = this.W - 2 * Padding;
-                        }
-                        
-                        break;
-                }
-
-                switch (AlignVertical)
-                {
-                    case VAlignment.Top:
-
-                        widget.Y = this.Y + this.Padding;
-                        
-                        if (i > 0)
-                        {
-                            widget.Y = children[i - 1].Y + children[i - 1].H + ItemSpacing;
-                        }
-                        
-                        break;
-                    case VAlignment.Center:
-
-                        widget.Y = this.Y + this.H / 2 - (total_height)/2;
-
-                        if (i > 0)
-                        {
-                            widget.Y = children[i - 1].Y + children[i - 1].H + ItemSpacing;
-                        }
-                        
-                        break;
-                    case VAlignment.Bottom:
-
-                        widget.Y = this.Y + this.H - total_height - this.Padding;
-
-                        if (i > 0)
-                        {
-                            widget.Y = children[i - 1].Y + children[i - 1].H + ItemSpacing;
-                        }
-                        
-                        break;
-                    
-                    case VAlignment.Stretch:
-
-                        widget.LayoutH = (this.H - 2 * Padding - (children.Count - 1) * ItemSpacing) / children.Count;
-                        
-                        if (!widget.FixedSize)
-                        {
-                            widget.H = widget.LayoutH;
-                        }
-
-                        if (i == 0)
-                        {
-                            widget.Y = this.Y + this.Padding;
-                        }
-                        else
-                        {
-                            widget.Y = children[i - 1].Y + children[i - 1].LayoutH + ItemSpacing;
-                        }
-
-                        break;
-                }
-            }
-        }
-    }
-
-    public class HorizontalContainer : GuiContainer
-    {
-        public int ItemSpacing { get; set; } = 10;
-        public VAlignment AlignVertical { get; set; } = VAlignment.Top;
-        public HAlignment AlignHorizontal { get; set; } = HAlignment.Left;
-
-        internal HorizontalContainer(Gui gui, GuiContainer parent) : base(gui, parent)
-        {
-        }
-
-        protected override void DoLayout()
-        {
-            int length = children.Count;
-
-            if (length == 0)
-            {
-                return;
-            }
-
-            int total_width = 0;
-
-            for (int i = 0; i < length; i++)
-            {
-                total_width += children[i].W;
-            }
-
-            int x = this.X;
-            int y = this.Y;
-
-            total_width += (length - 1) * ItemSpacing;
-
-            for (int i = 0; i < length; i++)
-            {
-                var widget = children[i];
-
-                switch (AlignHorizontal)
-                {
-                    case HAlignment.Left:
-
-                        widget.X = x + this.Padding;
-                        
-                        if (i > 0)
-                        {
-                            widget.X = children[i - 1].X + children[i - 1].W + ItemSpacing;
-                        }
-                        
-                        break;
-                    case HAlignment.Center:
-
-                        widget.X = x + this.W / 2 - (total_width)/2;
-
-                        if (i > 0)
-                        {
-                            widget.X = children[i - 1].X + children[i - 1].W + ItemSpacing;
-                        }
-                        
-                        break;
-                    
-                    case HAlignment.Right:
-
-                        widget.X = x + this.W - total_width - this.Padding;
-
-                        if (i > 0)
-                        {
-                            widget.X = children[i - 1].X + children[i - 1].W + ItemSpacing;
-                        }
-                        
-                        break;
-                    
-                    case HAlignment.Stretch:
-
-                        widget.LayoutW = (this.W - 2 * Padding - (children.Count - 1) * ItemSpacing) / children.Count;
-                        
-                        if (!widget.FixedSize)
-                        {
-                            widget.W = widget.LayoutW;
-                        }
-
-                        if (i == 0)
-                        {
-                            widget.X = x + this.Padding;
-                        }
-                        else
-                        {
-                            widget.X = children[i - 1].X + children[i - 1].LayoutW + ItemSpacing;
-                        }
-                        
-                        break;
-                }
-
-                switch (AlignVertical)
-                {
-                    case VAlignment.Top:
-
-                        widget.Y = y + this.Padding;
-                        
-                        break;
-                    case VAlignment.Center:
-
-                        widget.Y = y + this.H / 2 - widget.H / 2; 
-                        
-                        break;
-                    case VAlignment.Bottom:
-                        
-                        widget.Y = y + this.H - widget.H - this.Padding;
-                        
-                        break;
-
-                      
-                    case VAlignment.Stretch:
-
-                        widget.Y = y + this.Padding;
-
-                        if (!widget.FixedSize)
-                        {
-                            widget.H = this.H - 2 * Padding;
-                        }
-
-                        break;
-                }
-            }
             
+            Gui.InvalidateVisual();
+            Gui.InvalidateLayout();
         }
+        
+        internal readonly List<GuiControl> children;
+        
     }
+  
 }

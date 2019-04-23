@@ -44,7 +44,7 @@ namespace BLITTEngine.Core.Resources
             int tile_width = tex_w / columns;
             int tile_height = tex_h / rows;
             
-            var regions = new Rect[rows * columns];
+            var regions = new RectF[rows * columns];
 
             int index = 0;
             
@@ -55,16 +55,16 @@ namespace BLITTEngine.Core.Resources
                     float x = j * tile_width;
                     float y = i * tile_height;
 
-                    regions[index++] = Rect.FromBox(x, y, tile_width, tile_height);
+                    regions[index++] = RectF.FromBox(x, y, tile_width, tile_height);
                 }   
             }
             
             return new TextureAtlas(texture, regions);
         }
 
-        public static TextureAtlas FromAtlas(Texture2D texture, Dictionary<string, Rect> atlas)
+        public static TextureAtlas FromAtlas(Texture2D texture, Dictionary<string, RectF> atlas)
         {
-            var regions = new Rect[atlas.Count];
+            var regions = new RectF[atlas.Count];
             var map = new Dictionary<string, int>();
 
             var idx = 0;
@@ -85,7 +85,7 @@ namespace BLITTEngine.Core.Resources
         }
 
 
-        private TextureAtlas(Texture2D texture, Rect[] regions)
+        private TextureAtlas(Texture2D texture, RectF[] regions)
         {
             _texture = texture;
             
@@ -95,7 +95,7 @@ namespace BLITTEngine.Core.Resources
             {
                 ref var region = ref regions[i];
                 
-                _quads[i] = new Quad(texture, Rect.FromBox(region.X1, region.Y1, region.Width, region.Height));
+                _quads[i] = new Quad(texture, RectF.FromBox(region.X1, region.Y1, region.Width, region.Height));
             }
         }
 

@@ -1,8 +1,8 @@
 namespace BLITTEngine.Core.Common
 {
-    public enum Origin
+    public enum Origin : byte
     {
-        TopLeft,
+        TopLeft = 0,
         Top, 
         TopRight,
         Left,

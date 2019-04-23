@@ -249,6 +249,13 @@ namespace BLITTEngine.Core.Resources
             _runtime_resources.Add(resource);
         }
 
+        internal void DisposeRuntimeLoaded(Resource resource)
+        {
+            _runtime_resources.Remove(resource);
+            
+            resource.Dispose();
+        }
+
         internal void FreeEverything()
         {
             Console.WriteLine($" > Diposing {_loaded_resources.Count.ToString()} loaded resources.");

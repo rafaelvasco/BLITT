@@ -1,10 +1,10 @@
 ﻿namespace BLITTEngine.Core.Graphics
 {
-    public enum BlendMode
+    public enum BlendMode : byte
     {
-        None,
-        AlphaBlend,
+        AlphaBlend = 0,
         AlphaAdd,
-        ColorMul
+        ColorMul,
+        None
     }
 }

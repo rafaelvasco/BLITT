@@ -21,21 +21,21 @@ namespace BLITTEngine.GameToolkit.UI
                 if (!this.Hovered)
                 {
                     this.Hovered = true;
-                    Invalidate();
+                    Gui.InvalidateVisual();
                 }
 
                 if (mouseState.MouseLeftDown && !this.Active)
                 {
                     this.Active = true;
                     OnPressed?.Invoke(this, EventArgs.Empty);
-                    Invalidate();
+                    Gui.InvalidateVisual();
                 }
                 else if (!mouseState.MouseLeftDown && this.Active)
                 {
                     this.Active = false;
                     OnReleased?.Invoke(this, EventArgs.Empty);
                     OnClick?.Invoke(this, EventArgs.Empty);
-                    Invalidate();
+                    Gui.InvalidateVisual();
                 }
             }
             else
@@ -51,7 +51,7 @@ namespace BLITTEngine.GameToolkit.UI
                     
                     this.Hovered = false;
                     
-                    Invalidate();
+                    Gui.InvalidateVisual();
                     
                 }
             }
@@ -64,8 +64,8 @@ namespace BLITTEngine.GameToolkit.UI
 
         internal GuiButton(Gui gui, GuiContainer parent) : base(gui, parent)
         {
-            W = DefaultSize.W;
-            H = DefaultSize.H;
+            w = DefaultSize.W;
+            h = DefaultSize.H;
         }
     }
 }
